@@ -1,30 +1,40 @@
+# apps/app.py
 import os, sys
 from pathlib import Path
 from flask import Flask
+from werkzeug.middleware.dispatcher import DispatcherMiddleware
 
-# --- importútvonal: felvesszük az apps/ könyvtárat a PYTHONPATH-ra ---
+# --- importútvonal: vegyük fel az apps/ könyvtárat ---
 REPO_ROOT = Path(__file__).resolve().parent.parent
 APPS_DIR = REPO_ROOT / "apps"
 sys.path.insert(0, str(APPS_DIR))
 
-# --- blueprintek importja a három appból ---
-from anthro import anthro_bp          # apps/anthro/__init__.py exportálja
-from readiness import readiness_bp    # apps/readiness/__init__.py exportálja
-from sportmotivation import sportmotivation_bp  # apps/sportmotivation/__init__.py exportálja
+# --- importáld a három meglévő appot ---
+# VÁLTOZAT A) ha van create_app():
+anthro.app import create_app as create_anthro
+# from readiness.app import create_app as create_readiness
+# from sportmotivation_render.app import create_app as create_sport
+# anthro_app = create_anthro()
+# readiness_app = create_readiness()
+# sport_app = create_sport()
 
-def create_app():
-    app = Flask(__name__)
-    app.secret_key = os.environ.get("FLASK_SECRET_KEY", "dev-secret-change-me")
+# VÁLTOZAT B) ha modul-szintű 'app' van:
+from anthro.app import app as anthro_app
+from readiness.app import app as readiness_app
+from sportmotivation.app import app as sportmotivation_app
 
-    # blueprintek felvétele
-    app.register_blueprint(anthro_bp)
-    app.register_blueprint(readiness_bp)
-    app.register_blueprint(sportmotivation_bp)
+# --- egy pici "root" app csak a főoldalra/health-re ---
+root = Flask(__name__)
+@root.get("/")
+def index():
+    return "OK. Elérhető: /anthro , /readiness , /sportmotivation"
 
-    @app.get("/")
-    def root():
-        return "OK: /anthro, /readiness, /sportmotivation elérhető."
+# --- itt rakjuk őket egymás alá prefixszel ---
+application = DispatcherMiddleware(root, {
+    "/anthro": anthro_app,
+    "/readiness": readiness_app,
+    "/sportmotivation": sportmotivation_app,
+})
 
-    return app
-
-app = create_app()
+# Gunicorn ezt a nevet keresi:
+app = application
