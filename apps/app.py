@@ -11,7 +11,9 @@ sys.path.insert(0, str(APPS_DIR))
 
 # --- importáld a három meglévő appot ---
 # VÁLTOZAT A) ha van create_app():
-anthro.app import create_app as create_anthro
+
+from anthro import create_app as create_anthro
+
 # from readiness.app import create_app as create_readiness
 # from sportmotivation_render.app import create_app as create_sport
 # anthro_app = create_anthro()
