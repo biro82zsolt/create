@@ -23,6 +23,7 @@ from reportlab.lib.enums import TA_JUSTIFY
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.lib import colors
+from flask import current_app
 
 import gspread
 from google.oauth2.service_account import Credentials
@@ -342,14 +343,14 @@ def quiz(lang):
 
         # Fájlnevek tokennel + ABS útvonalak
         token = uuid.uuid4().hex[:8]
-        charts_dir  = os.path.join(BASE_DIR, "static", "charts")
-        results_dir = os.path.join(BASE_DIR, "static", "results")
+        static_root = current_app.static_folder  # pl. apps/sportmotivation/static
+        charts_dir = os.path.join(static_root, "charts")
+        results_dir = os.path.join(static_root, "results")
         os.makedirs(charts_dir, exist_ok=True)
         os.makedirs(results_dir, exist_ok=True)
 
         pie_fs = os.path.join(charts_dir, f"pie_{lang}_{token}.png")
         bar_fs = os.path.join(charts_dir, f"bar_{lang}_{token}.png")
-
         # Diagramok
         if total > 0:
             plt.figure(figsize=(6, 6))
@@ -406,7 +407,7 @@ def quiz(lang):
         except Exception as e:
             if DEBUG: print("GSheets logging skipped:", e)
 
-        pdf_url = f"/static/results/{pdf_filename}"
+        pdf_url = url_for('static', filename=f"results/{pdf_filename}")
         return render_template(
             "result.html",
             lang=lang,
