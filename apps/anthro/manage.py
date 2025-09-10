@@ -1,8 +1,8 @@
 # manage.py
 from getpass import getpass
 from werkzeug.security import generate_password_hash
-from app import app
-from models import db, User
+from .app import app
+from .models import db, User
 
 with app.app_context():
     email = input("Email: ").strip().lower()

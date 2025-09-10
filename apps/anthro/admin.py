@@ -8,7 +8,7 @@ from werkzeug.security import generate_password_hash
 from markupsafe import Markup
 from flask import url_for, flash, redirect
 
-from models import db, User, Upload, Result
+from .models import db, User, Upload, Result
 
 
 class SecureModelView(ModelView):

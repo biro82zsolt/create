@@ -14,8 +14,8 @@ from reportlab.platypus import (
 )
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 
-from models import Result
-from anthro_calc import compute_all_metrics  # a Te kalkulátorod (ref_path-ot lásd lent)
+from .models import Result
+from .anthro_calc import compute_all_metrics  # a Te kalkulátorod (ref_path-ot lásd lent)
 
 # --- i18n: egyszerű kulcs-érték fordítások ---
 TRANSLATIONS = {
