@@ -15,9 +15,9 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 from dotenv import load_dotenv
 
-from models import db, User, Upload, Result
-from compute import process_excel_to_results, export_results_excel, export_results_pdfs
-from admin import init_admin  # -> itt történik az Admin felület teljes bekötése
+from .models import db, User, Upload, Result
+from .compute import process_excel_to_results, export_results_excel, export_results_pdfs
+from .admin import init_admin  # -> itt történik az Admin felület teljes bekötése
 
 # ---- .env betöltése ----
 load_dotenv()
