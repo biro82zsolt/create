@@ -12,14 +12,15 @@
 <body>
 <header class="container">
 <h1 class="app-title">{{ texts.title }}</h1>
-<form method="get" action="/" class="lang-form">
-<label>{{ texts.labels.language }}:
-<select name="lang" onchange="this.form.submit()">
-<option value="hu" {{ 'selected' if lang=='hu' else '' }}>{{ texts.labels.hungarian }}</option>
-<option value="en" {{ 'selected' if lang=='en' else '' }}>{{ texts.labels.english }}</option>
-</select>
-</label>
+<form method="get" action="{{ request.path }}" class="lang-form">
+  <label>{{ texts.labels.language }}:
+    <select name="lang" onchange="this.form.submit()">
+      <option value="hu" {{ 'selected' if lang=='hu' else '' }}>{{ texts.labels.hungarian }}</option>
+      <option value="en" {{ 'selected' if lang=='en' else '' }}>{{ texts.labels.english }}</option>
+    </select>
+  </label>
 </form>
+
 </header>
 
 

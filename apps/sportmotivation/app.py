@@ -250,12 +250,16 @@ def append_to_gsheet(row_dict: dict):
     - ha már van fejléc, de hiányoznak oszlopok, bővíti az 1. sort
     - majd a konszolidált fejléc sorrendben írja az új sort
     """
-    sheet_id = os.getenv("GSHEETS_SHEET_ID", "").strip()
-    if not sheet_id:
+    sheet_id = os.getenv("SPORTMOTIVATION_GOOGLE_SHEET_ID", "").strip()
+    sheet_url = os.getenv("GOOGLE_SHEET_URL", "").strip()
+
+    if not sheet_id and not sheet_url:
+        if DEBUG: print("[GSHEETS] Nincs GSHEETS_SHEET_ID vagy GSHEETS_SHEET_URL beállítva.")
         return
 
     gc = _get_gs_client()
     if gc is None:
+        if DEBUG: print("[GSHEETS] Auth sikertelen (GSHEETS_SA_JSON / GSHEETS_SA_FILE?)")
         return
 
     try:

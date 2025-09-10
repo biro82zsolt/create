@@ -58,7 +58,7 @@ def _init_gsheet():
     if _gs_client is not None and _ws is not None:
         return
 
-    sheet_id = os.environ.get("GOOGLE_SHEET_ID") or os.environ.get("GSHEETS_SHEET_ID")
+    sheet_id = os.environ.get("READINESS_GOOGLE_SHEET_ID") or os.environ.get("READINESS_GSHEETS_SHEET_ID")
     if not sheet_id:
         raise RuntimeError("Missing GOOGLE_SHEET_ID / GSHEETS_SHEET_ID env var")
 
@@ -110,6 +110,16 @@ def append_submission_to_sheet(data):
     ]
     print("Appending row to Google Sheet:", row)
     _ws.append_row(row, value_input_option="RAW")
+
+@app.context_processor
+def _lang_switcher():
+    def switch_lang(to_lang: str):
+        args = request.args.to_dict(flat=True)
+        args["lang"] = to_lang
+        endpoint = request.endpoint or "quiz"  # vagy a te fő végpontod
+        values = (request.view_args or {}).copy()
+        return url_for(endpoint, **values, **args)
+    return dict(switch_lang=switch_lang)
 
 # -----------------------------
 # Texts (EN/HU)

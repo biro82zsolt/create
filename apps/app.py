@@ -2,7 +2,7 @@
 import os, sys
 from importlib import import_module
 from pathlib import Path
-from flask import Flask
+from flask import Flask, redirect
 from werkzeug.middleware.dispatcher import DispatcherMiddleware
 
 # --- apps/ mappa felvétele az importútvonalra ---
@@ -44,6 +44,27 @@ root = Flask(__name__)
 def index():
     return "OK. Elérhető: /anthro , /readiness , /sportmotivation"
 
+@root.get("/anthro")
+def anthro_noslash():
+    return redirect("/anthro/", code=308)
+
+@root.get("/readiness")
+def readiness_noslash():
+    return redirect("/readiness/", code=308)
+
+@root.get("/sportmotivation")
+def sport_noslash():
+    return redirect("/sportmotivation/", code=308)
+
+# a DispatcherMiddleware létrehozásánál TARTSD bent a perjeles ÉS perjel nélküli kulcsokat is:
+application = DispatcherMiddleware(root, {
+    "/anthro": anthro_app,
+    "/anthro/": anthro_app,
+    "/readiness": readiness_app,
+    "/readiness/": readiness_app,
+    "/sportmotivation": sport_app,
+    "/sportmotivation/": sport_app,
+})
 # --- Mountolás prefixek alá ---
 application = DispatcherMiddleware(root, {
     "/anthro": anthro_app,
