@@ -1,0 +1,100 @@
+{% extends 'base.html' %}
+{% block content %}
+  <div class="card">
+    <h2>Results</h2>
+
+    <!-- Participant -->
+    <section class="section">
+      <h3>{{ texts.labels.participant }}</h3>
+      <div class="stat"><div>{{ texts.labels.name }}</div><div class="value">{{ data.name or '—' }}</div></div>
+      <div class="stat"><div>{{ texts.labels.age_group }}</div><div class="value">{{ data.age_group or '—' }}</div></div>
+      <div class="stat"><div>{{ texts.labels.sport }}</div><div class="value">{{ data.sport or '—' }}</div></div>
+    </section>
+
+    <!-- I-PRRS -->
+    <section class="section">
+      <h3>I-PRRS</h3>
+      <div class="stat">
+        <div>{{ texts.labels.iprrs_total }}</div>
+        <div class="value">{{ data.iprrs_total }} / 60</div>
+      </div>
+      <div class="stat">
+        <div>{{ texts.labels.readiness_category }}</div>
+        <div class="value">
+          {{ texts.labels.ready_code[data.readiness_category] }}
+        </div>
+      </div>
+
+      <div class="grid" style="margin-top:8px;">
+        <div class="card" style="padding:8px;">
+          <strong>{{ texts.labels.min_items }} – {{ texts.labels.iprrs }}</strong>
+          <ul>
+            {% for i, t, s in data.iprrs_mins %}
+              <li>{{ i }}. {{ t }} ({{ s }})</li>
+            {% endfor %}
+          </ul>
+        </div>
+        <div class="card" style="padding:8px;">
+          <strong>{{ texts.labels.max_items }} – {{ texts.labels.iprrs }}</strong>
+          <ul>
+            {% for i, t, s in data.iprrs_maxs %}
+              <li>{{ i }}. {{ t }} ({{ s }})</li>
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
+
+      <canvas id="iprrsChart" width="600" height="280" aria-label="I-PRRS chart"></canvas>
+    </section>
+
+    <!-- AFAQ -->
+    <section class="section">
+      <h3>AFAQ</h3>
+      <div class="stat">
+        <div>{{ texts.labels.afaq_total }}</div>
+        <div class="value">{{ data.afaq_total }} / 50</div>
+      </div>
+      <div class="stat">
+        <div>{{ texts.labels.fa_category }}</div>
+        <div class="value">
+          {% if data.afaq_level == 'low' %} {{ texts.labels.afaq_levels.low }}
+          {% elif data.afaq_level == 'moderate' %} {{ texts.labels.afaq_levels.moderate }}
+          {% else %} {{ texts.labels.afaq_levels.high }} {% endif %}
+        </div>
+      </div>
+
+      <div class="grid" style="margin-top:8px;">
+        <div class="card" style="padding:8px;">
+          <strong>{{ texts.labels.min_items }} – {{ texts.labels.afaq }}</strong>
+          <ul>
+            {% for i, t, s in data.afaq_mins %}
+              <li>{{ i }}. {{ t }} ({{ s }})</li>
+            {% endfor %}
+          </ul>
+        </div>
+        <div class="card" style="padding:8px;">
+          <strong>{{ texts.labels.max_items }} – {{ texts.labels.afaq }}</strong>
+          <ul>
+            {% for i, t, s in data.afaq_maxs %}
+              <li>{{ i }}. {{ t }} ({{ s }})</li>
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
+
+      <canvas id="afaqChart" width="600" height="280" aria-label="AFAQ chart"></canvas>
+    </section>
+
+    <div class="actions">
+      <a class="btn" href="/">{{ texts.labels.back }}</a>
+      <a class="btn primary" href="{{ url_for('download_pdf') }}">{{ texts.labels.download_pdf }}</a>
+    </div>
+
+    <p class="tiny muted">{{ data.timestamp }}</p>
+  </div>
+
+  <script>
+    window.__IPRRS__ = {{ data.iprrs_scores|tojson }};
+    window.__AFAQ__ = {{ data.afaq_scores|tojson }};
+  </script>
+{% endblock %}

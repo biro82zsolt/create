@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>{{ cfg.title }}</h1>
+<p class="lead">{{ cfg.instruction }}</p>
+
+<form method="post" novalidate>
+  <div class="row">
+    <div>
+      <label for="name">{{ cfg.name_label }}</label>
+      <input type="text" id="name" name="name" placeholder="{{ cfg.name_label }}" required>
+    </div>
+  </div>
+
+  {% for pair in pairs %}
+  <div class="q">
+    <label><strong>{{ loop.index }}.</strong></label>
+    <div class="pair">
+      <label class="pair-item" for="q{{ loop.index }}_1">
+        <input id="q{{ loop.index }}_1" type="radio" name="q{{ loop.index }}" value="1" required>
+        <span>{{ pair[0] }}</span>
+      </label>
+      <label class="pair-item" for="q{{ loop.index }}_2">
+        <input id="q{{ loop.index }}_2" type="radio" name="q{{ loop.index }}" value="2" required>
+        <span>{{ pair[1] }}</span>
+      </label>
+    </div>
+  </div>
+  {% endfor %}
+
+  <button type="submit">{{ cfg.submit_label }}</button>
+</form>
+{% endblock %}

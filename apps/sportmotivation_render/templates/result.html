@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>{{ cfg.title }} — {{ cfg.result_prefix }}</h1>
+
+<p class="result"><strong>{{ user_name }}</strong></p>
+
+<p>
+  <a class="link" href="{{ pdf_url }}" target="_blank" rel="noopener">
+    {% if lang=='hu' %}📄 PDF letöltése{% else %}📄 Download PDF{% endif %}
+  </a>
+</p>
+
+{% if score_sums %}
+  <h2>{% if lang=='hu' %}Eredmények{% else %}Results{% endif %}</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>{% if lang=='hu' %}Skála{% else %}Scale{% endif %}</th>
+        <th>{% if lang=='hu' %}Pont{% else %}Score{% endif %}</th>
+        <th>%</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for k, v in score_sums.items() %}
+        <tr>
+          <td>{{ k }}</td>
+          <td>{{ v }}</td>
+          <td>{{ "%.1f"|format(percentages.get(k, 0)) }}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endif %}
+
+<p style="margin-top: 1em;">
+<div class="actions" style="margin-top: 1em;">
+  <a class="button ghost" href="{{ url_for('quiz', lang=lang) }}">
+    {% if lang=='hu' %}🔄 Új kitöltés indítása{% else %}🔄 Start a new response{% endif %}
+  </a>
+  <a
+    href="{{ 'https://zsoltbiro.hu/kerdoiv' if lang == 'hu' else 'https://zsoltbiro.hu/questionnaire' }}"
+    class="button"
+  >
+    {{ 'Vissza a honlapra' if lang == 'hu' else 'Back to website' }}
+  </a>
+</div>
+
+
+</p>
+{% endblock %}

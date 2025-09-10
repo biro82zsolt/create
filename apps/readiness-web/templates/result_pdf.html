@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+<style>
+  @font-face {
+    font-family: 'DejaVuSans';
+    src: url('/static/fonts/DejaVuSans.ttf');
+  }
+  body { font-family: DejaVuSans, Arial, sans-serif; font-size: 12pt; }
+  h1 { font-size: 18pt; margin-bottom: 6pt; }
+  h2 { font-size: 14pt; margin: 12pt 0 6pt; }
+  h3 { font-size: 12pt; margin: 8pt 0 4pt; }
+  table { width: 100%; border-collapse: collapse; margin-top: 6pt; }
+  th, td { border: 1px solid #ddd; padding: 6px; vertical-align: top; }
+  .muted { color: #666; font-size: 10pt; }
+  ul { margin: 6px 0 0 18px; padding: 0; }
+</style>
+
+</head>
+<body>
+  <h1>{{ texts.title }}</h1>
+  <div class="muted">{{ data.timestamp }}</div>
+
+  <h2>{{ texts.labels.participant }}</h2>
+  <table>
+    <tr><th>{{ texts.labels.name }}</th><td>{{ data.name or '—' }}</td></tr>
+    <tr><th>{{ texts.labels.age_group }}</th><td>{{ data.age_group or '—' }}</td></tr>
+    <tr><th>{{ texts.labels.sport }}</th><td>{{ data.sport or '—' }}</td></tr>
+  </table>
+
+  <h2>I-PRRS</h2>
+  <table>
+    <tr><th>{{ texts.labels.iprrs_total }}</th><td>{{ data.iprrs_total }} / 60</td></tr>
+    <tr><th>{{ texts.labels.readiness_category }}</th><td>{{ texts.labels.ready_code[data.readiness_category] }}</td></tr>
+  </table>
+
+  <h3>{{ texts.labels.min_items }} – {{ texts.labels.iprrs }}</h3>
+  <ul>
+    {% for i, t, s in data.iprrs_mins %}<li>{{ i }}. {{ t }} ({{ s }})</li>{% endfor %}
+  </ul>
+  <h3>{{ texts.labels.max_items }} – {{ texts.labels.iprrs }}</h3>
+  <ul>
+    {% for i, t, s in data.iprrs_maxs %}<li>{{ i }}. {{ t }} ({{ s }})</li>{% endfor %}
+  </ul>
+
+  <h2>AFAQ</h2>
+  <table>
+    <tr><th>{{ texts.labels.afaq_total }}</th><td>{{ data.afaq_total }} / 50</td></tr>
+    <tr><th>{{ texts.labels.fa_category }}</th>
+      <td>
+        {% if data.afaq_level == 'low' %} {{ texts.labels.afaq_levels.low }}
+        {% elif data.afaq_level == 'moderate' %} {{ texts.labels.afaq_levels.moderate }}
+        {% else %} {{ texts.labels.afaq_levels.high }} {% endif %}
+      </td>
+    </tr>
+  </table>
+
+  <h3>{{ texts.labels.min_items }} – {{ texts.labels.afaq }}</h3>
+  <ul>
+    {% for i, t, s in data.afaq_mins %}<li>{{ i }}. {{ t }} ({{ s }})</li>{% endfor %}
+  </ul>
+  <h3>{{ texts.labels.max_items }} – {{ texts.labels.afaq }}</h3>
+  <ul>
+    {% for i, t, s in data.afaq_maxs %}<li>{{ i }}. {{ t }} ({{ s }})</li>{% endfor %}
+  </ul>
+
+  <p class="muted" style="margin-top:10pt;">{{ texts.labels.footnote }}</p>
+</body>
+</html>

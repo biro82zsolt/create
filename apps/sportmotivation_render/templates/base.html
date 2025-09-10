@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="{{ 'hu' if lang=='hu' else 'en' }}">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>
+      {% if lang=='hu' %}
+        {{ cfg.title if cfg else "Sportmotivációs kérdőív" }}
+      {% else %}
+        {{ cfg.title if cfg else "Sports Motivation Questionnaire" }}
+      {% endif %}
+    </title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+  </head>
+  <body>
+    <div class="container">
+      <div class="card">
+        {% block content %}{% endblock %}
+      </div>
+      <div class="footer">
+        {% if lang=='hu' %}
+          © {{ now.year if now else '2025' }} – Sportmotivációs skála |
+          Készítette: Bíró Zsolt sportpszichológus
+        {% else %}
+          © {{ now.year if now else '2025' }} – Sports Motivation Scale |
+          Created by: Zsolt Bíró, sports psychologist
+        {% endif %}
+      </div>
+    </div>
+  </body>
+</html>

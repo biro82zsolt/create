@@ -1,0 +1,44 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.egg-info/
+.venv/
+env/
+venv/
+.pytest_cache/
+*.log
+
+# IDE
+.vscode/
+.idea/
+*.iml
+
+# App titkok
+.env
+*.env
+*service-account*.json
+*credentials*.json
+master-imagery-*.json
+
+# Ha külön creds mappát használsz
+creds/
+
+# Generált artefaktok
+static/charts/*
+!static/charts/.gitkeep
+static/results/*
+!static/results/.gitkeep
+*.pdf
+*.png
+!static/logo.png
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Egyéb
+.python-version
+*.db
+*.sqlite*

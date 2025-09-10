@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="{{ 'hu' if 'hu' in texts.title|lower else 'en' }}">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{ texts.title }}</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+<header class="container">
+<h1 class="app-title">{{ texts.title }}</h1>
+<form method="get" action="/" class="lang-form">
+<label>{{ texts.labels.language }}:
+<select name="lang" onchange="this.form.submit()">
+<option value="hu" {{ 'selected' if lang=='hu' else '' }}>{{ texts.labels.hungarian }}</option>
+<option value="en" {{ 'selected' if lang=='en' else '' }}>{{ texts.labels.english }}</option>
+</select>
+</label>
+</form>
+</header>
+
+
+<main class="container">
+{% block content %}{% endblock %}
+</main>
+
+
+<footer class="container footer-note">
+{{ texts.labels.footnote }}
+</footer>
+
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>
