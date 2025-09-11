@@ -94,6 +94,9 @@ def seed_admin_from_env():
     db.session.commit()
     print(">>> Admin user seeded:", email)
 
+
+app = create_app()
+
 @login_manager.user_loader
     def load_user(user_id):
         return User.query.get(int(user_id))
@@ -101,10 +104,6 @@ def seed_admin_from_env():
 @app.route("/")
     def index():
         return render_template("index.html")
-
-
-app = create_app()
-
 
 # ----- I18N (nagyon egyszerű) -----
 STRINGS = {
