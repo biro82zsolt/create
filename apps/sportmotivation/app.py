@@ -34,8 +34,8 @@ load_dotenv()
 DEBUG = os.getenv("FLASK_DEBUG", "0") == "1"
 
 if DEBUG:
-    print("DBG GSHEETS_SHEET_ID:", os.getenv("GSHEETS_SHEET_ID"))
-    print("DBG GSHEETS_SA_JSON set?:", bool(os.getenv("GSHEETS_SA_JSON")))
+    print("DBG SPORTMOTIVATION_GOOGLE_SHEET_ID:", os.getenv("SPORTMOTIVATION_GOOGLE_SHEET_ID"))
+    print("DBG GOOGLE_SA_JSON set?:", bool(os.getenv("GOOGLE_SA_JSON")))
     print("DBG GSHEETS_SA_FILE:", os.getenv("GSHEETS_SA_FILE"))
 
 # --- Flask App ---
@@ -123,8 +123,8 @@ def generate_detailed_interpretation(lang, percentages):
     return interpretation
 
 def _open_sheet(gc):
-    sheet_id = os.getenv("GSHEETS_SHEET_ID", "").strip()
-    sheet_url = os.getenv("GSHEETS_SHEET_URL", "").strip()
+    sheet_id = os.getenv("SPORTMOTIVATION_GOOGLE_SHEET_ID", "").strip()
+    sheet_url = os.getenv("SPORTMOTIVATION_GOOGLE_SHEET_URL", "").strip()
     if sheet_id:
         try:
             return gc.open_by_key(sheet_id)
@@ -251,7 +251,7 @@ def append_to_gsheet(row_dict: dict):
     - majd a konszolidált fejléc sorrendben írja az új sort
     """
     sheet_id = os.getenv("SPORTMOTIVATION_GOOGLE_SHEET_ID", "").strip()
-    sheet_url = os.getenv("GOOGLE_SHEET_URL", "").strip()
+    sheet_url = os.getenv("SPORTMOTIVATION_GOOGLE_SHEET_URL", "").strip()
 
     if not sheet_id and not sheet_url:
         if DEBUG: print("[GSHEETS] Nincs GSHEETS_SHEET_ID vagy GSHEETS_SHEET_URL beállítva.")

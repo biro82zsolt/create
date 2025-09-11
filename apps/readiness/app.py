@@ -12,11 +12,11 @@ load_dotenv()
 app = Flask(__name__)
 app.secret_key = os.environ.get("FLASK_SECRET_KEY", "dev-secret-key-change-me")
 # ---- Google Sheets client init ----
-GOOGLE_SA_PATH = os.environ.get(
-    "GOOGLE_SA_PATH",
+READINESS_GOOGLE_SA_PATH = os.environ.get(
+    "READINESS_GOOGLE_SA_PATH",
     os.path.join(os.path.dirname(__file__), "creds", "readiness-web-sa.json")
 )
-GOOGLE_SHEET_ID = os.environ.get("GOOGLE_SHEET_ID")  # <- az ID az URL-ből
+READINESS_GOOGLE_SHEET_ID = os.environ.get("READINESS_GOOGLE_SHEET_ID")  # <- az ID az URL-ből
 
 _scopes = ["https://www.googleapis.com/auth/spreadsheets"]
 _gs_client = None
@@ -45,7 +45,7 @@ def _get_creds():
             info = json.loads(sa_json.strip().strip("'").strip('"'))
         return Credentials.from_service_account_info(info, scopes=_scopes)
 
-    sa_path = os.environ.get("GOOGLE_SA_PATH") or os.environ.get("GSHEETS_SA_PATH")
+    sa_path = os.environ.get("READINESS_GOOGLE_SA_PATH") or os.environ.get("GSHEETS_SA_PATH")
     if not sa_path:
         # fallback a projekt /creds/readiness-web-sa.json fájlra
         sa_path = os.path.join(os.path.dirname(__file__), "creds", "readiness-web-sa.json")
