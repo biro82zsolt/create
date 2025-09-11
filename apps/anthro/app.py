@@ -44,7 +44,6 @@ def create_app():
     app.config["UPLOAD_FOLDER"] = upload_dir
     os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
     app.config["MAX_CONTENT_LENGTH"] = 20 * 1024 * 1024  # 20 MB
-    os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
 
     # E-mail config (env-ből)
     app.config.update(
@@ -401,6 +400,9 @@ def export_upload_pdfs(upload_id):
 def forbidden(e):
     return render_template("403.html"), 403
 
+@app.route("/", endpoint="anthro_index")
+def index():
+    return render_template("index.html")
 
 if __name__ == "__main__":
     app.run(debug=True)

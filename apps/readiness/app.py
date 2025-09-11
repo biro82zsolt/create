@@ -119,7 +119,7 @@ def _lang_switcher():
         endpoint = request.endpoint or "quiz"  # vagy a te fő végpontod
         values = (request.view_args or {}).copy()
         return url_for(endpoint, **values, **args)
-    return dict(switch_lang_url=switch_lang_url)
+    return dict(switch_lang=switch_lang)
 
 # -----------------------------
 # Texts (EN/HU)
@@ -309,8 +309,15 @@ def _min_max_items(scores, items):
 # -----------------------------
 @app.route("/", methods=["GET"])
 def index():
-    # default language hu
-    lang = request.args.get("lang", "hu")
+    # Elsőbbség: query paraméter, ha nincs akkor session
+    lang = request.args.get("lang") or session.get("lang", "hu")
+    lang = lang.lower()
+    if lang not in ("hu", "en"):
+        lang = "hu"
+
+    # Mentjük session-be, hogy megmaradjon
+    session["lang"] = lang
+
     return render_template("index.html", texts=TEXTS[lang], lang=lang)
 
 @app.route("/submit", methods=["POST"], endpoint="readiness_submit")
@@ -328,8 +335,18 @@ def result():
     data = session.get("result")
     if not data:
         return redirect(url_for("index"))
-    texts = TEXTS[data["lang"]]
-    return render_template("result.html", data=data, texts=texts, threshold=READINESS_THRESHOLD)
+
+    # Elsőbbség: query paraméter, ha nincs akkor session
+    lang = request.args.get("lang") or session.get("lang", "hu")
+    lang = lang.lower()
+    if lang not in ("hu", "en"):
+        lang = "hu"
+
+    # Mentjük session-be, hogy amíg nem váltasz, megmaradjon
+    session["lang"] = lang
+
+    return render_template("result.html", texts=TEXTS[lang], data=data, lang=lang)
+
 
 @app.route("/download-pdf", methods=["GET"])
 def download_pdf():

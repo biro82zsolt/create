@@ -12,15 +12,20 @@
 <body>
 <header class="container">
 <h1 class="app-title">{{ texts.title }}</h1>
-<form method="get" action="{{ request.path }}" class="lang-form">
-  <label>{{ texts.labels.language }}:
-  <select name="lang" onchange="location.href='{{ switch_lang_url('hu') }}'.replace('lang=hu','lang=' + this.value)">
-    <option value="hu" {{ 'selected' if lang=='hu' else '' }}>{{ texts.labels.hungarian }}</option>
-    <option value="en" {{ 'selected' if lang=='en' else '' }}>{{ texts.labels.english }}</option>
-  </select>
-</label>
+<form method="get" action="" class="lang-form">
+  {# őrizz meg minden jelenlegi query paramot, kivéve 'lang'-ot #}
+  {% for k, v in request.args.items() if k != 'lang' %}
+    <input type="hidden" name="{{ k }}" value="{{ v }}">
+  {% endfor %}
 
+  <label>{{ texts.labels.language }}:
+    <select name="lang" onchange="this.form.submit()">
+      <option value="hu" {{ 'selected' if lang=='hu' else '' }}>{{ texts.labels.hungarian }}</option>
+      <option value="en" {{ 'selected' if lang=='en' else '' }}>{{ texts.labels.english }}</option>
+    </select>
+  </label>
 </form>
+
 
 </header>
 
