@@ -5,6 +5,9 @@ from datetime import datetime, date
 import math
 import pandas as pd
 import numpy as np
+import os
+from flask import current_app
+from typing import Optional
 
 
 # ====== BEÁLLÍTÁS: referencia CSV oszlopnevek ======
@@ -182,9 +185,17 @@ def bucket(value: float, high=5.5, mid=2.6, high_txt="", mid_txt="", low_txt="")
 def compute_all_metrics(
     record: Dict[str, Any],
     sex: str,
-    ref_path: str = "mk_components.xlsx",
-    mkkorrekcio: float = 0.125
+        ref_path: Optional[str] = None,  # <- opcionális
+        mkkorrekcio: float = 0.125
 ) -> CalcResult:
+    # --- referencia fájl elérési út eldöntése ---
+    if not ref_path:
+        # alapértelmezés: apps/anthro/mk_components.xlsx
+        ref_path = os.path.join(current_app.root_path, "mk_components.xlsx")
+    else:
+        # ha relatív nevet kaptunk, az anthro gyökeréhez képest értelmezzük
+        if not os.path.isabs(ref_path):
+            ref_path = os.path.join(current_app.root_path, ref_path)
     """
     record kulcsok (a felsorolásod alapján, mind cm-ben / kg-ban, dátumok stringben):
     Név, Nem, Korosztály, Születési dátum, Mérés dátuma,
@@ -371,5 +382,5 @@ if __name__ == "__main__":
         "HUS": 14.0, "TDS": 10.0,
     }
     # FIGYELEM: a mk_components.csv-nek egyeznie kell a REF_COLUMNS fejléceivel!
-    res = compute_all_metrics(sample, sex=sample["Nem"], ref_path="mk_components.xlsx")
+    res = compute_all_metrics(rec, sex=sex)
     print(res)

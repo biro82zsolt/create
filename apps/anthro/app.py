@@ -400,9 +400,5 @@ def export_upload_pdfs(upload_id):
 def forbidden(e):
     return render_template("403.html"), 403
 
-@app.route("/", endpoint="anthro_index")
-def index():
-    return render_template("index.html")
-
 if __name__ == "__main__":
     app.run(debug=True)

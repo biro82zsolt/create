@@ -20,10 +20,10 @@ def load_flask_app(module_path: str):
     Modul betöltése. Ha van create_app(), azt hívja; különben modul.app-ot vár.
     """
     m = import_module(module_path)
-    if hasattr(m, "create_app"):
-        return m.create_app()
     if hasattr(m, "app"):
         return m.app
+    if hasattr(m, "create_app"):
+        return m.create_app()
     raise RuntimeError(f"Neither create_app() nor app found in {module_path}")
 
 # --- Itt töltsd be a három appot ---
