@@ -119,7 +119,7 @@ def _lang_switcher():
         endpoint = request.endpoint or "quiz"  # vagy a te fő végpontod
         values = (request.view_args or {}).copy()
         return url_for(endpoint, **values, **args)
-    return dict(switch_lang=switch_lang)
+    return dict(switch_lang_url=switch_lang_url)
 
 # -----------------------------
 # Texts (EN/HU)
