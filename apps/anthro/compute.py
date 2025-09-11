@@ -1,5 +1,5 @@
 import os, re
-import io import BytesIO
+from io import BytesIO
 from flask import current_app
 import zipfile
 from datetime import datetime
