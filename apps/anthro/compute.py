@@ -1,5 +1,6 @@
 import os, re
-import io
+import io import BytesIO
+from flask import current_app
 import zipfile
 from datetime import datetime
 
@@ -14,7 +15,7 @@ from reportlab.platypus import (
 )
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 
-from .models import Result
+from .models import db, Result
 from .anthro_calc import compute_all_metrics  # a Te kalkulátorod (ref_path-ot lásd lent)
 
 # --- i18n: egyszerű kulcs-érték fordítások ---

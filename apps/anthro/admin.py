@@ -90,7 +90,7 @@ class ResultAdmin(SecureModelView):
 
 
 def init_admin(app):
-    admin = Admin(app, name="Admin", template_mode="bootstrap4")
+    admin = Admin(app, name="Anthro Admin", template_mode="bootstrap4")
     admin.add_view(UserAdmin(User, db.session, category="Manage"))
     admin.add_view(UploadAdmin(Upload, db.session, category="Manage"))
     admin.add_view(ResultAdmin(Result, db.session, category="Manage"))

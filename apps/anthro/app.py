@@ -35,7 +35,7 @@ def create_app():
 
     # Alap config
     secret = os.environ.get("SECRET_KEY") or os.environ.get("FLASK_SECRET_KEY") or "dev-secret"
-    app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "dev-secret")
+    app.config["SECRET_KEY"] = secret
     app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL", "sqlite:///app.db")
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
@@ -68,7 +68,16 @@ def create_app():
         db.create_all()
         init_admin(app)  # <- CSAK innen, nincs másik Admin példány
         seed_admin_from_env()
+
+    @login_manager.user_loader
+    def load_user(user_id):
+        return User.query.get(int(user_id))
+
+    @app.route("/")
+    def index():
+        return render_template("index.html")
     return app
+
 
 def seed_admin_from_env():
     email = os.getenv("ADMIN_SEED_EMAIL")
@@ -91,11 +100,6 @@ def seed_admin_from_env():
     print(">>> Admin user seeded:", email)
 
 app = create_app()
-
-
-@login_manager.user_loader
-def load_user(user_id):
-    return User.query.get(int(user_id))
 
 
 # ----- I18N (nagyon egyszerű) -----
