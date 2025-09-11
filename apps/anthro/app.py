@@ -98,12 +98,12 @@ def seed_admin_from_env():
 app = create_app()
 
 @login_manager.user_loader
-    def load_user(user_id):
-        return User.query.get(int(user_id))
+def load_user(user_id):
+    return User.query.get(int(user_id))
 
 @app.route("/")
-    def index():
-        return render_template("index.html")
+def index():
+    return render_template("index.html")
 
 # ----- I18N (nagyon egyszerű) -----
 STRINGS = {
