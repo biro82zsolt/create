@@ -69,15 +69,10 @@ def create_app():
         init_admin(app)  # <- CSAK innen, nincs másik Admin példány
         seed_admin_from_env()
 
-    @login_manager.user_loader
-    def load_user(user_id):
-        return User.query.get(int(user_id))
 
-    @app.route("/")
-    def index():
-        return render_template("index.html")
+
+
     return app
-
 
 def seed_admin_from_env():
     email = os.getenv("ADMIN_SEED_EMAIL")
@@ -98,6 +93,15 @@ def seed_admin_from_env():
     db.session.add(u)
     db.session.commit()
     print(">>> Admin user seeded:", email)
+
+@login_manager.user_loader
+    def load_user(user_id):
+        return User.query.get(int(user_id))
+
+@app.route("/")
+    def index():
+        return render_template("index.html")
+
 
 app = create_app()
 
