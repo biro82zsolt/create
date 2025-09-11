@@ -102,9 +102,6 @@ app = create_app()
 def load_user(user_id):
     return User.query.get(int(user_id))
 
-@app.route("/")
-def index():
-    return render_template("index.html")
 
 # ----- I18N (nagyon egyszerű) -----
 STRINGS = {
