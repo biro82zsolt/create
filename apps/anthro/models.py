@@ -35,6 +35,8 @@ class Result(db.Model):
 
     # Bemeneti meta
     name = db.Column(db.String(255))
+    sport = db.Column(db.String(120), nullable=True)  # Sportág/Sport
+    team = db.Column(db.String(120), nullable=True)  # Csapat/Team
     birth_date = db.Column(db.Date)
     meas_date = db.Column(db.Date)
     ttm = db.Column(db.Float)  # cm
