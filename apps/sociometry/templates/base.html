@@ -10,8 +10,8 @@
 <header class="topbar">
   <a class="brand" href="{{ url_for('index', lang=lang) }}">{{ texts.app_name }}</a>
   <div class="toggles">
-    <a href="{{ switch_lang_url('hu') }}">HU</a>
-    <a href="{{ switch_lang_url('en') }}">EN</a>
+    <a href="{{ request.path }}?lang=hu">HU</a>
+    <a href="{{ request.path }}?lang=en">EN</a>
     <button id="themeToggle" type="button">🌓</button>
   </div>
 </header>

@@ -124,14 +124,6 @@ def t(key):
     return TEXTS[get_lang()][key]
 
 
-def switch_lang_url(to_lang: str):
-    args = request.args.to_dict(flat=True)
-    args["lang"] = to_lang
-    endpoint = request.endpoint or "index"
-    values = (request.view_args or {}).copy()
-    return url_for(endpoint, **values, **args)
-
-
 def get_db():
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
@@ -312,7 +304,7 @@ def draw_sociogram(names, edge_set, title):
 
 @app.context_processor
 def inject_common():
-    return {"lang": get_lang(), "texts": TEXTS[get_lang()], "switch_lang_url": switch_lang_url}
+    return {"lang": get_lang(), "texts": TEXTS[get_lang()]}
 
 
 @app.get("/")
