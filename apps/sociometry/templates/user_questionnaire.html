@@ -7,7 +7,7 @@
     <label>{{ texts.your_name }}
       <select name="respondent_name" required>
         {% for n in names %}
-          <option value="{{ n }}" {% if selected_respondent == n %}selected{% endif %}>{{ n }}</option>
+          <option value="{{ n }}">{{ n }}</option>
         {% endfor %}
       </select>
     </label>
@@ -15,18 +15,8 @@
     {% for q in questions %}
       <fieldset>
         <legend>{{ loop.index }}. {{ q.question_text }}</legend>
-        {% set answer_key = q.question_index|string %}
         {% for n in names %}
-          <label class="check check-vertical">
-            <span class="check-name">{{ n }}</span>
-            <input
-              type="checkbox"
-              class="check-box"
-              name="q_{{ q.question_index }}"
-              value="{{ n }}"
-              {% if n in (selected_answers.get(answer_key, [])) %}checked{% endif %}
-            />
-          </label>
+          <label class="check"><input type="checkbox" name="q_{{ q.question_index }}" value="{{ n }}" /> {{ n }}</label>
         {% endfor %}
       </fieldset>
     {% endfor %}

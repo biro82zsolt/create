@@ -124,14 +124,6 @@ def t(key):
     return TEXTS[get_lang()][key]
 
 
-def switch_lang_url(to_lang: str):
-    args = request.args.to_dict(flat=True)
-    args["lang"] = to_lang
-    endpoint = request.endpoint or "index"
-    values = (request.view_args or {}).copy()
-    return url_for(endpoint, **values, **args)
-
-
 def get_db():
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
@@ -267,57 +259,6 @@ def compute_metrics(names, responses, question_index):
     }
 
 
-def compute_combined_metrics(names, responses, question_indexes):
-    combined_edges = set()
-    in_degree = {name: 0 for name in names}
-    out_degree = {name: 0 for name in names}
-
-    for row in responses:
-        sender = row["respondent_name"]
-        answers = json.loads(row["answers_json"])
-        sent_targets = []
-        for q_idx in question_indexes:
-            selected = answers.get(str(q_idx), [])
-            for target in selected:
-                if target in in_degree:
-                    combined_edges.add((sender, target))
-                    sent_targets.append(target)
-        out_degree[sender] = len(set(sent_targets))
-
-    for _, target in combined_edges:
-        in_degree[target] += 1
-
-    reciprocal = sum(1 for a, b in combined_edges if (b, a) in combined_edges and a < b)
-    isolates = sum(1 for n in names if in_degree[n] == 0 and out_degree[n] == 0)
-    density = len(combined_edges) / (len(names) * (len(names) - 1)) if len(names) > 1 else 0
-    reciprocity = reciprocal / len(combined_edges) if combined_edges else 0
-
-    return {
-        "in_degree": in_degree,
-        "out_degree": out_degree,
-        "edge_set": combined_edges,
-        "reciprocal_pairs": reciprocal,
-        "isolates": isolates,
-        "density": density,
-        "reciprocity": reciprocity,
-    }
-
-
-def build_name_summary_rows(names, responses, mq):
-    rows = []
-    for name in names:
-        row = {"Név / Name": name}
-        total = 0
-        for item in mq:
-            metrics = compute_metrics(names, responses, item["question_index"])
-            val = metrics["in_degree"].get(name, 0)
-            row[f"Q{item['question_index'] + 1}"] = val
-            total += val
-        row["Összesen / Total"] = total
-        rows.append(row)
-    return rows
-
-
 def draw_sociogram(names, edge_set, title):
     if not names:
         return None
@@ -339,7 +280,7 @@ def draw_sociogram(names, edge_set, title):
         x1, y1 = positions[a]
         x2, y2 = positions[b]
         mutual = (b, a) in edge_set
-        color = "#f97316" if mutual else "#0ea5e9"
+        color = "#22c55e" if mutual else "#64748b"
         ax.annotate(
             "",
             xy=(x2, y2),
@@ -348,8 +289,8 @@ def draw_sociogram(names, edge_set, title):
         )
 
     for name, (x, y) in positions.items():
-        ax.scatter([x], [y], s=1100, color="#fef08a", edgecolors="#1f2937", linewidths=1.6)
-        ax.text(x, y, name, ha="center", va="center", color="#111827", fontsize=10, fontweight="bold")
+        ax.scatter([x], [y], s=700, color="#2563eb")
+        ax.text(x, y, name, ha="center", va="center", color="white", fontsize=9)
 
     ax.set_title(title)
     ax.axis("off")
@@ -363,7 +304,7 @@ def draw_sociogram(names, edge_set, title):
 
 @app.context_processor
 def inject_common():
-    return {"lang": get_lang(), "texts": TEXTS[get_lang()], "switch_lang_url": switch_lang_url}
+    return {"lang": get_lang(), "texts": TEXTS[get_lang()]}
 
 
 @app.get("/")
@@ -496,12 +437,8 @@ def user_questionnaire():
     measurement, _, roster, mq = load_measurement(measurement_id)
     names = json.loads(roster["names_json"])
 
-    selected_answers = {}
-    selected_respondent = ""
-
     if request.method == "POST":
         respondent = request.form.get("respondent_name")
-        selected_respondent = respondent or ""
         answers = {}
         errors = []
 
@@ -509,7 +446,6 @@ def user_questionnaire():
             key = str(item["question_index"])
             selected = request.form.getlist(f"q_{item['question_index']}")
             unique_selected = list(dict.fromkeys(selected))
-            selected_answers[key] = unique_selected
             if respondent in unique_selected:
                 errors.append("Magadat nem választhatod / You cannot select yourself.")
             if len(unique_selected) != 3:
@@ -533,19 +469,10 @@ def user_questionnaire():
                     (measurement_id, respondent, json.dumps(answers, ensure_ascii=False), datetime.utcnow().isoformat()),
                 )
                 conn.commit()
-                selected_answers = {}
-                selected_respondent = ""
                 flash("Sikeres beküldés / Submission saved.", "success")
             conn.close()
 
-    return render_template(
-        "user_questionnaire.html",
-        measurement=measurement,
-        names=names,
-        questions=mq,
-        selected_answers=selected_answers,
-        selected_respondent=selected_respondent,
-    )
+    return render_template("user_questionnaire.html", measurement=measurement, names=names, questions=mq)
 
 
 @app.get("/admin/results/<int:measurement_id>")
@@ -561,20 +488,9 @@ def admin_results(measurement_id):
     conn.close()
 
     question_blocks = []
-    selected_indices = []
     for item in mq:
         metrics = compute_metrics(names, responses, item["question_index"])
         question_blocks.append({"item": item, "metrics": metrics})
-        if item["include_sociogram"]:
-            selected_indices.append(item["question_index"])
-
-    combined_metrics = None
-    selected_indices_display = []
-    if selected_indices:
-        combined_metrics = compute_combined_metrics(names, responses, selected_indices)
-        selected_indices_display = [idx + 1 for idx in selected_indices]
-
-    name_summary_rows = build_name_summary_rows(names, responses, mq)
 
     return render_template(
         "admin_results.html",
@@ -583,10 +499,6 @@ def admin_results(measurement_id):
         roster=roster,
         responses=responses,
         question_blocks=question_blocks,
-        selected_indices=selected_indices,
-        selected_indices_display=selected_indices_display,
-        combined_metrics=combined_metrics,
-        name_summary_rows=name_summary_rows,
     )
 
 
@@ -610,31 +522,6 @@ def sociogram_png(measurement_id, question_index):
     return send_file(img, mimetype="image/png")
 
 
-@app.get("/admin/sociogram/combined/<int:measurement_id>.png")
-@admin_required
-def sociogram_combined_png(measurement_id):
-    measurement, _, roster, mq = load_measurement(measurement_id)
-    if not measurement:
-        return "Not found", 404
-    names = json.loads(roster["names_json"])
-
-    selected_indices = [item["question_index"] for item in mq if item["include_sociogram"]]
-    if not selected_indices:
-        return "No sociogram indices selected", 400
-
-    conn = get_db()
-    responses = conn.execute("SELECT * FROM responses WHERE measurement_id=?", (measurement_id,)).fetchall()
-    conn.close()
-
-    metrics = compute_combined_metrics(names, responses, selected_indices)
-    try:
-        label = ",".join(str(i + 1) for i in selected_indices)
-        img = draw_sociogram(names, metrics["edge_set"], f"Combined Q: {label}")
-    except RuntimeError as exc:
-        return str(exc), 503
-    return send_file(img, mimetype="image/png")
-
-
 @app.get("/admin/export/excel/<int:measurement_id>")
 @admin_required
 def export_excel(measurement_id):
@@ -646,32 +533,15 @@ def export_excel(measurement_id):
     conn.close()
 
     summary_rows = []
-    selected_indices = [item["question_index"] for item in mq if item["include_sociogram"]]
     for item in mq:
         m = compute_metrics(names, responses, item["question_index"])
         summary_rows.append(
             {
                 "Question": item["question_text"],
-                "Question index": item["question_index"] + 1,
-                "Included in sociogram": "Yes" if item["include_sociogram"] else "No",
                 "Density": round(m["density"], 4),
                 "Reciprocity": round(m["reciprocity"], 4),
                 "Reciprocal pairs": m["reciprocal_pairs"],
                 "Isolates": m["isolates"],
-            }
-        )
-
-    if selected_indices:
-        combined_metrics = compute_combined_metrics(names, responses, selected_indices)
-        summary_rows.append(
-            {
-                "Question": "Combined sociogram",
-                "Question index": ",".join(str(i + 1) for i in selected_indices),
-                "Included in sociogram": "Yes",
-                "Density": round(combined_metrics["density"], 4),
-                "Reciprocity": round(combined_metrics["reciprocity"], 4),
-                "Reciprocal pairs": combined_metrics["reciprocal_pairs"],
-                "Isolates": combined_metrics["isolates"],
             }
         )
 
@@ -684,12 +554,9 @@ def export_excel(measurement_id):
         raw_rows.append(base)
 
     out = io.BytesIO()
-    name_summary_rows = build_name_summary_rows(names, responses, mq)
-
     with pd.ExcelWriter(out, engine="openpyxl") as writer:
         pd.DataFrame(summary_rows).to_excel(writer, index=False, sheet_name="Summary")
         pd.DataFrame(raw_rows).to_excel(writer, index=False, sheet_name="Responses")
-        pd.DataFrame(name_summary_rows).to_excel(writer, index=False, sheet_name="Name summary")
     out.seek(0)
     return send_file(
         out,
