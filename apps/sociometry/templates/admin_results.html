@@ -23,4 +23,45 @@
   {% endif %}
 </section>
 {% endfor %}
+
+{% if selected_indices %}
+<section class="card">
+  <h3>Összesített szociogram / Combined sociogram ({{ selected_indices_display|join(', ') }})</h3>
+  {% if combined_metrics %}
+  <ul>
+    <li>Density: {{ '%.3f'|format(combined_metrics.density) }}</li>
+    <li>Reciprocity: {{ '%.3f'|format(combined_metrics.reciprocity) }}</li>
+    <li>Reciprocal pairs: {{ combined_metrics.reciprocal_pairs }}</li>
+    <li>Isolates: {{ combined_metrics.isolates }}</li>
+  </ul>
+  {% endif %}
+  <img src="{{ url_for('sociogram_combined_png', measurement_id=measurement.id, lang=lang) }}" alt="combined sociogram" class="sociogram" />
+</section>
+{% endif %}
+
+<section class="card">
+  <h3>Összesített név szerinti tábla / Name summary</h3>
+  <div class="table-wrap">
+    <table class="summary-table">
+      <thead>
+        <tr>
+          {% if name_summary_rows %}
+            {% for key in name_summary_rows[0].keys() %}
+              <th>{{ key }}</th>
+            {% endfor %}
+          {% endif %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in name_summary_rows %}
+          <tr>
+            {% for value in row.values() %}
+              <td>{{ value }}</td>
+            {% endfor %}
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
 {% endblock %}
