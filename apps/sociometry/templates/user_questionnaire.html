@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% block content %}
+<section class="card">
+  <h2>{{ measurement.name }}</h2>
+  <p class="instruction">{{ texts.instruction }}</p>
+  <form method="post">
+    <label>{{ texts.your_name }}
+      <select name="respondent_name" required>
+        {% for n in names %}
+          <option value="{{ n }}">{{ n }}</option>
+        {% endfor %}
+      </select>
+    </label>
+
+    {% for q in questions %}
+      <fieldset>
+        <legend>{{ loop.index }}. {{ q.question_text }}</legend>
+        {% for n in names %}
+          <label class="check"><input type="checkbox" name="q_{{ q.question_index }}" value="{{ n }}" /> {{ n }}</label>
+        {% endfor %}
+      </fieldset>
+    {% endfor %}
+
+    <button class="btn" type="submit">{{ texts.submit }}</button>
+  </form>
+</section>
+{% endblock %}
