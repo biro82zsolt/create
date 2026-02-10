@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% block content %}
+<section class="card">
+  <h2>{{ texts.results }} - {{ measurement.name }}</h2>
+  <p>Kitöltések / submissions: {{ responses|length }}</p>
+  <div class="actions">
+    <a class="btn" href="{{ url_for('export_excel', measurement_id=measurement.id, lang=lang) }}">{{ texts.download_excel }}</a>
+    <a class="btn" href="{{ url_for('export_pdf', measurement_id=measurement.id, lang=lang) }}">{{ texts.download_pdf }}</a>
+  </div>
+</section>
+
+{% for block in question_blocks %}
+<section class="card">
+  <h3>{{ loop.index }}. {{ block.item.question_text }}</h3>
+  <ul>
+    <li>Density: {{ '%.3f'|format(block.metrics.density) }}</li>
+    <li>Reciprocity: {{ '%.3f'|format(block.metrics.reciprocity) }}</li>
+    <li>Reciprocal pairs: {{ block.metrics.reciprocal_pairs }}</li>
+    <li>Isolates: {{ block.metrics.isolates }}</li>
+  </ul>
+  {% if block.item.include_sociogram %}
+    <img src="{{ url_for('sociogram_png', measurement_id=measurement.id, question_index=block.item.question_index, lang=lang) }}" alt="sociogram" class="sociogram" />
+  {% endif %}
+</section>
+{% endfor %}
+{% endblock %}

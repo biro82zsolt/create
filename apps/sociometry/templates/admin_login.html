@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+{% block content %}
+<section class="card narrow">
+  <h2>{{ texts.admin_login }}</h2>
+  <form method="post">
+    <label>{{ texts.email }}<input type="email" name="email" required /></label>
+    <label>{{ texts.password }}<input type="password" name="password" required /></label>
+    <button class="btn" type="submit">{{ texts.login }}</button>
+  </form>
+</section>
+{% endblock %}
