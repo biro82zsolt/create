@@ -424,19 +424,70 @@ def compute_combined_metrics(names, responses, question_indexes):
     return compute_metrics_for_questions(names, responses, question_indexes)
 
 
-def build_name_summary_rows(names, responses, mq):
+def classify_significance(name, sympathy_in, functional_in):
+    score = (2 * sympathy_in) + functional_in
+    if score >= 8:
+        return "Elsődleges / Primary"
+    if score >= 4:
+        return "Másodlagos / Secondary"
+    return "Periférikus / Peripheral"
+
+
+def build_name_summary_rows(names, mq, sympathy_metrics, functional_metrics):
     rows = []
+    sympathy_q = [item for item in mq if item["include_sociogram"]]
+    functional_q = [item for item in mq if not item["include_sociogram"]]
+
+    sympathy_in = sympathy_metrics["in_degree"] if sympathy_metrics else {n: 0 for n in names}
+    functional_in = functional_metrics["in_degree"] if functional_metrics else {n: 0 for n in names}
+
+    for name in names:
+        row = {"Név / Name": name}
+        total = 0
+
+        row["Rokonszenvi választások"] = sympathy_in.get(name, 0)
+        total += row["Rokonszenvi választások"]
+
+        row["Funkcióválasztások"] = functional_in.get(name, 0)
+        total += row["Funkcióválasztások"]
+
+        row["Összesen / Total"] = total
+        row["Jelentőség"] = classify_significance(name, row["Rokonszenvi választások"], row["Funkcióválasztások"])
+        rows.append(row)
+    return rows
+
+
+def build_name_question_breakdown(names, responses, mq):
+    rows = []
+    per_question_metrics = {item["question_index"]: compute_metrics(names, responses, item["question_index"]) for item in mq}
     for name in names:
         row = {"Név / Name": name}
         total = 0
         for item in mq:
-            metrics = compute_metrics(names, responses, item["question_index"])
-            val = metrics["in_degree"].get(name, 0)
+            val = per_question_metrics[item["question_index"]]["in_degree"].get(name, 0)
             row[f"Q{item['question_index'] + 1}"] = val
             total += val
         row["Összesen / Total"] = total
         rows.append(row)
     return rows
+
+
+def metrics_row(label, metrics):
+    return {
+        "Hálózat / Network": label,
+        "KI": round(metrics["KI"], 4),
+        "VK": round(metrics["VK"], 4),
+        "JI1": round(metrics["JI1"], 4),
+        "JI2": round(metrics["JI2"], 4),
+        "SI": round(metrics["SI"], 4),
+        "KOH": round(metrics["KOH"], 4),
+        "CM": round(metrics["CM"], 4),
+        "SD_rokonszenvi": round(metrics["SD_rokonszenvi"], 4),
+        "SD_funkcionalis": round(metrics["SD_funkcionalis"], 4),
+        "Csoportlegkor": round(metrics["Csoportlegkor"], 4) if metrics["Csoportlegkor"] is not None else None,
+        "Reciprocal pairs": metrics["reciprocal_pairs"],
+        "Isolates": metrics["isolates"],
+    }
 
 
 def draw_sociogram(names, metrics, title):
@@ -714,21 +765,28 @@ def admin_results(measurement_id):
     responses = conn.execute("SELECT * FROM responses WHERE measurement_id = ?", (measurement_id,)).fetchall()
     conn.close()
 
-    question_blocks = []
-    selected_indices = []
-    for item in mq:
-        metrics = compute_metrics(names, responses, item["question_index"])
-        question_blocks.append({"item": item, "metrics": metrics})
-        if item["include_sociogram"]:
-            selected_indices.append(item["question_index"])
+    selected_indices = [item["question_index"] for item in mq if item["include_sociogram"]]
+    functional_indices = [item["question_index"] for item in mq if not item["include_sociogram"]]
 
-    combined_metrics = None
-    selected_indices_display = []
+    sympathy_metrics = compute_combined_metrics(names, responses, selected_indices) if selected_indices else compute_metrics_for_questions(names, responses, [])
+    functional_metrics = compute_combined_metrics(names, responses, functional_indices) if functional_indices else compute_metrics_for_questions(names, responses, [])
+
+    selected_indices_display = [idx + 1 for idx in selected_indices]
+    functional_indices_display = [idx + 1 for idx in functional_indices]
+
+    combined_metrics = compute_combined_metrics(names, responses, selected_indices) if selected_indices else None
+    aggregate_rows = []
     if selected_indices:
-        combined_metrics = compute_combined_metrics(names, responses, selected_indices)
-        selected_indices_display = [idx + 1 for idx in selected_indices]
+        aggregate_rows.append(metrics_row("Rokonszenvi háló", sympathy_metrics))
+    if functional_indices:
+        aggregate_rows.append(metrics_row("Funkcióháló", functional_metrics))
+    if selected_indices and functional_indices:
+        all_metrics = compute_combined_metrics(names, responses, selected_indices + functional_indices)
+        aggregate_rows.append(metrics_row("Teljes háló", all_metrics))
 
-    name_summary_rows = build_name_summary_rows(names, responses, mq)
+    question_blocks = [{"item": item} for item in mq]
+    name_summary_rows = build_name_summary_rows(names, mq, sympathy_metrics, functional_metrics)
+    name_question_breakdown = build_name_question_breakdown(names, responses, mq)
 
     return render_template(
         "admin_results.html",
@@ -739,8 +797,12 @@ def admin_results(measurement_id):
         question_blocks=question_blocks,
         selected_indices=selected_indices,
         selected_indices_display=selected_indices_display,
+        functional_indices=functional_indices,
+        functional_indices_display=functional_indices_display,
         combined_metrics=combined_metrics,
+        aggregate_rows=aggregate_rows,
         name_summary_rows=name_summary_rows,
+        name_question_breakdown=name_question_breakdown,
     )
 
 
@@ -799,55 +861,25 @@ def export_excel(measurement_id):
     responses = conn.execute("SELECT * FROM responses WHERE measurement_id=?", (measurement_id,)).fetchall()
     conn.close()
 
-    summary_rows = []
     selected_indices = [item["question_index"] for item in mq if item["include_sociogram"]]
-    for item in mq:
-        m = compute_metrics(names, responses, item["question_index"])
-        summary_rows.append(
-            {
-                "Question": item["question_text"],
-                "Question index": item["question_index"] + 1,
-                "Included in sociogram": "Yes" if item["include_sociogram"] else "No",
-                "KI": round(m["KI"], 4),
-                "VK": round(m["VK"], 4),
-                "JI1": round(m["JI1"], 4),
-                "JI2": round(m["JI2"], 4),
-                "SI": round(m["SI"], 4),
-                "KOH": round(m["KOH"], 4),
-                "CM": round(m["CM"], 4),
-                "SD_rokonszenvi": round(m["SD_rokonszenvi"], 4),
-                "SD_funkcionalis": round(m["SD_funkcionalis"], 4),
-                "Csoportlegkor": round(m["Csoportlegkor"], 4) if m["Csoportlegkor"] is not None else None,
-                "Density": round(m["density"], 4),
-                "Reciprocity": round(m["reciprocity"], 4),
-                "Reciprocal pairs": m["reciprocal_pairs"],
-                "Isolates": m["isolates"],
-            }
-        )
+    functional_indices = [item["question_index"] for item in mq if not item["include_sociogram"]]
 
+    summary_rows = []
     if selected_indices:
-        combined_metrics = compute_combined_metrics(names, responses, selected_indices)
-        summary_rows.append(
-            {
-                "Question": "Combined sociogram",
-                "Question index": ",".join(str(i + 1) for i in selected_indices),
-                "Included in sociogram": "Yes",
-                "KI": round(combined_metrics["KI"], 4),
-                "VK": round(combined_metrics["VK"], 4),
-                "JI1": round(combined_metrics["JI1"], 4),
-                "JI2": round(combined_metrics["JI2"], 4),
-                "SI": round(combined_metrics["SI"], 4),
-                "KOH": round(combined_metrics["KOH"], 4),
-                "CM": round(combined_metrics["CM"], 4),
-                "SD_rokonszenvi": round(combined_metrics["SD_rokonszenvi"], 4),
-                "SD_funkcionalis": round(combined_metrics["SD_funkcionalis"], 4),
-                "Csoportlegkor": round(combined_metrics["Csoportlegkor"], 4) if combined_metrics["Csoportlegkor"] is not None else None,
-                "Density": round(combined_metrics["density"], 4),
-                "Reciprocity": round(combined_metrics["reciprocity"], 4),
-                "Reciprocal pairs": combined_metrics["reciprocal_pairs"],
-                "Isolates": combined_metrics["isolates"],
-            }
-        )
+        sympathy_metrics = compute_combined_metrics(names, responses, selected_indices)
+        summary_rows.append(metrics_row("Rokonszenvi háló", sympathy_metrics))
+    else:
+        sympathy_metrics = compute_metrics_for_questions(names, responses, [])
+
+    if functional_indices:
+        functional_metrics = compute_combined_metrics(names, responses, functional_indices)
+        summary_rows.append(metrics_row("Funkcióháló", functional_metrics))
+    else:
+        functional_metrics = compute_metrics_for_questions(names, responses, [])
+
+    if selected_indices and functional_indices:
+        all_metrics = compute_combined_metrics(names, responses, selected_indices + functional_indices)
+        summary_rows.append(metrics_row("Teljes háló", all_metrics))
 
     raw_rows = []
     for row in responses:
@@ -858,12 +890,14 @@ def export_excel(measurement_id):
         raw_rows.append(base)
 
     out = io.BytesIO()
-    name_summary_rows = build_name_summary_rows(names, responses, mq)
+    name_summary_rows = build_name_summary_rows(names, mq, sympathy_metrics, functional_metrics)
+    name_question_breakdown = build_name_question_breakdown(names, responses, mq)
 
     with pd.ExcelWriter(out, engine="openpyxl") as writer:
         pd.DataFrame(summary_rows).to_excel(writer, index=False, sheet_name="Summary")
         pd.DataFrame(raw_rows).to_excel(writer, index=False, sheet_name="Responses")
         pd.DataFrame(name_summary_rows).to_excel(writer, index=False, sheet_name="Name summary")
+        pd.DataFrame(name_question_breakdown).to_excel(writer, index=False, sheet_name="Question breakdown")
     out.seek(0)
     return send_file(
         out,
