@@ -50,3 +50,5 @@ fieldset { border-radius: 10px; margin: 10px 0; }
   .grid.two { grid-template-columns: 1fr; }
   .check { width: 100%; }
 }
+
+.legend-note { font-size: 0.95rem; color: #334155; margin: 10px 0; }

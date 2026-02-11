@@ -233,74 +233,195 @@ def load_measurement(measurement_id):
     return measurement, questionnaire, roster, mq
 
 
-def compute_metrics(names, responses, question_index):
+def _safe_div(num, den):
+    return num / den if den else 0.0
+
+
+def _stddev(values):
+    vals = list(values)
+    if not vals:
+        return 0.0
+    mean = sum(vals) / len(vals)
+    var = sum((v - mean) ** 2 for v in vals) / len(vals)
+    return math.sqrt(var)
+
+
+def _compute_layout(names, undirected_weights):
+    n = len(names)
+    if n == 0:
+        return {}
+    if n == 1:
+        return {names[0]: (0.0, 0.0)}
+
+    positions = {}
+    radius = 4.0
+    for i, name in enumerate(names):
+        angle = (2 * math.pi * i) / n
+        positions[name] = [radius * math.cos(angle), radius * math.sin(angle)]
+
+    step = 0.04
+    min_dist = 0.001
+    for _ in range(140):
+        disp = {name: [0.0, 0.0] for name in names}
+
+        for i, a in enumerate(names):
+            xa, ya = positions[a]
+            for b in names[i + 1 :]:
+                xb, yb = positions[b]
+                dx = xa - xb
+                dy = ya - yb
+                dist = math.sqrt(dx * dx + dy * dy) + min_dist
+                force = 0.08 / dist
+                fx = (dx / dist) * force
+                fy = (dy / dist) * force
+                disp[a][0] += fx
+                disp[a][1] += fy
+                disp[b][0] -= fx
+                disp[b][1] -= fy
+
+        for (a, b), w in undirected_weights.items():
+            xa, ya = positions[a]
+            xb, yb = positions[b]
+            dx = xb - xa
+            dy = yb - ya
+            dist = math.sqrt(dx * dx + dy * dy) + min_dist
+            target = max(0.8, 2.8 - min(w, 6) * 0.28)
+            force = 0.05 * w * (dist - target)
+            fx = (dx / dist) * force
+            fy = (dy / dist) * force
+            disp[a][0] += fx
+            disp[a][1] += fy
+            disp[b][0] -= fx
+            disp[b][1] -= fy
+
+        for name in names:
+            positions[name][0] += disp[name][0] * step
+            positions[name][1] += disp[name][1] * step
+
+        cx = sum(positions[nm][0] for nm in names) / n
+        cy = sum(positions[nm][1] for nm in names) / n
+        for name in names:
+            positions[name][0] -= cx
+            positions[name][1] -= cy
+
+    return {k: tuple(v) for k, v in positions.items()}
+
+
+def compute_metrics_for_questions(names, responses, question_indexes):
     in_degree = {name: 0 for name in names}
     out_degree = {name: 0 for name in names}
-    edges = []
     edge_set = set()
+    edge_set_by_q = {q: set() for q in question_indexes}
 
     for row in responses:
         sender = row["respondent_name"]
         answers = json.loads(row["answers_json"])
-        selected = answers.get(str(question_index), [])
-        out_degree[sender] = len(selected)
-        for target in selected:
-            if target in in_degree:
-                in_degree[target] += 1
-                edges.append((sender, target))
-                edge_set.add((sender, target))
+        sender_targets = set()
 
-    reciprocal = sum(1 for a, b in edge_set if (b, a) in edge_set and a < b)
-    isolates = sum(1 for n in names if in_degree[n] == 0 and out_degree[n] == 0)
-    density = len(edge_set) / (len(names) * (len(names) - 1)) if len(names) > 1 else 0
-    reciprocity = reciprocal / len(edge_set) if edge_set else 0
-
-    return {
-        "in_degree": in_degree,
-        "out_degree": out_degree,
-        "edges": edges,
-        "edge_set": edge_set,
-        "reciprocal_pairs": reciprocal,
-        "isolates": isolates,
-        "density": density,
-        "reciprocity": reciprocity,
-    }
-
-
-def compute_combined_metrics(names, responses, question_indexes):
-    combined_edges = set()
-    in_degree = {name: 0 for name in names}
-    out_degree = {name: 0 for name in names}
-
-    for row in responses:
-        sender = row["respondent_name"]
-        answers = json.loads(row["answers_json"])
-        sent_targets = []
         for q_idx in question_indexes:
             selected = answers.get(str(q_idx), [])
             for target in selected:
+                if sender == target:
+                    continue
                 if target in in_degree:
-                    combined_edges.add((sender, target))
-                    sent_targets.append(target)
-        out_degree[sender] = len(set(sent_targets))
+                    edge_set.add((sender, target))
+                    edge_set_by_q[q_idx].add((sender, target))
+                    sender_targets.add(target)
 
-    for _, target in combined_edges:
+        if sender in out_degree:
+            out_degree[sender] = len(sender_targets)
+
+    for _, target in edge_set:
         in_degree[target] += 1
 
-    reciprocal = sum(1 for a, b in combined_edges if (b, a) in combined_edges and a < b)
-    isolates = sum(1 for n in names if in_degree[n] == 0 and out_degree[n] == 0)
-    density = len(combined_edges) / (len(names) * (len(names) - 1)) if len(names) > 1 else 0
-    reciprocity = reciprocal / len(combined_edges) if combined_edges else 0
+    reciprocal_pairs = 0
+    reciprocal_levels = {}
+    reciprocal_nodes = set()
+    undirected_weights = {}
+
+    for i, a in enumerate(names):
+        for b in names[i + 1 :]:
+            pair = (a, b)
+            mutual_count = 0
+            directional_count = 0
+            for q_idx in question_indexes:
+                q_edges = edge_set_by_q[q_idx]
+                ab = (a, b) in q_edges
+                ba = (b, a) in q_edges
+                if ab:
+                    directional_count += 1
+                if ba:
+                    directional_count += 1
+                if ab and ba:
+                    mutual_count += 1
+            if mutual_count > 0:
+                reciprocal_pairs += 1
+                reciprocal_levels[pair] = mutual_count
+                reciprocal_nodes.add(a)
+                reciprocal_nodes.add(b)
+            if directional_count > 0:
+                undirected_weights[pair] = directional_count + (2 * mutual_count)
+
+    neighbors = {name: set() for name in names}
+    for a, b in edge_set:
+        neighbors[a].add(b)
+        neighbors[b].add(a)
+
+    k_triad = 0
+    for a, b in edge_set:
+        if (neighbors[a] & neighbors[b]) - {a, b}:
+            k_triad += 1
+
+    k_ossz = len(edge_set)
+    n = len(names)
+    ki = _safe_div(reciprocal_pairs, k_ossz)
+    vk = _safe_div(2 * reciprocal_pairs, k_ossz)
+    ji1 = ki
+    ji2 = _safe_div(k_triad, k_ossz)
+    si = _safe_div(k_ossz, n * (n - 1)) if n > 1 else 0.0
+    koh = _safe_div(reciprocal_pairs, (n * (n - 1) / 2)) if n > 1 else 0.0
+    cm = _safe_div(len(reciprocal_nodes), n)
+    sd_rokonszenvi = _stddev(in_degree.values())
+    sd_funkcionalis = _stddev(out_degree.values())
+    csoportlegkor = _safe_div(sd_rokonszenvi, sd_funkcionalis) if sd_funkcionalis else None
+
+    isolates = sum(1 for nm in names if in_degree[nm] == 0 and out_degree[nm] == 0)
+    reciprocity = _safe_div(reciprocal_pairs, k_ossz)
 
     return {
         "in_degree": in_degree,
         "out_degree": out_degree,
-        "edge_set": combined_edges,
-        "reciprocal_pairs": reciprocal,
+        "edge_set": edge_set,
+        "edge_set_by_q": edge_set_by_q,
+        "reciprocal_pairs": reciprocal_pairs,
+        "reciprocal_levels": reciprocal_levels,
+        "reciprocal_nodes": reciprocal_nodes,
+        "undirected_weights": undirected_weights,
         "isolates": isolates,
-        "density": density,
+        "density": si,
         "reciprocity": reciprocity,
+        "k_ossz": k_ossz,
+        "k_kolcs": reciprocal_pairs,
+        "k_triad": k_triad,
+        "KI": ki,
+        "VK": vk,
+        "JI1": ji1,
+        "JI2": ji2,
+        "SI": si,
+        "KOH": koh,
+        "CM": cm,
+        "SD_rokonszenvi": sd_rokonszenvi,
+        "SD_funkcionalis": sd_funkcionalis,
+        "Csoportlegkor": csoportlegkor,
     }
+
+
+def compute_metrics(names, responses, question_index):
+    return compute_metrics_for_questions(names, responses, [question_index])
+
+
+def compute_combined_metrics(names, responses, question_indexes):
+    return compute_metrics_for_questions(names, responses, question_indexes)
 
 
 def build_name_summary_rows(names, responses, mq):
@@ -318,38 +439,71 @@ def build_name_summary_rows(names, responses, mq):
     return rows
 
 
-def draw_sociogram(names, edge_set, title):
+def draw_sociogram(names, metrics, title):
     if not names:
         return None
     try:
         import matplotlib
         matplotlib.use("Agg")
         import matplotlib.pyplot as plt
+        from matplotlib.lines import Line2D
     except Exception as exc:
         raise RuntimeError("Matplotlib is required for sociogram rendering") from exc
-    fig, ax = plt.subplots(figsize=(7, 7))
-    n = len(names)
-    positions = {}
-    radius = 3
-    for i, name in enumerate(names):
-        angle = (2 * math.pi * i) / n
-        positions[name] = (radius * math.cos(angle), radius * math.sin(angle))
 
-    for a, b in edge_set:
+    edge_set = metrics["edge_set"]
+    reciprocal_levels = metrics.get("reciprocal_levels", {})
+    positions = _compute_layout(names, metrics.get("undirected_weights", {}))
+
+    fig, ax = plt.subplots(figsize=(9, 7))
+    mutual_color_map = {1: "#22c55e", 2: "#f59e0b", 3: "#ef4444"}
+
+    for a, b in sorted(edge_set):
         x1, y1 = positions[a]
         x2, y2 = positions[b]
         mutual = (b, a) in edge_set
-        color = "#f97316" if mutual else "#0ea5e9"
+
+        if mutual:
+            pair = tuple(sorted((a, b)))
+            level = min(reciprocal_levels.get(pair, 1), 3)
+            color = mutual_color_map[level]
+            rad = 0.16 if a < b else -0.16
+            lw = 1.7 + (0.4 * level)
+        else:
+            color = "#64748b"
+            rad = 0.0
+            lw = 1.4
+
         ax.annotate(
             "",
             xy=(x2, y2),
             xytext=(x1, y1),
-            arrowprops=dict(arrowstyle="->", color=color, lw=1.6, alpha=0.85),
+            arrowprops=dict(
+                arrowstyle="->",
+                color=color,
+                lw=lw,
+                alpha=0.9,
+                shrinkA=20,
+                shrinkB=20,
+                connectionstyle=f"arc3,rad={rad}",
+            ),
         )
 
-    for name, (x, y) in positions.items():
-        ax.scatter([x], [y], s=1100, color="#fef08a", edgecolors="#1f2937", linewidths=1.6)
-        ax.text(x, y, name, ha="center", va="center", color="#111827", fontsize=10, fontweight="bold")
+    in_degree = metrics.get("in_degree", {})
+    max_in = max(in_degree.values()) if in_degree else 1
+    for name in names:
+        x, y = positions[name]
+        strength = in_degree.get(name, 0) / max(max_in, 1)
+        node_color = (1.0, 0.95 - 0.45 * strength, 0.65 - 0.45 * strength)
+        ax.scatter([x], [y], s=1200, color=node_color, edgecolors="#111827", linewidths=1.6, zorder=3)
+        ax.text(x, y + 0.18, name, ha="center", va="center", color="#111827", fontsize=9, fontweight="bold", zorder=4)
+
+    legend_items = [
+        Line2D([0], [0], color="#64748b", lw=1.6, label="Egyirányú választás / One-way"),
+        Line2D([0], [0], color=mutual_color_map[1], lw=2.0, label="1× kölcsönös / 1× mutual"),
+        Line2D([0], [0], color=mutual_color_map[2], lw=2.4, label="2× kölcsönös / 2× mutual"),
+        Line2D([0], [0], color=mutual_color_map[3], lw=2.8, label="3×+ kölcsönös / 3×+ mutual"),
+    ]
+    ax.legend(handles=legend_items, loc="upper right", frameon=True)
 
     ax.set_title(title)
     ax.axis("off")
@@ -604,7 +758,7 @@ def sociogram_png(measurement_id, question_index):
 
     metrics = compute_metrics(names, responses, question_index)
     try:
-        img = draw_sociogram(names, metrics["edge_set"], f"Q{question_index + 1}")
+        img = draw_sociogram(names, metrics, f"Q{question_index + 1}")
     except RuntimeError as exc:
         return str(exc), 503
     return send_file(img, mimetype="image/png")
@@ -629,7 +783,7 @@ def sociogram_combined_png(measurement_id):
     metrics = compute_combined_metrics(names, responses, selected_indices)
     try:
         label = ",".join(str(i + 1) for i in selected_indices)
-        img = draw_sociogram(names, metrics["edge_set"], f"Combined Q: {label}")
+        img = draw_sociogram(names, metrics, f"Combined Q: {label}")
     except RuntimeError as exc:
         return str(exc), 503
     return send_file(img, mimetype="image/png")
@@ -654,6 +808,16 @@ def export_excel(measurement_id):
                 "Question": item["question_text"],
                 "Question index": item["question_index"] + 1,
                 "Included in sociogram": "Yes" if item["include_sociogram"] else "No",
+                "KI": round(m["KI"], 4),
+                "VK": round(m["VK"], 4),
+                "JI1": round(m["JI1"], 4),
+                "JI2": round(m["JI2"], 4),
+                "SI": round(m["SI"], 4),
+                "KOH": round(m["KOH"], 4),
+                "CM": round(m["CM"], 4),
+                "SD_rokonszenvi": round(m["SD_rokonszenvi"], 4),
+                "SD_funkcionalis": round(m["SD_funkcionalis"], 4),
+                "Csoportlegkor": round(m["Csoportlegkor"], 4) if m["Csoportlegkor"] is not None else None,
                 "Density": round(m["density"], 4),
                 "Reciprocity": round(m["reciprocity"], 4),
                 "Reciprocal pairs": m["reciprocal_pairs"],
@@ -668,6 +832,16 @@ def export_excel(measurement_id):
                 "Question": "Combined sociogram",
                 "Question index": ",".join(str(i + 1) for i in selected_indices),
                 "Included in sociogram": "Yes",
+                "KI": round(combined_metrics["KI"], 4),
+                "VK": round(combined_metrics["VK"], 4),
+                "JI1": round(combined_metrics["JI1"], 4),
+                "JI2": round(combined_metrics["JI2"], 4),
+                "SI": round(combined_metrics["SI"], 4),
+                "KOH": round(combined_metrics["KOH"], 4),
+                "CM": round(combined_metrics["CM"], 4),
+                "SD_rokonszenvi": round(combined_metrics["SD_rokonszenvi"], 4),
+                "SD_funkcionalis": round(combined_metrics["SD_funkcionalis"], 4),
+                "Csoportlegkor": round(combined_metrics["Csoportlegkor"], 4) if combined_metrics["Csoportlegkor"] is not None else None,
                 "Density": round(combined_metrics["density"], 4),
                 "Reciprocity": round(combined_metrics["reciprocity"], 4),
                 "Reciprocal pairs": combined_metrics["reciprocal_pairs"],
