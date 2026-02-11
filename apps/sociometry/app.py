@@ -19,7 +19,7 @@ from flask import (
 )
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.styles import getSampleStyleSheet
-from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
+from reportlab.platypus import Image as RLImage, Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
 from reportlab.lib import colors
 from werkzeug.security import check_password_hash, generate_password_hash
 
@@ -517,8 +517,28 @@ def draw_sociogram(names, metrics, title):
             pair = tuple(sorted((a, b)))
             level = min(reciprocal_levels.get(pair, 1), 3)
             color = mutual_color_map[level]
-            rad = 0.16 if a < b else -0.16
+            rad_base = 0.16 if a < b else -0.16
             lw = 1.7 + (0.4 * level)
+
+            if level == 2:
+                # Kétszeres kölcsönösségnél dupla vonal fekete-fehér nyomtatáshoz is jól látható
+                for extra in (0.06, -0.06):
+                    ax.annotate(
+                        "",
+                        xy=(x2, y2),
+                        xytext=(x1, y1),
+                        arrowprops=dict(
+                            arrowstyle="->",
+                            color=color,
+                            lw=2.0,
+                            alpha=0.95,
+                            shrinkA=20,
+                            shrinkB=20,
+                            connectionstyle=f"arc3,rad={rad_base + extra}",
+                        ),
+                    )
+                continue
+            rad = rad_base
         else:
             color = "#64748b"
             rad = 0.0
@@ -551,15 +571,16 @@ def draw_sociogram(names, metrics, title):
     legend_items = [
         Line2D([0], [0], color="#64748b", lw=1.6, label="Egyirányú választás / One-way"),
         Line2D([0], [0], color=mutual_color_map[1], lw=2.0, label="1× kölcsönös / 1× mutual"),
-        Line2D([0], [0], color=mutual_color_map[2], lw=2.4, label="2× kölcsönös / 2× mutual"),
+        Line2D([0], [0], color=mutual_color_map[2], lw=2.0, label="2× kölcsönös / 2× mutual (dupla vonal)"),
         Line2D([0], [0], color=mutual_color_map[3], lw=2.8, label="3×+ kölcsönös / 3×+ mutual"),
     ]
-    ax.legend(handles=legend_items, loc="upper right", frameon=True)
+    ax.legend(handles=legend_items, loc="upper center", bbox_to_anchor=(0.5, -0.08), ncol=2, frameon=True)
 
     ax.set_title(title)
     ax.axis("off")
+    ax.margins(0.2)
     buf = io.BytesIO()
-    fig.tight_layout()
+    fig.tight_layout(rect=(0, 0.05, 1, 1))
     fig.savefig(buf, format="png", dpi=150)
     plt.close(fig)
     buf.seek(0)
@@ -921,6 +942,45 @@ def export_pdf(measurement_id):
     doc = SimpleDocTemplate(buffer, pagesize=A4)
     styles = getSampleStyleSheet()
     story = [Paragraph(f"Sociometry report / Szociometria riport: {measurement['name']}", styles["Title"]), Spacer(1, 12)]
+
+    selected_indices = [item["question_index"] for item in mq if item["include_sociogram"]]
+    if selected_indices:
+        combined_metrics = compute_combined_metrics(names, responses, selected_indices)
+        story.append(Paragraph("Összesített szociometriai mutatók / Aggregated sociometric indicators", styles["Heading3"]))
+        data = [
+            ["KI", f"{combined_metrics['KI']:.3f}"],
+            ["VK", f"{combined_metrics['VK']:.3f}"],
+            ["JI1", f"{combined_metrics['JI1']:.3f}"],
+            ["JI2", f"{combined_metrics['JI2']:.3f}"],
+            ["SI", f"{combined_metrics['SI']:.3f}"],
+            ["KOH", f"{combined_metrics['KOH']:.3f}"],
+            ["CM", f"{combined_metrics['CM']:.3f}"],
+            ["Reciprocal pairs", str(combined_metrics["reciprocal_pairs"])],
+            ["Isolates", str(combined_metrics["isolates"])],
+        ]
+        table = Table(data, colWidths=[220, 180])
+        table.setStyle(
+            TableStyle(
+                [
+                    ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
+                    ("BACKGROUND", (0, 0), (-1, 0), colors.whitesmoke),
+                ]
+            )
+        )
+        story.append(table)
+        story.append(Spacer(1, 10))
+
+        try:
+            label = ",".join(str(i + 1) for i in selected_indices)
+            img_buf = draw_sociogram(names, combined_metrics, f"Combined sociogram Q: {label}")
+            story.append(Paragraph("Összesített szociogram / Combined sociogram", styles["Heading3"]))
+            story.append(Paragraph("Jelmagyarázat: szürke=egyirányú, zöld=1x kölcsönös, narancs=2x kölcsönös (dupla vonal), piros=3x+ kölcsönös.", styles["BodyText"]))
+            story.append(Spacer(1, 6))
+            story.append(RLImage(img_buf, width=500, height=380))
+            story.append(Spacer(1, 12))
+        except RuntimeError:
+            story.append(Paragraph("Sociogram image unavailable in current runtime (matplotlib missing).", styles["BodyText"]))
+            story.append(Spacer(1, 10))
 
     for item in mq:
         m = compute_metrics(names, responses, item["question_index"])
