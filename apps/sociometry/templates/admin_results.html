@@ -1,0 +1,111 @@
+{% extends 'base.html' %}
+{% block content %}
+<section class="card">
+  <h2>{{ texts.results }} - {{ measurement.name }}</h2>
+  <p>Kitöltések / submissions: {{ responses|length }}</p>
+  <p>Rokonszenvi kérdések (szociogram): {{ selected_indices_display|join(', ') if selected_indices_display else '-' }}</p>
+  <p>Funkciókérdések: {{ functional_indices_display|join(', ') if functional_indices_display else '-' }}</p>
+  <div class="actions">
+    <a class="btn" href="{{ url_for('export_excel', measurement_id=measurement.id, lang=lang) }}">{{ texts.download_excel }}</a>
+    <a class="btn" href="{{ url_for('export_pdf', measurement_id=measurement.id, lang=lang) }}">{{ texts.download_pdf }}</a>
+  </div>
+</section>
+
+{% for block in question_blocks %}
+<section class="card">
+  <h3>{{ loop.index }}. {{ block.item.question_text }}</h3>
+  {% if block.item.include_sociogram %}
+    <p class="legend-note">Jelmagyarázat: szürke = egyirányú, zöld = egyszeres kölcsönös, narancs = kétszeres kölcsönös, piros = háromszoros vagy több kölcsönös.</p>
+    <img src="{{ url_for('sociogram_png', measurement_id=measurement.id, question_index=block.item.question_index, lang=lang) }}" alt="sociogram" class="sociogram" />
+  {% else %}
+    <p>Ez funkciókérdés, ezért itt nem jelenítünk külön szociogramot.</p>
+  {% endif %}
+</section>
+{% endfor %}
+
+{% if selected_indices %}
+<section class="card">
+  <h3>Összesített szociogram / Combined sociogram ({{ selected_indices_display|join(', ') }})</h3>
+  <p class="legend-note">Jelmagyarázat: szürke = egyirányú, zöld = egyszeres kölcsönös, narancs = kétszeres kölcsönös, piros = háromszoros vagy több kölcsönös.</p>
+  <img src="{{ url_for('sociogram_combined_png', measurement_id=measurement.id, lang=lang) }}" alt="combined sociogram" class="sociogram" />
+</section>
+{% endif %}
+
+<section class="card">
+  <h3>Mutatók összesítve / Aggregated indicators</h3>
+  <div class="table-wrap">
+    <table class="summary-table">
+      <thead>
+        <tr>
+          {% if aggregate_rows %}
+            {% for key in aggregate_rows[0].keys() %}
+              <th>{{ key }}</th>
+            {% endfor %}
+          {% endif %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in aggregate_rows %}
+          <tr>
+            {% for value in row.values() %}
+              <td>{{ value }}</td>
+            {% endfor %}
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="card">
+  <h3>Jelentőségindex (személyek) / Significance table</h3>
+  <div class="table-wrap">
+    <table class="summary-table">
+      <thead>
+        <tr>
+          {% if name_summary_rows %}
+            {% for key in name_summary_rows[0].keys() %}
+              <th>{{ key }}</th>
+            {% endfor %}
+          {% endif %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in name_summary_rows %}
+          <tr>
+            {% for value in row.values() %}
+              <td>{{ value }}</td>
+            {% endfor %}
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="card">
+  <h3>Összesített név szerinti tábla / Name summary by question</h3>
+  <div class="table-wrap">
+    <table class="summary-table">
+      <thead>
+        <tr>
+          {% if name_question_breakdown %}
+            {% for key in name_question_breakdown[0].keys() %}
+              <th>{{ key }}</th>
+            {% endfor %}
+          {% endif %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in name_question_breakdown %}
+          <tr>
+            {% for value in row.values() %}
+              <td>{{ value }}</td>
+            {% endfor %}
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endblock %}
