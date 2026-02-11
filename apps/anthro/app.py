@@ -37,7 +37,11 @@ def create_app():
     # Alap config
     secret = os.environ.get("SECRET_KEY") or os.environ.get("FLASK_SECRET_KEY") or "dev-secret"
     app.config["SECRET_KEY"] = secret
-    app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL", "sqlite:///app.db")
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    db_path = os.path.join(base_dir, "app.db")
+    app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL", f"sqlite:///{db_path}")
+    print(">>> DB file:", app.config["SQLALCHEMY_DATABASE_URI"])
+
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
     upload_dir = os.environ.get("UPLOAD_DIR", os.path.join(os.getcwd(), "uploads"))
@@ -365,7 +369,8 @@ def view_upload(upload_id):
 def export_upload_xlsx(upload_id):
     up = Upload.query.filter_by(id=upload_id, user_id=current_user.id).first_or_404()
     results = Result.query.filter_by(upload_id=up.id).all()
-    xls_bytes, fname = export_results_excel(results)
+    lang = session.get("lang", "hu").lower()
+    xls_bytes, fname = export_results_excel(results, lang=lang)  # <- itt adjuk át
     return send_file(
         BytesIO(xls_bytes),
         as_attachment=True,
