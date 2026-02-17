@@ -246,7 +246,7 @@ def _stddev(values):
     return math.sqrt(var)
 
 
-def _compute_layout(names, undirected_weights):
+def _compute_layout(names, undirected_weights, reciprocal_levels):
     n = len(names)
     if n == 0:
         return {}
@@ -303,6 +303,25 @@ def _compute_layout(names, undirected_weights):
         for name in names:
             positions[name][0] -= cx
             positions[name][1] -= cy
+
+        # Minimum távolság a többszörösen kölcsönös párok között
+        for (a, b), level in reciprocal_levels.items():
+            if level < 2:
+                continue
+            xa, ya = positions[a]
+            xb, yb = positions[b]
+            dx = xb - xa
+            dy = yb - ya
+            dist = math.sqrt(dx * dx + dy * dy) + min_dist
+            min_required = 2.2 + (0.35 * min(level, 3))
+            if dist < min_required:
+                push = (min_required - dist) / 2
+                ux = dx / dist
+                uy = dy / dist
+                positions[a][0] -= ux * push
+                positions[a][1] -= uy * push
+                positions[b][0] += ux * push
+                positions[b][1] += uy * push
 
     return {k: tuple(v) for k, v in positions.items()}
 
@@ -475,19 +494,52 @@ def build_name_question_breakdown(names, responses, mq):
 def metrics_row(label, metrics):
     return {
         "Hálózat / Network": label,
-        "KI": round(metrics["KI"], 4),
-        "VK": round(metrics["VK"], 4),
-        "JI1": round(metrics["JI1"], 4),
-        "JI2": round(metrics["JI2"], 4),
-        "SI": round(metrics["SI"], 4),
-        "KOH": round(metrics["KOH"], 4),
-        "CM": round(metrics["CM"], 4),
-        "SD_rokonszenvi": round(metrics["SD_rokonszenvi"], 4),
-        "SD_funkcionalis": round(metrics["SD_funkcionalis"], 4),
-        "Csoportlegkor": round(metrics["Csoportlegkor"], 4) if metrics["Csoportlegkor"] is not None else None,
-        "Reciprocal pairs": metrics["reciprocal_pairs"],
-        "Isolates": metrics["isolates"],
+        "Kölcsönösségi index (KI)": round(metrics["KI"], 4),
+        "Viszonzott kapcsolatok mutatója (VK)": round(metrics["VK"], 4),
+        "Elsődleges jelentőségindex (JI1)": round(metrics["JI1"], 4),
+        "Másodlagos jelentőségindex (JI2)": round(metrics["JI2"], 4),
+        "Sűrűségi index (SI)": round(metrics["SI"], 4),
+        "Kohéziós index (KOH)": round(metrics["KOH"], 4),
+        "CM mutató": round(metrics["CM"], 4),
+        "Rokonszenvi választások szórása": round(metrics["SD_rokonszenvi"], 4),
+        "Funkcionális választások szórása": round(metrics["SD_funkcionalis"], 4),
+        "Csoportlégkör mutató": round(metrics["Csoportlegkor"], 4) if metrics["Csoportlegkor"] is not None else None,
+        "Kölcsönös párok száma": metrics["reciprocal_pairs"],
+        "Izoláltak száma": metrics["isolates"],
     }
+
+
+def _metric_level(value, low, high):
+    if value < low:
+        return "alacsony"
+    if value < high:
+        return "közepes"
+    return "magas"
+
+
+def build_metric_interpretations(metrics):
+    return [
+        {
+            "name": "Kölcsönösségi index (KI)",
+            "value": round(metrics["KI"], 4),
+            "text": f"A kölcsönösség {_metric_level(metrics['KI'], 0.2, 0.5)} szintű.",
+        },
+        {
+            "name": "Sűrűségi index (SI)",
+            "value": round(metrics["SI"], 4),
+            "text": f"A háló telítettsége {_metric_level(metrics['SI'], 0.25, 0.55)}.",
+        },
+        {
+            "name": "Kohéziós index (KOH)",
+            "value": round(metrics["KOH"], 4),
+            "text": f"A csoport kohéziója {_metric_level(metrics['KOH'], 0.2, 0.45)}.",
+        },
+        {
+            "name": "CM mutató",
+            "value": round(metrics["CM"], 4),
+            "text": f"A reciprocitásra épülő magstruktúra {_metric_level(metrics['CM'], 0.3, 0.6)}.",
+        },
+    ]
 
 
 def draw_sociogram(names, metrics, title):
@@ -503,7 +555,7 @@ def draw_sociogram(names, metrics, title):
 
     edge_set = metrics["edge_set"]
     reciprocal_levels = metrics.get("reciprocal_levels", {})
-    positions = _compute_layout(names, metrics.get("undirected_weights", {}))
+    positions = _compute_layout(names, metrics.get("undirected_weights", {}), reciprocal_levels)
 
     fig, ax = plt.subplots(figsize=(9, 7))
     mutual_color_map = {1: "#22c55e", 2: "#f59e0b", 3: "#ef4444"}
@@ -796,6 +848,7 @@ def admin_results(measurement_id):
     functional_indices_display = [idx + 1 for idx in functional_indices]
 
     combined_metrics = compute_combined_metrics(names, responses, selected_indices) if selected_indices else None
+    sympathy_interpretations = build_metric_interpretations(sympathy_metrics) if selected_indices else []
     aggregate_rows = []
     if selected_indices:
         aggregate_rows.append(metrics_row("Rokonszenvi háló", sympathy_metrics))
@@ -824,6 +877,7 @@ def admin_results(measurement_id):
         aggregate_rows=aggregate_rows,
         name_summary_rows=name_summary_rows,
         name_question_breakdown=name_question_breakdown,
+        sympathy_interpretations=sympathy_interpretations,
     )
 
 
@@ -946,29 +1000,27 @@ def export_pdf(measurement_id):
     selected_indices = [item["question_index"] for item in mq if item["include_sociogram"]]
     if selected_indices:
         combined_metrics = compute_combined_metrics(names, responses, selected_indices)
-        story.append(Paragraph("Összesített szociometriai mutatók / Aggregated sociometric indicators", styles["Heading3"]))
+        story.append(Paragraph("Rokonszenvi háló mutatói / Sympathy-network indicators", styles["Heading3"]))
         data = [
-            ["KI", f"{combined_metrics['KI']:.3f}"],
-            ["VK", f"{combined_metrics['VK']:.3f}"],
-            ["JI1", f"{combined_metrics['JI1']:.3f}"],
-            ["JI2", f"{combined_metrics['JI2']:.3f}"],
-            ["SI", f"{combined_metrics['SI']:.3f}"],
-            ["KOH", f"{combined_metrics['KOH']:.3f}"],
-            ["CM", f"{combined_metrics['CM']:.3f}"],
-            ["Reciprocal pairs", str(combined_metrics["reciprocal_pairs"])],
-            ["Isolates", str(combined_metrics["isolates"])],
+            ["Kölcsönösségi index (KI)", f"{combined_metrics['KI']:.3f}"],
+            ["Viszonzott kapcsolatok mutatója (VK)", f"{combined_metrics['VK']:.3f}"],
+            ["Elsődleges jelentőségindex (JI1)", f"{combined_metrics['JI1']:.3f}"],
+            ["Másodlagos jelentőségindex (JI2)", f"{combined_metrics['JI2']:.3f}"],
+            ["Sűrűségi index (SI)", f"{combined_metrics['SI']:.3f}"],
+            ["Kohéziós index (KOH)", f"{combined_metrics['KOH']:.3f}"],
+            ["CM mutató", f"{combined_metrics['CM']:.3f}"],
+            ["Kölcsönös párok száma", str(combined_metrics["reciprocal_pairs"])],
+            ["Izoláltak száma", str(combined_metrics["isolates"])],
         ]
-        table = Table(data, colWidths=[220, 180])
-        table.setStyle(
-            TableStyle(
-                [
-                    ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
-                    ("BACKGROUND", (0, 0), (-1, 0), colors.whitesmoke),
-                ]
-            )
-        )
+        table = Table(data, colWidths=[280, 120])
+        table.setStyle(TableStyle([("GRID", (0, 0), (-1, -1), 0.5, colors.grey), ("BACKGROUND", (0, 0), (-1, 0), colors.whitesmoke)]))
         story.append(table)
         story.append(Spacer(1, 10))
+
+        story.append(Paragraph("Rövid értelmezés / Short interpretation", styles["Heading3"]))
+        for item in build_metric_interpretations(combined_metrics):
+            story.append(Paragraph(f"• {item['name']}: {item['value']} – {item['text']}", styles["BodyText"]))
+        story.append(Spacer(1, 8))
 
         try:
             label = ",".join(str(i + 1) for i in selected_indices)
@@ -981,27 +1033,8 @@ def export_pdf(measurement_id):
         except RuntimeError:
             story.append(Paragraph("Sociogram image unavailable in current runtime (matplotlib missing).", styles["BodyText"]))
             story.append(Spacer(1, 10))
-
-    for item in mq:
-        m = compute_metrics(names, responses, item["question_index"])
-        story.append(Paragraph(f"Q{item['question_index'] + 1}: {item['question_text']}", styles["Heading3"]))
-        data = [
-            ["Density", f"{m['density']:.3f}"],
-            ["Reciprocity", f"{m['reciprocity']:.3f}"],
-            ["Reciprocal pairs", str(m["reciprocal_pairs"])],
-            ["Isolates", str(m["isolates"])],
-        ]
-        table = Table(data, colWidths=[180, 200])
-        table.setStyle(
-            TableStyle(
-                [
-                    ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
-                    ("BACKGROUND", (0, 0), (-1, 0), colors.whitesmoke),
-                ]
-            )
-        )
-        story.append(table)
-        story.append(Spacer(1, 10))
+    else:
+        story.append(Paragraph("Nincs kijelölt rokonszenvi (szociogram) kérdés a PDF szociogram részhez.", styles["BodyText"]))
 
     doc.build(story)
     buffer.seek(0)

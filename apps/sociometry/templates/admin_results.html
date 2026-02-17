@@ -57,6 +57,20 @@
   </div>
 </section>
 
+
+<section class="card">
+  <h3>Rövid értelmezés (csak rokonszenvi háló)</h3>
+  {% if sympathy_interpretations %}
+    <ul>
+      {% for item in sympathy_interpretations %}
+        <li><strong>{{ item.name }}</strong>: {{ item.value }} – {{ item.text }}</li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p>Nincs kijelölt rokonszenvi kérdés, ezért nincs külön értelmezés.</p>
+  {% endif %}
+</section>
+
 <section class="card">
   <h3>Jelentőségindex (személyek) / Significance table</h3>
   <div class="table-wrap">
