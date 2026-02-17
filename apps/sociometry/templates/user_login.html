@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+{% block content %}
+<section class="card narrow">
+  <h2>{{ texts.user_login }}</h2>
+  <form method="post">
+    <label>{{ texts.measurements }}
+      <select name="measurement_id" required>
+        {% for m in measurements %}
+          <option value="{{ m.id }}">#{{ m.id }} - {{ m.name }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <label>{{ texts.identifier }}<input name="identifier" required /></label>
+    <label>{{ texts.password }}<input type="password" name="password" required /></label>
+    <button class="btn" type="submit">{{ texts.open_measurement }}</button>
+  </form>
+</section>
+{% endblock %}

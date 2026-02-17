@@ -26,7 +26,7 @@ def load_flask_app(module_path: str):
         return m.create_app()
     raise RuntimeError(f"Neither create_app() nor app found in {module_path}")
 
-# --- Itt töltsd be a három appot ---
+# --- Itt töltsd be a négy appot ---
 # Anthro: apps/anthro/app.py  ->  anthro.app
 anthro_app = load_flask_app("anthro.app")
 
@@ -36,13 +36,14 @@ readiness_app = load_flask_app("readiness.app")
 
 # Sportmotivation: apps/sportmotivation/app.py
 sport_app = load_flask_app("sportmotivation.app")
+sociometry_app = load_flask_app("sociometry.app")
 
 # --- Root “héj” app csak gyökér/health célra ---
 root = Flask(__name__)
 
 @root.get("/")
 def index():
-    return "OK. Elérhető: /anthro , /readiness , /sportmotivation"
+    return "OK. Elérhető: /anthro , /readiness , /sportmotivation , /sociometry"
 
 @root.get("/anthro")
 def anthro_noslash():
@@ -56,20 +57,15 @@ def readiness_noslash():
 def sport_noslash():
     return redirect("/sportmotivation/", code=308)
 
-# a DispatcherMiddleware létrehozásánál TARTSD bent a perjeles ÉS perjel nélküli kulcsokat is:
-application = DispatcherMiddleware(root, {
-    "/anthro": anthro_app,
-    "/anthro/": anthro_app,
-    "/readiness": readiness_app,
-    "/readiness/": readiness_app,
-    "/sportmotivation": sport_app,
-    "/sportmotivation/": sport_app,
-})
-# --- Mountolás prefixek alá ---
+@root.get("/sociometry")
+def sociometry_noslash():
+    return redirect("/sociometry/", code=308)
+
 application = DispatcherMiddleware(root, {
     "/anthro": anthro_app,
     "/readiness": readiness_app,
     "/sportmotivation": sport_app,
+    "/sociometry": sociometry_app,
 })
 
 # Gunicorn ezt a nevet keresi:

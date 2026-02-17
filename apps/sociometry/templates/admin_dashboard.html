@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>{{ texts.dashboard }}</h2>
+<div class="grid two">
+  <section class="card">
+    <h3>{{ texts.questionnaires }}</h3>
+    <form method="post" enctype="multipart/form-data">
+      <input type="hidden" name="action" value="upload_questionnaire" />
+      <label>{{ texts.name }}<input name="name" required /></label>
+      <input type="file" name="file" accept=".xlsx,.xls" required />
+      <button class="btn" type="submit">{{ texts.upload }}</button>
+    </form>
+    <ul>
+      {% for q in questionnaires %}
+      <li>#{{ q.id }} - {{ q.name }}</li>
+      {% endfor %}
+    </ul>
+  </section>
+
+  <section class="card">
+    <h3>{{ texts.rosters }}</h3>
+    <form method="post" enctype="multipart/form-data">
+      <input type="hidden" name="action" value="upload_roster" />
+      <label>{{ texts.name }}<input name="name" required /></label>
+      <input type="file" name="file" accept=".xlsx,.xls" required />
+      <button class="btn" type="submit">{{ texts.upload }}</button>
+    </form>
+    <ul>
+      {% for r in rosters %}
+      <li>#{{ r.id }} - {{ r.name }}</li>
+      {% endfor %}
+    </ul>
+  </section>
+</div>
+
+<section class="card">
+  <h3>{{ texts.create_measurement }}</h3>
+  <form method="post">
+    <input type="hidden" name="action" value="create_measurement" />
+    <label>{{ texts.measurement_name }}<input name="measurement_name" required /></label>
+    <label>{{ texts.questionnaire }}
+      <select name="questionnaire_id" required>
+        {% for q in questionnaires %}
+          <option value="{{ q.id }}">{{ q.name }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <label>{{ texts.roster }}
+      <select name="roster_id" required>
+        {% for r in rosters %}
+          <option value="{{ r.id }}">{{ r.name }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <label>{{ texts.user_identifier }}<input name="user_identifier" required /></label>
+    <label>{{ texts.user_password }}<input name="user_password" required /></label>
+
+        <label>{{ texts.sociogram_indices }}<input name="sociogram_indices" placeholder="1,2" /></label>
+
+
+    <button class="btn" type="submit">{{ texts.save }}</button>
+  </form>
+</section>
+
+<section class="card">
+  <h3>{{ texts.measurements }}</h3>
+  <ul>
+    {% for m in measurements %}
+      <li>#{{ m.id }} - {{ m.name }} | <a href="{{ url_for('admin_results', measurement_id=m.id, lang=lang) }}">{{ texts.results }}</a></li>
+    {% endfor %}
+  </ul>
+  <a class="btn" href="{{ url_for('user_login', lang=lang) }}">{{ texts.go_to_user }}</a>
+</section>
+{% endblock %}
