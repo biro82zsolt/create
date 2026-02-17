@@ -240,6 +240,8 @@ def process_excel_to_results(xlsx_path: str, user_id: int):
         rec = _normalize_record_keys(row.to_dict())
 
         name = rec.get("Név") or rec.get("Name") or "N/A"
+        sport = _get_cell(row, "Sportág", "Sport")
+        team = _get_cell(row, "Csapat", "Team")
         sex  = rec.get("Nem") or rec.get("Sex")
         birth = rec.get("Születési dátum") or rec.get("Birth date")
         meas  = rec.get("Mérés dátuma") or rec.get("Measurement date")
@@ -250,6 +252,8 @@ def process_excel_to_results(xlsx_path: str, user_id: int):
         r = Result(
             user_id=user_id,
             name=name,  # <- biztos, hogy mindig van érték
+            sport=sport,
+            team=team,
             birth_date=_to_date_like(rec.get("Születési dátum")),
             meas_date=_to_date_like(rec.get("Mérés dátuma")),
             ttm=rec.get("TTM"),
@@ -276,11 +280,21 @@ def process_excel_to_results(xlsx_path: str, user_id: int):
         rows.append(r)
     return rows
 
-def export_results_excel(results: list[Result]):
+def _get_cell(row, *keys):
+    for k in keys:
+        if k in row and pd.notna(row[k]):
+            v = str(row[k]).strip()
+            return v if v else None
+    return None
+
+
+def export_results_excel(results: list[Result], lang: str = "hu"):
     data = []
     for r in results:
         data.append({
             "Név": r.name,
+            "Sport": r.sport,
+            "Csapat": r.team,
             "Születési dátum": r.birth_date,
             "Mérés dátuma": r.meas_date,
             "Testmagasság (TTM)": r.ttm,
@@ -304,12 +318,18 @@ def export_results_excel(results: list[Result]):
             "PHV": r.phv,
             "PHV kategória": r.phv_cat,
         })
+
     df = pd.DataFrame(data)
 
+    for col in ["Születési dátum", "Mérés dátuma"]:
+        if col in df.columns:
+            df[col] = pd.to_datetime(df[col], errors="coerce").dt.strftime("%Y-%m-%d")
+
     ts = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-    fname = f"results_{ts}.xlsx"
+    fname = f"results_{(lang or 'hu').lower()}_{ts}.xlsx"
     buf = io.BytesIO()
     df.to_excel(buf, index=False)
+    buf.seek(0)
     return buf.getvalue(), fname
 
 # ---------- PDF export (szép egyoldalas lapok) ----------

@@ -59,6 +59,11 @@ class UserAdmin(SecureModelView):
             return False
         return super().delete_model(model)
 
+class ResultAdmin(SecureModelView):
+    column_list = ("id", "upload_id", "user_id", "name", "sport", "team")
+    column_searchable_list = ("name", "sport", "team")
+    column_filters = ("sport", "team")
+
 
 class UploadAdmin(SecureModelView):
     column_list = ("id", "user", "original_filename", "stored_path", "created_at")
