@@ -1,0 +1,15 @@
+{% extends "performance/base.html" %}
+{% block title %}Edzői bejelentkezés{% endblock %}
+{% block content %}
+<div class="card" style="max-width:480px;margin:40px auto;">
+    <h1>Edzői bejelentkezés</h1>
+    <form method="post">
+        <label for="username">Felhasználónév</label>
+        <input id="username" name="username" required style="width:100%;margin:8px 0 16px;">
+        <label for="password">Jelszó</label>
+        <input id="password" type="password" name="password" required style="width:100%;margin:8px 0 16px;">
+        <button type="submit">Belépés</button>
+    </form>
+    <p><a href="{{ url_for('admin_login') }}">Admin bejelentkezés</a></p>
+</div>
+{% endblock %}

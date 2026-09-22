@@ -1,0 +1,726 @@
+{% extends "performance/base.html" %}
+
+{% block title %}Játékosértékelés{% endblock %}
+
+{% block content %}
+
+<div class="card">
+
+    <h1>Játékosértékelés</h1>
+
+    <p>
+        <strong>{{ player.full_name }}</strong>
+
+{% if team %}
+    · {{ team.name }}
+{% endif %}
+
+· {{ period.name }}
+    </p>
+
+    <p>
+        Értékelő:
+        <strong>{{ coach.name }}</strong>
+    </p>
+
+</div>
+
+
+<form
+    method="post"
+    action="{{ url_for('performance.assessment_save') }}"
+    id="assessment-form"
+>
+
+    <input type="hidden" name="team_id" value="{{ team.id if team else '' }}">
+    <input type="hidden" name="player_id" value="{{ player.id }}">
+    <input type="hidden" name="coach_id" value="{{ coach.id }}">
+    <input type="hidden" name="period_id" value="{{ period.id }}">
+
+
+    <!-- ================================================= -->
+    <!-- PROGRESS -->
+    <!-- ================================================= -->
+
+    <div class="card">
+
+        <div style="
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+            margin-bottom:12px;
+        ">
+
+            <strong id="step-title">
+                1. Taktikai
+            </strong>
+
+            <span id="step-counter">
+                1 / 3
+            </span>
+
+        </div>
+
+        <div style="
+            height:8px;
+            background:#e5e7eb;
+            border-radius:10px;
+            overflow:hidden;
+        ">
+
+            <div
+                id="progress-bar"
+                style="
+                    height:100%;
+                    width:33.33%;
+                    background:#111827;
+                    transition:width .2s ease;
+                "
+            ></div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ================================================= -->
+    <!-- STEP 1 – TACTICAL -->
+    <!-- ================================================= -->
+
+    <div class="assessment-step" data-step="1">
+
+        <div class="card">
+
+            <h2>1. Taktikai teljesítmény</h2>
+
+            <p>
+                Értékeld a játékost 1–10 skálán.
+            </p>
+
+            {% for question in tactical %}
+
+                <div style="
+                    margin-bottom:28px;
+                    padding-bottom:20px;
+                    border-bottom:1px solid #e5e7eb;
+                ">
+
+                    <h3>
+                        {{ loop.index }}. {{ question.name }}
+                    </h3>
+
+                    <p style="color:#6b7280;">
+                        {{ question.statement }}
+                    </p>
+
+                    <div style="
+                        display:flex;
+                        gap:8px;
+                        flex-wrap:wrap;
+                    ">
+
+                        {% for score in range(1, 11) %}
+
+                            <label style="
+                                display:inline-flex;
+                                align-items:center;
+                                justify-content:center;
+                                gap:4px;
+                                min-width:42px;
+                                height:42px;
+                                padding:0 6px;
+                                border:1px solid #d1d5db;
+                                border-radius:8px;
+                                cursor:pointer;
+                                background:white;
+                            ">
+
+                                <input
+                                    type="radio"
+                                    name="{{ question.code }}"
+                                    value="{{ score }}"
+                                    required
+                                >
+
+                                <span>{{ score }}</span>
+
+                            </label>
+
+                        {% endfor %}
+
+                    </div>
+
+                </div>
+
+            {% endfor %}
+
+
+            <!-- Tactical potential -->
+
+            <div style="
+                margin-top:32px;
+                padding:24px;
+                background:#f3f4f6;
+                border-radius:12px;
+            ">
+
+                <h2>
+                    Taktikai fejlődési potenciál
+                </h2>
+
+                <p style="color:#6b7280;">
+                    {{ potential[0].statement }}
+                </p>
+
+                <div style="
+                    display:flex;
+                    gap:8px;
+                    flex-wrap:wrap;
+                    margin-top:18px;
+                ">
+
+                    {% for score in range(1, 11) %}
+
+                        <label style="
+                            display:inline-flex;
+                            align-items:center;
+                            justify-content:center;
+                            gap:4px;
+                            min-width:42px;
+                            height:42px;
+                            padding:0 6px;
+                            border:1px solid #d1d5db;
+                            border-radius:8px;
+                            cursor:pointer;
+                            background:white;
+                        ">
+
+                            <input
+                                type="radio"
+                                name="{{ potential[0].code }}"
+                                value="{{ score }}"
+                                required
+                            >
+
+                            <span>{{ score }}</span>
+
+                        </label>
+
+                    {% endfor %}
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ================================================= -->
+    <!-- STEP 2 – TECHNICAL -->
+    <!-- ================================================= -->
+
+    <div
+        class="assessment-step"
+        data-step="2"
+        style="display:none;"
+    >
+
+        <div class="card">
+
+            <h2>2. Technikai teljesítmény</h2>
+
+            <p>
+                Értékeld a játékost 1–10 skálán.
+            </p>
+
+            {% for question in technical %}
+
+                <div style="
+                    margin-bottom:28px;
+                    padding-bottom:20px;
+                    border-bottom:1px solid #e5e7eb;
+                ">
+
+                    <h3>
+                        {{ loop.index }}. {{ question.name }}
+                    </h3>
+
+                    <p style="color:#6b7280;">
+                        {{ question.statement }}
+                    </p>
+
+                    <div style="
+                        display:flex;
+                        gap:8px;
+                        flex-wrap:wrap;
+                    ">
+
+                        {% for score in range(1, 11) %}
+
+                            <label style="
+                                display:inline-flex;
+                                align-items:center;
+                                justify-content:center;
+                                gap:4px;
+                                min-width:42px;
+                                height:42px;
+                                padding:0 6px;
+                                border:1px solid #d1d5db;
+                                border-radius:8px;
+                                cursor:pointer;
+                                background:white;
+                            ">
+
+                                <input
+                                    type="radio"
+                                    name="{{ question.code }}"
+                                    value="{{ score }}"
+                                    required
+                                >
+
+                                <span>{{ score }}</span>
+
+                            </label>
+
+                        {% endfor %}
+
+                    </div>
+
+                </div>
+
+            {% endfor %}
+
+
+            <!-- Technical potential -->
+
+            <div style="
+                margin-top:32px;
+                padding:24px;
+                background:#f3f4f6;
+                border-radius:12px;
+            ">
+
+                <h2>
+                    Technikai fejlődési potenciál
+                </h2>
+
+                <p style="color:#6b7280;">
+                    {{ potential[1].statement }}
+                </p>
+
+                <div style="
+                    display:flex;
+                    gap:8px;
+                    flex-wrap:wrap;
+                    margin-top:18px;
+                ">
+
+                    {% for score in range(1, 11) %}
+
+                        <label style="
+                            display:inline-flex;
+                            align-items:center;
+                            justify-content:center;
+                            gap:4px;
+                            min-width:42px;
+                            height:42px;
+                            padding:0 6px;
+                            border:1px solid #d1d5db;
+                            border-radius:8px;
+                            cursor:pointer;
+                            background:white;
+                        ">
+
+                            <input
+                                type="radio"
+                                name="{{ potential[1].code }}"
+                                value="{{ score }}"
+                                required
+                            >
+
+                            <span>{{ score }}</span>
+
+                        </label>
+
+                    {% endfor %}
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ================================================= -->
+    <!-- STEP 3 – BEHAVIOUR -->
+    <!-- ================================================= -->
+
+    <div
+        class="assessment-step"
+        data-step="3"
+        style="display:none;"
+    >
+
+        <div class="card">
+
+            <h2>3. Viselkedés / mentalitás</h2>
+
+            <p>
+                Értékeld a játékost 1–10 skálán.
+            </p>
+
+            {% for question in behaviour %}
+
+                <div style="
+                    margin-bottom:28px;
+                    padding-bottom:20px;
+                    border-bottom:1px solid #e5e7eb;
+                ">
+
+                    <h3>
+                        {{ loop.index }}. {{ question.name }}
+                    </h3>
+
+                    <p style="color:#6b7280;">
+                        {{ question.statement }}
+                    </p>
+
+                    <div style="
+                        display:flex;
+                        gap:8px;
+                        flex-wrap:wrap;
+                    ">
+
+                        {% for score in range(1, 11) %}
+
+                            <label style="
+                                display:inline-flex;
+                                align-items:center;
+                                justify-content:center;
+                                gap:4px;
+                                min-width:42px;
+                                height:42px;
+                                padding:0 6px;
+                                border:1px solid #d1d5db;
+                                border-radius:8px;
+                                cursor:pointer;
+                                background:white;
+                            ">
+
+                                <input
+                                    type="radio"
+                                    name="{{ question.code }}"
+                                    value="{{ score }}"
+                                    required
+                                >
+
+                                <span>{{ score }}</span>
+
+                            </label>
+
+                        {% endfor %}
+
+                    </div>
+
+                </div>
+
+            {% endfor %}
+
+
+            <!-- Behaviour potential -->
+
+            <div style="
+                margin-top:32px;
+                padding:24px;
+                background:#f3f4f6;
+                border-radius:12px;
+            ">
+
+                <h2>
+                    Viselkedési / mentális fejlődési potenciál
+                </h2>
+
+                <p style="color:#6b7280;">
+                    {{ potential[2].statement }}
+                </p>
+
+                <div style="
+                    display:flex;
+                    gap:8px;
+                    flex-wrap:wrap;
+                    margin-top:18px;
+                ">
+
+                    {% for score in range(1, 11) %}
+
+                        <label style="
+                            display:inline-flex;
+                            align-items:center;
+                            justify-content:center;
+                            gap:4px;
+                            min-width:42px;
+                            height:42px;
+                            padding:0 6px;
+                            border:1px solid #d1d5db;
+                            border-radius:8px;
+                            cursor:pointer;
+                            background:white;
+                        ">
+
+                            <input
+                                type="radio"
+                                name="{{ potential[2].code }}"
+                                value="{{ score }}"
+                                required
+                            >
+
+                            <span>{{ score }}</span>
+
+                        </label>
+
+                    {% endfor %}
+
+                </div>
+
+            </div>
+
+
+            <!-- Coach note -->
+
+            <div style="
+                margin-top:32px;
+            ">
+
+                <h2>Edzői megjegyzés</h2>
+
+                <textarea
+                    name="coach_note"
+                    rows="5"
+                    style="
+                        width:100%;
+                        padding:12px;
+                        border:1px solid #d1d5db;
+                        border-radius:8px;
+                        font-family:inherit;
+                        font-size:15px;
+                        resize:vertical;
+                    "
+                    placeholder="Opcionális megjegyzés, fejlesztési fókusz..."
+                ></textarea>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ================================================= -->
+    <!-- NAVIGATION -->
+    <!-- ================================================= -->
+
+    <div class="card">
+
+        <div style="
+            display:flex;
+            justify-content:space-between;
+            gap:12px;
+        ">
+
+            <button
+                type="button"
+                id="prev-button"
+                style="display:none;"
+            >
+                ← Vissza
+            </button>
+
+            <button
+                type="button"
+                id="next-button"
+            >
+                Következő →
+            </button>
+
+            <button
+                type="submit"
+                id="save-button"
+                style="display:none;"
+            >
+                Értékelés mentése
+            </button>
+
+        </div>
+
+    </div>
+
+</form>
+
+
+<script>
+
+let currentStep = 1;
+
+const steps = document.querySelectorAll(
+    ".assessment-step"
+);
+
+const prevButton = document.getElementById(
+    "prev-button"
+);
+
+const nextButton = document.getElementById(
+    "next-button"
+);
+
+const saveButton = document.getElementById(
+    "save-button"
+);
+
+const stepTitle = document.getElementById(
+    "step-title"
+);
+
+const stepCounter = document.getElementById(
+    "step-counter"
+);
+
+const progressBar = document.getElementById(
+    "progress-bar"
+);
+
+
+const titles = {
+    1: "1. Taktikai",
+    2: "2. Technikai",
+    3: "3. Viselkedés / mentalitás"
+};
+
+
+function showStep(step) {
+
+    currentStep = step;
+
+    steps.forEach(function(element) {
+
+        element.style.display =
+            Number(element.dataset.step) === step
+                ? "block"
+                : "none";
+
+    });
+
+
+    stepTitle.textContent =
+        titles[step];
+
+    stepCounter.textContent =
+        step + " / 3";
+
+    progressBar.style.width =
+        (step / 3 * 100) + "%";
+
+
+    prevButton.style.display =
+        step > 1
+            ? "inline-block"
+            : "none";
+
+
+    nextButton.style.display =
+        step < 3
+            ? "inline-block"
+            : "none";
+
+
+    saveButton.style.display =
+        step === 3
+            ? "inline-block"
+            : "none";
+
+
+    window.scrollTo({
+        top: 0,
+        behavior: "smooth"
+    });
+}
+
+
+function validateCurrentStep() {
+
+    const current = document.querySelector(
+        '.assessment-step[data-step="' +
+        currentStep +
+        '"]'
+    );
+
+    const requiredInputs =
+        current.querySelectorAll(
+            'input[type="radio"][required]'
+        );
+
+
+    const groups = {};
+
+    requiredInputs.forEach(function(input) {
+
+        if (!groups[input.name]) {
+            groups[input.name] = false;
+        }
+
+        if (input.checked) {
+            groups[input.name] = true;
+        }
+
+    });
+
+
+    for (const name in groups) {
+
+        if (!groups[name]) {
+
+            alert(
+                "Kérlek, válaszolj minden kérdésre ezen az oldalon."
+            );
+
+            return false;
+        }
+
+    }
+
+    return true;
+}
+
+
+nextButton.addEventListener(
+    "click",
+    function() {
+
+        if (!validateCurrentStep()) {
+            return;
+        }
+
+        showStep(currentStep + 1);
+    }
+);
+
+
+prevButton.addEventListener(
+    "click",
+    function() {
+
+        showStep(currentStep - 1);
+
+    }
+);
+
+
+showStep(1);
+
+</script>
+
+{% endblock %}

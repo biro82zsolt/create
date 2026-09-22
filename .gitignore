@@ -1,0 +1,23 @@
+.env
+*.db
+__pycache__/
+*.env
+*service-account*.json
+*credentials*.json
+master-imagery-*.json
+*.sqlite*
+*.sqlite3
+*.py[cod]
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# IDE
+.idea/
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db

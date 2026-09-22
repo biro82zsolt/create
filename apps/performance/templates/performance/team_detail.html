@@ -1,0 +1,184 @@
+{% extends "performance/base.html" %}
+
+{% block title %}
+    {{ team.name }}
+{% endblock %}
+
+{% block content %}
+
+<h1>{{ team.name }}</h1>
+
+<div class="card">
+
+    <h2>Játékosok importálása Excelből</h2>
+
+    <p>
+        Az Excel fájl első sora tartalmazza az oszlopneveket.
+    </p>
+
+    <p>
+        Elvárt oszlopok:
+        <strong>Last Name</strong>,
+        <strong>First Name</strong>
+    </p>
+
+    <p>
+        Opcionális:
+        <strong>Player ID</strong>,
+        <strong>Birth Date</strong>
+    </p>
+
+    <form
+        method="post"
+        enctype="multipart/form-data"
+        action="{{ url_for(
+        'performance.import_players_preview',
+        team_id=team.id
+        ) }}"
+    >
+
+        <input
+            type="file"
+            name="file"
+            accept=".xlsx,.xls"
+            required
+        >
+
+        <button type="submit">
+            Excel feltöltése
+        </button>
+
+    </form>
+
+</div>
+
+<div class="card">
+
+    <h2>Játékos hozzáadása</h2>
+
+    {% if players %}
+
+        <form
+            method="post"
+            action="{{ url_for(
+                'performance.team_detail',
+                team_id=team.id
+            ) }}"
+        >
+
+            <select name="player_id" required>
+
+                <option value="">
+                    — Válassz játékost —
+                </option>
+
+                {% for player in players %}
+
+                    <option value="{{ player.id }}">
+                        {{ player.full_name }}
+                        {% if player.birth_date %}
+                            ({{ player.birth_date.year }})
+                        {% endif %}
+                        — ID: {{ player.id }}
+                    </option>
+
+                {% endfor %}
+
+            </select>
+
+            <button type="submit">
+                Játékos hozzáadása
+            </button>
+
+        </form>
+
+    {% else %}
+
+        <p>
+            Minden aktív játékos már szerepel ebben a csapatban,
+            vagy még nincs játékos az adatbázisban.
+        </p>
+
+    {% endif %}
+
+</div>
+
+<div class="card">
+
+    <h2>
+        Játékosok
+        ({{ roster_players|length }})
+    </h2>
+
+    {% if roster_players %}
+
+        <ul class="team-list">
+
+            {% for player in roster_players %}
+
+                <li>
+
+                    <a href="{{ url_for(
+                        'performance.player_detail',
+                        player_id=player.id
+                    ) }}">
+                        <strong>
+                            {{ player.full_name }}
+                        </strong>
+                    </a>
+
+                    {% if player.player_code %}
+                        <span>
+                            — {{ player.player_code }}
+                        </span>
+                    {% endif %}
+
+                    {% if player.birth_date %}
+                        <span>
+                            — {{ player.birth_date }}
+                        </span>
+                    {% endif %}
+                        <span>
+                            — ID: {{ player.id }}
+                        </span>
+
+                    <form
+                        method="post"
+                        action="{{ url_for(
+                            'performance.remove_player_from_team',
+                            team_id=team.id,
+                            player_id=player.id
+                        ) }}"
+                        style="display: inline;"
+                    >
+
+                        <button type="submit">
+                            Eltávolítás
+                        </button>
+
+                    </form>
+
+                </li>
+
+            {% endfor %}
+
+        </ul>
+
+    {% else %}
+
+        <p class="empty">
+            Ehhez a csapathoz még nincs hozzárendelt játékos.
+        </p>
+
+    {% endif %}
+
+</div>
+
+
+<p>
+    <a href="{{ url_for('performance.teams') }}">
+        ← Vissza a csapatokhoz
+    </a>
+</p>
+
+{% endblock %}

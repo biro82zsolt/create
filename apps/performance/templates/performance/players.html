@@ -1,0 +1,237 @@
+{% extends "performance/base.html" %}
+
+{% block title %}
+    Játékosok
+{% endblock %}
+
+{% block content %}
+
+<h1>Játékosok</h1>
+
+<div class="card">
+
+    <h2>Keresés és szűrés</h2>
+
+    <form method="GET"
+          action="{{ url_for('performance.players') }}">
+
+        <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+
+            <input
+                type="text"
+                name="search"
+                placeholder="Név vagy játékoskód"
+                value="{{ search or '' }}"
+            >
+
+            <input
+                type="number"
+                name="birth_year"
+                placeholder="Születési év"
+                value="{{ birth_year or '' }}"
+                min="1900"
+                max="2100"
+            >
+
+            <select name="team_id">
+
+                <option value="">
+                    Minden csapat
+                </option>
+
+                {% for team in teams %}
+
+                    <option
+                        value="{{ team.id }}"
+                        {% if selected_team_id == team.id %}
+                            selected
+                        {% endif %}
+                    >
+                        {{ team.name }}
+                    </option>
+
+                {% endfor %}
+
+            </select>
+
+            <button
+                type="submit"
+                class="btn btn-primary"
+            >
+                Szűrés
+            </button>
+
+            <a
+                href="{{ url_for('performance.players') }}"
+                class="btn btn-primary"
+            >
+                Törlés
+            </a>
+
+        </div>
+
+    </form>
+
+</div>
+
+
+<div class="card">
+
+    <div style="
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 10px;
+    ">
+
+        <h2>Játékoslista</h2>
+
+        <span>
+            {{ players|length }} játékos
+        </span>
+
+    </div>
+
+
+    {% if players %}
+
+        <div style="overflow-x: auto;">
+
+            <table style="width: 100%; border-collapse: collapse;">
+
+                <thead>
+
+                    <tr>
+                        <th style="text-align: left; padding: 10px;">
+                            Név
+                        </th>
+
+                        <th style="text-align: left; padding: 10px;">
+                            Játékoskód
+                        </th>
+
+                        <th style="text-align: left; padding: 10px;">
+                            Születési dátum
+                        </th>
+
+                        <th style="text-align: left; padding: 10px;">
+                            Elsődleges csapat
+                        </th>
+
+                        <th style="text-align: left; padding: 10px;">
+                            Csapatkapcsolatok
+                        </th>
+
+                        <th style="text-align: right; padding: 10px;">
+                            Művelet
+                        </th>
+                    </tr>
+
+                </thead>
+
+
+                <tbody>
+
+                    {% for player in players %}
+
+                        <tr style="border-top: 1px solid #e5e7eb;">
+
+                            <td style="padding: 10px;">
+
+                                <strong>
+                                    {{ player.full_name }}
+                                </strong>
+
+                            </td>
+
+
+                            <td style="padding: 10px;">
+
+                                {{ player.player_code or "—" }}
+
+                            </td>
+
+
+                            <td style="padding: 10px;">
+
+                                {{ player.birth_date or "—" }}
+
+                            <td style="padding: 10px;">
+
+                                {% if player.team %}
+                                    {{ player.team.name }}
+                                {% else %}
+                                    <span style="color: #6b7280;">
+                                        Nincs elsődleges csapat
+                                    </span>
+                                {% endif %}
+
+                            </td>
+
+                            <td style="padding: 10px;">
+
+                                {% if player.roster_teams %}
+
+                                    {% for team in player.roster_teams %}
+
+                                        <span>
+                                            {{ team.name }}{% if not loop.last %}, {% endif %}
+                                        </span>
+
+                                    {% endfor %}
+
+                                {% else %}
+
+                                    <span style="color: #6b7280;">
+                                        Nincs csapatkapcsolat
+                                    </span>
+
+                                {% endif %}
+
+                            </td>
+
+
+                            <td style="padding: 10px; text-align: right;">
+
+                                <a
+                                    href="{{ url_for(
+                                        'performance.player_detail',
+                                        player_id=player.id
+                                    ) }}"
+                                class="btn btn-secondary">
+                                    Adatlap →
+                                </a>
+
+                            </td>
+
+                        </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    {% else %}
+
+        <p class="empty">
+            A keresési feltételeknek megfelelő játékos nem található.
+        </p>
+
+    {% endif %}
+
+</div>
+
+
+<div style="margin-top: 20px;">
+
+    <a href="{{ url_for('performance.dashboard') }}"
+       class="btn btn-secondary">
+        ← Vissza a dashboardra
+    </a>
+
+</div>
+{% endblock %}

@@ -1,0 +1,45 @@
+{% extends "admin/master.html" %}
+
+{% block body %}
+
+<div class="container-fluid">
+
+    <h2>Excel import</h2>
+
+    <p>
+        Backup Excel fájl importálása a Performance rendszerbe.
+    </p>
+
+    <form method="post"
+          enctype="multipart/form-data">
+
+        <div class="form-group">
+            <label for="file">
+                Backup Excel fájl
+            </label>
+
+            <input type="file"
+                   class="form-control"
+                   id="file"
+                   name="file"
+                   accept=".xlsx"
+                   required>
+        </div>
+
+        <br>
+
+        <button type="submit"
+                class="btn btn-primary">
+            Importálás indítása
+        </button>
+
+        <a href="{{ url_for('admin.index') }}"
+           class="btn btn-secondary">
+            Mégsem
+        </a>
+
+    </form>
+
+</div>
+
+{% endblock %}

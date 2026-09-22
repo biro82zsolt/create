@@ -1,0 +1,8 @@
+.env
+*.db
+__pycache__/
+*.env
+*service-account*.json
+*credentials*.json
+master-imagery-*.json
+*.sqlite*

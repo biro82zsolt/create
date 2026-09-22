@@ -1,0 +1,177 @@
+{% extends "performance/base.html" %}
+
+{% block title %}Új értékelés{% endblock %}
+
+{% block content %}
+
+<div class="card">
+
+    <h1>Új értékelés</h1>
+
+    <p>
+        Válaszd ki az értékeléshez szükséges adatokat.
+    </p>
+
+    <form method="post"
+          action="{{ url_for('performance.assessment_start') }}">
+
+        <div style="margin-bottom: 20px;">
+            <label for="coach">
+                <strong>Értékelő edző</strong>
+            </label>
+
+            <select
+                id="coach"
+                name="coach_id"
+                required
+                style="width:100%; padding:11px; margin-top:6px;"
+            >
+                <option value="">
+                    -- Válassz edzőt --
+                </option>
+
+                {% for coach in coaches %}
+                    <option value="{{ coach.id }}">
+                        {{ coach.name }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+
+
+        <div style="margin-bottom: 20px;">
+            <label for="team">
+                <strong>Csapat</strong>
+            </label>
+
+            <select
+                id="team"
+                name="team_id"
+                style="width:100%; padding:11px; margin-top:6px;"
+            >
+                <option value="" selected disabled>
+                    -- Válassz csapatot --
+                </option>
+
+                {% for team in teams %}
+                    <option value="{{ team.id }}">
+                        {{ team.name }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+
+
+        <div style="margin-bottom: 20px;">
+            <label for="period">
+                <strong>Értékelési időszak</strong>
+            </label>
+
+            <select
+                id="period"
+                name="period_id"
+                required
+                style="width:100%; padding:11px; margin-top:6px;"
+            >
+                <option value="">
+                    -- Válassz időszakot --
+                </option>
+
+                {% for period in periods %}
+                    <option value="{{ period.id }}">
+                        {{ period.name }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+
+
+        <div style="margin-bottom: 24px;">
+    <label for="player">
+        <strong>Játékos</strong>
+    </label>
+
+    <select
+    id="player"
+    name="player_id"
+    required
+    disabled
+    style="width:100%; padding:11px; margin-top:6px;">
+
+    <option value="">
+        -- Előbb válassz csapatot --
+    </option>
+
+    {% for player in players %}
+        {% if player.active %}
+            <option
+                value="{{ player.id }}"
+                data-team="{{ player.team_id or '' }}"
+            >
+                {{ player.full_name }}
+
+                {% if player.team %}
+                    — {{ player.team.name }}
+                {% endif %}
+            </option>
+        {% endif %}
+    {% endfor %}
+</select>
+</div>
+
+
+        <button type="submit">
+            Értékelés indítása →
+        </button>
+
+    </form>
+
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    const teamSelect = document.getElementById("team");
+    const playerSelect = document.getElementById("player");
+
+    const playerOptions = Array.from(
+        playerSelect.querySelectorAll("option[data-team]")
+    );
+
+    function filterPlayers() {
+
+        const selectedTeamId = teamSelect.value;
+
+        playerSelect.value = "";
+
+        if (!selectedTeamId) {
+            playerSelect.disabled = true;
+            playerSelect.options[0].textContent =
+                "-- Előbb válassz csapatot --";
+        } else {
+            playerSelect.disabled = false;
+            playerSelect.options[0].textContent =
+                "-- Válassz játékost --";
+        }
+
+        playerOptions.forEach(function (option) {
+
+            const playerTeamId = option.dataset.team;
+
+            option.hidden = (
+                !selectedTeamId ||
+                playerTeamId !== selectedTeamId
+            );
+
+        });
+
+    }
+
+    teamSelect.addEventListener("change", filterPlayers);
+
+    filterPlayers();
+
+});
+</script>
+
+{% endblock %}

@@ -1,0 +1,93 @@
+{% extends "performance/base.html" %}
+
+{% block title %}
+    Performance & Potential
+{% endblock %}
+
+{% block content %}
+
+<h1>Performance & Potential</h1>
+
+<div class="dashboard-grid">
+
+    <div class="dashboard-card">
+
+        <h2>A rendszerről</h2>
+
+        <p>
+            Bővebb tudnivalók a rendszer használatáról
+        </p>
+
+        <a
+            href="{{ url_for('performance.guide') }}"
+            class="btn btn-primary"
+        >
+            A rendszerről →
+        </a>
+
+    </div>
+
+    <div class="dashboard-card">
+
+        <h2>Játékosok</h2>
+
+        <p>
+            Összes játékos keresése, szűrése és adatlapjainak megtekintése.
+        </p>
+
+        <a
+            href="{{ url_for('performance.players') }}"
+            class="btn btn-primary"
+        >
+            Játékosok listája →
+        </a>
+
+    </div>
+
+
+    <div class="dashboard-card">
+
+        <h2>Csapatok</h2>
+
+        <p>
+            Csapatok és játékoscsoportok kezelése.
+        </p>
+
+        <a
+            href="{{ url_for('performance.teams') }}"
+            class="btn btn-primary"
+        >
+            Csapatok kezelése →
+        </a>
+
+    </div>
+
+
+    <div class="dashboard-card">
+
+    <h2>Értékelések</h2>
+
+    <p>
+        Új értékelés indítása és a korábbi értékelések kezelése.
+    </p>
+
+    <div class="page-actions">
+
+        <a href="{{ url_for('performance.assessment_new') }}"
+           class="btn btn-primary">
+            Értékelés indítása →
+        </a>
+
+        <a href="{{ url_for('performance.assessments') }}"
+           class="btn btn-secondary">
+            Értékelések kezelése →
+        </a>
+
+    </div>
+
+</div>
+
+
+</div>
+
+{% endblock %}

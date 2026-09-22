@@ -1,0 +1,140 @@
+{% extends "performance/base.html" %}
+
+{% block content %}
+
+<div class="container py-4">
+
+    <h1 class="mb-4">
+        Játékosrekordok összehasonlítása
+    </h1>
+
+    <div class="row">
+
+        {% for player in [player_a, player_b] %}
+
+            <div class="col-md-6">
+
+                <div class="card mb-4">
+
+                    <div class="card-header">
+                        <strong>
+                            {{ player.full_name }}
+                        </strong>
+                    </div>
+
+                    <div class="card-body">
+
+                        <p>
+                            <strong>ID:</strong>
+                            {{ player.id }}
+                        </p>
+
+                        <p>
+                            <strong>Játékoskód:</strong>
+                            {{ player.player_code or "-" }}
+                        </p>
+
+                        <p>
+                            <strong>Születési dátum:</strong>
+                            {{ player.birth_date or "-" }}
+                        </p>
+
+                        <p>
+                            <strong>Régi csapat:</strong>
+                            {{ player.team.name if player.team else "-" }}
+                        </p>
+
+                        <p>
+                            <strong>Csapatkapcsolatok:</strong>
+                        </p>
+
+                        <ul>
+                            {% for team in player.roster_teams %}
+                                <li>{{ team.name }}</li>
+                            {% else %}
+                                <li>Nincs kapcsolat</li>
+                            {% endfor %}
+                        </ul>
+
+                        <p>
+                            <strong>Értékelések:</strong>
+                            {{ player.assessments|length }}
+                        </p>
+
+                        <p>
+                            <strong>Aktív:</strong>
+                            {{ "Igen" if player.active else "Nem" }}
+                        </p>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        {% endfor %}
+
+    </div>
+
+    <div class="alert alert-info">
+    Ez a nézet jelenleg csak összehasonlítást végez.
+    Adatmódosítás és összevonás még nem történik.
+</div>
+
+<div class="card mt-4">
+
+    <div class="card-header">
+        <strong>Összevonás előkészítése</strong>
+    </div>
+
+    <div class="card-body">
+
+        <p>
+            Válaszd ki, melyik játékosrekordot szeretnéd megtartani.
+        </p>
+
+        <div class="d-flex gap-2 flex-wrap">
+
+            <a
+                href="{{ url_for(
+                    'performance.merge_duplicate_preview',
+                    keep_id=player_a.id,
+                    merge_id=player_b.id
+                ) }}"
+                class="btn btn-warning"
+            >
+                ID {{ player_a.id }} megtartása
+            </a>
+
+            <a
+                href="{{ url_for(
+                    'performance.merge_duplicate_preview',
+                    keep_id=player_b.id,
+                    merge_id=player_a.id
+                ) }}"
+                class="btn btn-warning"
+            >
+                ID {{ player_b.id }} megtartása
+            </a>
+
+        </div>
+
+        <p class="text-muted mt-3 mb-0">
+            Az összevonás még nem történik meg.
+            A következő oldalon ellenőrizheted az adatokat.
+        </p>
+
+    </div>
+
+</div>
+
+    <a
+        href="{{ url_for('performance.duplicate_players') }}"
+        class="btn btn-secondary"
+    >
+        Vissza a duplikátumokhoz
+    </a>
+
+</div>
+
+{% endblock %}

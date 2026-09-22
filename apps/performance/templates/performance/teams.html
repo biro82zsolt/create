@@ -1,0 +1,80 @@
+{% extends "performance/base.html" %}
+
+{% block title %}
+    Csapatok
+{% endblock %}
+
+{% block content %}
+
+<h1>Csapatok</h1>
+
+<div class="card">
+
+    <h2>Új csapat</h2>
+
+    <form method="post"
+          action="{{ url_for('performance.create_team') }}">
+
+        <div class="form-row">
+
+            <input
+                type="text"
+                name="name"
+                placeholder="Csapat neve"
+                required
+            >
+
+            <button type="submit" class="btn btn-primary">
+                Csapat létrehozása
+            </button>
+
+        </div>
+
+    </form>
+
+</div>
+
+
+<div class="card">
+
+    <h2>Meglévő csapatok</h2>
+
+    {% if teams %}
+
+        <ul class="team-list">
+
+            {% for team in teams %}
+
+                <li>
+                    <a href="{{ url_for(
+                        'performance.team_detail',
+                        team_id=team.id
+                    ) }}" class="btn btn-secondary">
+                        <strong>{{ team.name }}</strong>
+                    </a>
+                </li>
+
+            {% endfor %}
+
+        </ul>
+
+    {% else %}
+
+        <p class="empty">
+            Még nincs csapat.
+        </p>
+
+    {% endif %}
+
+</div>
+
+<div style="margin-top: 20px;">
+
+    <a href="{{ url_for('performance.dashboard') }}"
+       class="btn btn-secondary">
+        ← Vissza a dashboardra
+    </a>
+
+</div>
+
+{% endblock %}

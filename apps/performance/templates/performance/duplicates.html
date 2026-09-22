@@ -1,0 +1,164 @@
+{% extends "performance/base.html" %}
+
+{% block content %}
+
+<div class="container py-4">
+
+    <h1 class="mb-4">
+        Duplikált játékosok ellenőrzése
+    </h1>
+
+    {% if duplicate_groups %}
+
+        {% for group in duplicate_groups %}
+
+            <div class="card mb-4">
+
+                <div class="card-header">
+                    <strong>
+                        {{ group[0].full_name }}
+                    </strong>
+                </div>
+
+                <div class="card-body">
+
+                    <table class="table table-sm">
+
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Játékoskód</th>
+                                <th>Születési dátum</th>
+                                <th>Régi csapat</th>
+                                <th>Értékelések</th>
+                                <th>Aktív</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+
+                            {% for player in group %}
+
+                                <tr>
+
+                                    <td>
+                                        {{ player.id }}
+                                    </td>
+
+                                    <td>
+                                        {{ player.player_code or "-" }}
+                                    </td>
+
+                                    <td>
+                                        {{ player.birth_date or "-" }}
+                                    </td>
+
+                                    <td>
+                                        {{ player.team.name if player.team else "-" }}
+                                    </td>
+
+                                    <td>
+                                        {{ player.assessments|length }}
+                                    </td>
+
+                                    <td>
+                                        {{ "Igen" if player.active else "Nem" }}
+                                    </td>
+
+                                </tr>
+
+                            {% endfor %}
+                        <div class="mt-3">
+
+    <form
+        method="get"
+        action="{{ url_for('performance.compare_duplicate_players') }}"
+        class="row g-2"
+    >
+
+        <div class="col-md-5">
+
+            <label class="form-label">
+                Első rekord
+            </label>
+
+            <select
+                name="player_a_id"
+                class="form-select"
+                required
+            >
+
+                {% for player in group %}
+
+                    <option value="{{ player.id }}">
+                        ID {{ player.id }} –
+                        {{ player.full_name }}
+                    </option>
+
+                {% endfor %}
+
+            </select>
+
+        </div>
+
+        <div class="col-md-5">
+
+            <label class="form-label">
+                Második rekord
+            </label>
+
+            <select
+                name="player_b_id"
+                class="form-select"
+                required
+            >
+
+                {% for player in group %}
+
+                    <option value="{{ player.id }}">
+                        ID {{ player.id }} –
+                        {{ player.full_name }}
+                    </option>
+
+                {% endfor %}
+
+            </select>
+
+        </div>
+
+        <div class="col-md-2 d-flex align-items-end">
+
+            <button
+                type="submit"
+                class="btn btn-primary w-100"
+            >
+                Összehasonlítás
+            </button>
+
+        </div>
+
+    </form>
+
+</div>
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </div>
+
+        {% endfor %}
+
+    {% else %}
+
+        <div class="alert alert-success">
+            Nem található azonos nevű játékosrekord.
+        </div>
+
+    {% endif %}
+
+</div>
+
+{% endblock %}

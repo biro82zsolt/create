@@ -1,0 +1,380 @@
+<!doctype html>
+<html lang="hu">
+<head>
+    <meta charset="utf-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1">
+
+    <title>
+        {% block title %}
+            Performance & Potential
+        {% endblock %}
+    </title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f5f6f8;
+            color: #20242a;
+        }
+
+        header {
+            background: #111827;
+            color: white;
+            padding: 18px 32px;
+        }
+
+        header a {
+            color: white;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        main {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 32px;
+        }
+
+        h1 {
+            margin-top: 0;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+        }
+
+        .form-row {
+            display: flex;
+            gap: 12px;
+        }
+
+        input {
+            flex: 1;
+            padding: 11px 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+
+        button {
+            padding: 11px 18px;
+            border: 0;
+            border-radius: 8px;
+            background: #111827;
+            color: white;
+            font-size: 15px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            opacity: 0.9;
+        }
+
+        .team-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .team-list li {
+            padding: 14px 0;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .team-list li:last-child {
+            border-bottom: 0;
+        }
+
+        .flash {
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            background: #e5e7eb;
+        }
+
+        .flash.success {
+            background: #dcfce7;
+        }
+
+        .flash.error {
+            background: #fee2e2;
+        }
+
+        .empty {
+            color: #6b7280;
+        }
+
+        :root {
+    --color-primary: #2563eb;
+    --color-primary-hover: #1d4ed8;
+
+    --color-dark: #111827;
+    --color-text: #20242a;
+    --color-muted: #6b7280;
+
+    --color-background: #f5f6f8;
+    --color-card: #ffffff;
+
+    --color-border: #e5e7eb;
+    --color-success: #16a34a;
+    --color-danger: #dc2626;
+
+    --radius-sm: 6px;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+}
+
+        /* =========================
+   GOMBOK
+========================= */
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+
+    padding: 10px 18px;
+
+    border-radius: var(--radius-md);
+    border: 1px solid transparent;
+
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 600;
+
+    text-decoration: none;
+    cursor: pointer;
+
+    transition:
+        background-color 0.2s ease,
+        border-color 0.2s ease,
+        color 0.2s ease,
+        transform 0.2s ease;
+}
+
+.btn:hover {
+    transform: translateY(-1px);
+}
+
+
+/* Elsődleges */
+
+.btn-primary {
+    background: var(--color-primary);
+    color: white;
+    border-color: var(--color-primary);
+}
+
+.btn-primary:hover {
+    background: var(--color-primary-hover);
+    border-color: var(--color-primary-hover);
+    color: white;
+}
+
+
+/* Másodlagos */
+
+.btn-secondary {
+    background: white;
+    color: var(--color-text);
+    border-color: #d1d5db;
+}
+
+.btn-secondary:hover {
+    background: #f3f4f6;
+    color: var(--color-text);
+}
+
+/* Veszélyes művelet */
+
+.btn-danger {
+    background: var(--color-danger);
+    color: white;
+    border-color: var(--color-danger);
+}
+
+.btn-danger:hover {
+    background: #b91c1c;
+    color: white;
+}
+
+
+/* Navigációs gombcsoport */
+
+.page-actions {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+
+    margin-top: 32px;
+    padding-top: 20px;
+
+    border-top: 1px solid var(--color-border);
+
+    flex-wrap: wrap;
+}
+
+        .card,
+.dashboard-card {
+    background: var(--color-card);
+    border-radius: var(--radius-lg);
+    padding: 24px;
+    margin-bottom: 24px;
+
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.card h1,
+.card h2,
+.card h3,
+.dashboard-card h1,
+.dashboard-card h2,
+.dashboard-card h3 {
+    margin-top: 0;
+}
+
+        /* =========================
+   ÉRTÉKELÉSEK
+========================= */
+
+.assessment-item {
+    padding: 18px 0;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.assessment-item:last-child {
+    border-bottom: none;
+}
+
+.assessment-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+}
+
+.assessment-scores {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+
+    margin-top: 16px;
+}
+
+.assessment-score {
+    min-width: 100px;
+    padding: 12px;
+
+    background: #f9fafb;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+}
+
+.assessment-score small {
+    color: var(--color-muted);
+    font-size: 12px;
+}
+
+.assessment-score strong {
+    font-size: 18px;
+}
+
+        .insight-item {
+    padding: 12px 0;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.insight-item:last-child {
+    border-bottom: none;
+}
+
+.insight-item-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+}
+
+.insight-positive {
+    color: #16a34a;
+    font-weight: 700;
+}
+
+.insight-negative {
+    color: #dc2626;
+    font-weight: 700;
+}
+
+.insight-item-details {
+    margin-top: 5px;
+    color: #6b7280;
+    font-size: 0.85rem;
+}
+
+.insight-empty {
+    color: #6b7280;
+    font-size: 0.9rem;
+}
+    </style>
+</head>
+
+<body>
+
+<header>
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+
+        <a href="{{ url_for('performance.dashboard') }}">
+            Performance & Potential
+        </a>
+
+        {% if session.get("auth_role") %}
+            <div style="display: flex; align-items: center; gap: 16px;">
+
+                <span style="font-size: 14px;">
+                    {% if session.get("auth_role") == "admin" %}
+                        Admin
+                    {% else %}
+                        Edző
+                    {% endif %}
+                </span>
+
+                <a href="{{ url_for('logout') }}"
+                   class="btn btn-danger">
+                    Kijelentkezés
+                </a>
+
+            </div>
+        {% endif %}
+
+    </div>
+</header>
+
+<main>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% for category, message in messages %}
+            <div class="flash {{ category }}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endwith %}
+
+    {% block content %}
+    {% endblock %}
+
+</main>
+
+</body>
+</html>

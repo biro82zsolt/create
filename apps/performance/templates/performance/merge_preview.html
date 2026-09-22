@@ -1,0 +1,200 @@
+{% extends "performance/base.html" %}
+
+{% block content %}
+
+<div class="container py-4">
+
+    <h1 class="mb-4">
+        Összevonás előtti ellenőrzés
+    </h1>
+
+    <div class="alert alert-warning">
+        Az alábbiakban láthatod az összevonás várható eredményét.
+        Az adatok még nem módosultak.
+    </div>
+
+    <div class="row">
+
+        <div class="col-md-6">
+
+            <div class="card mb-4">
+
+                <div class="card-header">
+                    <strong>Megtartandó rekord</strong>
+                </div>
+
+                <div class="card-body">
+
+                    <h4>{{ keep_player.full_name }}</h4>
+
+                    <p>ID: {{ keep_player.id }}</p>
+
+                    <p>
+                        Értékelések:
+                        {{ keep_player.assessments|length }}
+                    </p>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="col-md-6">
+
+            <div class="card mb-4">
+
+                <div class="card-header">
+                    <strong>Összevonandó rekord</strong>
+                </div>
+
+                <div class="card-body">
+
+                    <h4>{{ merge_player.full_name }}</h4>
+
+                    <p>ID: {{ merge_player.id }}</p>
+
+                    <p>
+                        Értékelések:
+                        {{ merge_player.assessments|length }}
+                    </p>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <div class="card mb-4">
+
+        <div class="card-header">
+            <strong>Áthelyezendő értékelések</strong>
+        </div>
+
+        <div class="card-body">
+
+            {% if move_assessments %}
+
+                <p>
+                    Ezek az értékelések átkerülnek a megtartott rekordhoz:
+                </p>
+
+                <ul>
+
+                    {% for assessment in move_assessments %}
+
+                        <li>
+                            Edző ID: {{ assessment.coach_id }},
+                            Időszak ID: {{ assessment.period_id }}
+                        </li>
+
+                    {% endfor %}
+
+                </ul>
+
+            {% else %}
+
+                <p>
+                    Nincs áthelyezendő értékelés.
+                </p>
+
+            {% endif %}
+
+        </div>
+
+    </div>
+
+
+    <div class="card mb-4">
+
+        <div class="card-header">
+            <strong>Ütköző értékelések</strong>
+        </div>
+
+        <div class="card-body">
+
+            {% if conflict_assessments %}
+
+                <div class="alert alert-danger">
+
+                    Az alábbi értékelések ütköznek.
+                    Ezek a megtartandó rekord értékelései miatt
+                    nem kerülnek át.
+
+                </div>
+
+                <ul>
+
+                    {% for assessment in conflict_assessments %}
+
+                        <li>
+                            Edző ID: {{ assessment.coach_id }},
+                            Időszak ID: {{ assessment.period_id }}
+                        </li>
+
+                    {% endfor %}
+
+                </ul>
+
+                <p>
+                    Ütköző értékelések száma:
+                    {{ conflict_assessments|length }}
+                </p>
+
+            {% else %}
+
+                <div class="alert alert-success">
+
+                    Nincs ütköző értékelés.
+
+                </div>
+
+            {% endif %}
+
+        </div>
+
+    </div>
+
+
+    <form
+        method="post"
+        action="{{ url_for('performance.merge_duplicate_players') }}"
+        onsubmit="return confirm(
+            'Biztosan végrehajtod az összevonást?'
+        );"
+    >
+
+        <input
+            type="hidden"
+            name="keep_id"
+            value="{{ keep_player.id }}"
+        >
+
+        <input
+            type="hidden"
+            name="merge_id"
+            value="{{ merge_player.id }}"
+        >
+
+        <button
+            type="submit"
+            class="btn btn-danger"
+        >
+            Összevonás végrehajtása
+        </button>
+
+        <a
+            href="{{ url_for('performance.duplicate_players') }}"
+            class="btn btn-secondary"
+        >
+            Mégsem
+        </a>
+
+    </form>
+
+</div>
+
+{% endblock %}

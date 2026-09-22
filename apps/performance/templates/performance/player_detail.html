@@ -1,0 +1,2215 @@
+{% extends "performance/base.html" %}
+
+{% block title %}
+    {{ player.full_name }} – Performance Report
+{% endblock %}
+
+{% block content %}
+
+<style>
+   .player-navigation {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 28px;
+    flex-wrap: wrap;
+}
+
+.view-switcher-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 11px 20px;
+
+    border: 1px solid #D5DCE5;
+    border-radius: 9px;
+
+    background: white;
+    color: #172033;
+
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 14px;
+
+    transition:
+        background-color 0.15s ease,
+        color 0.15s ease,
+        border-color 0.15s ease,
+        box-shadow 0.15s ease;
+}
+
+.view-switcher-btn:hover {
+    border-color: #3767A5;
+    color: #3767A5;
+}
+
+.view-switcher-btn.active {
+    background: #2F6FED;
+    border-color: #2F6FED;
+    color: white;
+
+    box-shadow: 0 2px 5px rgba(47, 111, 237, 0.18);
+}
+
+
+/* Mérési időszak */
+
+.period-selector {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+
+    padding: 4px 7px 4px 13px;
+
+    background: #F3F6F8;
+    border: 1px solid #D8DEE6;
+    border-radius: 9px;
+}
+
+.period-selector label {
+    font-size: 12px;
+    font-weight: 600;
+    color: #667085;
+    white-space: nowrap;
+}
+
+.period-selector select {
+    appearance: auto;
+
+    border: none;
+    background: transparent;
+
+    padding: 7px 5px;
+
+    color: #172033;
+    font-size: 14px;
+    font-weight: 600;
+
+    cursor: pointer;
+    outline: none;
+}
+
+.period-selector select:focus {
+    outline: none;
+}
+
+    .report-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 30px;
+        flex-wrap: wrap;
+        margin-bottom: 25px;
+    }
+
+    .report-player h1 {
+        margin-bottom: 8px;
+    }
+
+    .report-meta {
+        color: #6b7280;
+        font-size: 15px;
+    }
+
+    .score-cards {
+        display: flex;
+        gap: 15px;
+        flex-wrap: wrap;
+    }
+
+    .score-card {
+        min-width: 150px;
+        padding: 18px 22px;
+        border: 1px solid #e5e7eb;
+        border-radius: 14px;
+        background: #fff;
+        text-align: center;
+    }
+
+    .score-card small {
+        display: block;
+        color: #6b7280;
+        margin-bottom: 5px;
+    }
+
+    .score-value {
+        font-size: 34px;
+        font-weight: 700;
+    }
+
+    .mapping-badge {
+        display: inline-block;
+        margin-top: 10px;
+        padding: 7px 13px;
+        border-radius: 999px;
+        background: #eef2ff;
+        color: #3730a3;
+        font-weight: 600;
+        font-size: 14px;
+    }
+
+    .profile-badge {
+        display: inline-block;
+        margin-top: 8px;
+        padding: 6px 12px;
+        border-radius: 999px;
+        background: #f3f4f6;
+        color: #374151;
+        font-size: 14px;
+    }
+
+    .dashboard-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 20px;
+        margin-bottom: 20px;
+    }
+
+    .dashboard-card {
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 16px;
+        padding: 22px;
+        box-sizing: border-box;
+    }
+
+    .dashboard-card h2 {
+        margin-top: 0;
+        margin-bottom: 5px;
+    }
+
+    .card-subtitle {
+        color: #6b7280;
+        font-size: 13px;
+        margin-bottom: 18px;
+    }
+
+    .chart-container {
+        position: relative;
+        width: 100%;
+        height: 360px;
+    }
+
+    .chart-container.small {
+        height: 300px;
+    }
+
+    .category-row {
+        margin: 20px 0;
+    }
+
+    .category-header {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 7px;
+    }
+
+    .category-label {
+        font-weight: 600;
+    }
+
+    .category-values {
+        font-size: 13px;
+        color: #6b7280;
+    }
+
+    .bar-track {
+        position: relative;
+        height: 10px;
+        border-radius: 999px;
+        background: #edf0f3;
+        overflow: visible;
+    }
+
+    .bar-player {
+        height: 10px;
+        border-radius: 999px;
+        background: #374151;
+    }
+
+    .team-marker {
+        position: absolute;
+        top: -5px;
+        width: 2px;
+        height: 20px;
+        background: #9ca3af;
+    }
+
+    .team-marker::after {
+        content: "";
+        position: absolute;
+        top: -5px;
+        left: -3px;
+        width: 8px;
+        height: 8px;
+        border: 2px solid #9ca3af;
+        background: #fff;
+        border-radius: 50%;
+    }
+
+    .comparison-legend {
+        display: flex;
+        gap: 18px;
+        font-size: 12px;
+        color: #6b7280;
+        margin-top: 15px;
+    }
+
+    .legend-player::before {
+        content: "";
+        display: inline-block;
+        width: 18px;
+        height: 4px;
+        background: #374151;
+        border-radius: 4px;
+        margin-right: 6px;
+        vertical-align: middle;
+    }
+
+    .legend-team::before {
+        content: "";
+        display: inline-block;
+        width: 18px;
+        height: 0;
+        border-top: 2px dashed #9ca3af;
+        margin-right: 6px;
+        vertical-align: middle;
+    }
+
+    .insight-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 20px;
+        margin-bottom: 20px;
+    }
+
+    .insight-card {
+        border-radius: 14px;
+        padding: 20px;
+        background: #f9fafb;
+    }
+
+    .insight-card h3 {
+        margin-top: 0;
+    }
+
+    .insight-item {
+        display: flex;
+        justify-content: space-between;
+        gap: 15px;
+        padding: 10px 0;
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+    .insight-item:last-child {
+        border-bottom: none;
+    }
+
+    .difference-positive {
+        font-weight: 600;
+    }
+
+    .difference-negative {
+        font-weight: 600;
+        color: #6b7280;
+    }
+
+    .assessment-item {
+        padding: 18px 0;
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+    .assessment-item:last-child {
+        border-bottom: none;
+    }
+
+    .assessment-top {
+        display: flex;
+        justify-content: space-between;
+        gap: 15px;
+        flex-wrap: wrap;
+    }
+
+    .assessment-scores {
+        display: flex;
+        gap: 25px;
+        flex-wrap: wrap;
+        margin-top: 12px;
+    }
+
+    .assessment-score strong {
+        font-size: 24px;
+    }
+
+    .back-link {
+        margin-top: 20px;
+    }
+        .page-actions {
+        display: flex;
+        align-items: center;
+        gap: 18px;
+        margin-top: 32px;
+        padding-top: 20px;
+        border-top: 1px solid #e5e7eb;
+        flex-wrap: wrap;
+    }
+
+    @media (max-width: 900px) {
+        .dashboard-grid,
+        .insight-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .page-actions {
+        display: flex;
+        align-items: center;
+        gap: 18px;
+        margin-top: 32px;
+        padding-top: 20px;
+        border-top: 1px solid #e5e7eb;
+        flex-wrap: wrap;
+    }
+
+    .mapping-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.mapping-row {
+    display: contents;
+}
+
+.mapping-cell {
+    min-height: 105px;
+    padding: 14px 10px;
+    border: 1px solid #d1d5db;
+    border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    background: #f3f4f6;
+    transition: transform 0.2s ease;
+}
+
+.mapping-cell-title {
+    font-size: 13px;
+    font-weight: 700;
+    line-height: 1.3;
+}
+
+.mapping-current {
+    margin-top: 8px;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.mapping-cell-active {
+    border: 3px solid #111827;
+    box-shadow: 0 0 0 3px rgba(17, 24, 39, 0.12);
+    transform: scale(1.03);
+    background: #ffffff;
+}
+
+/* Kategória szerinti színezés */
+
+.mapping-development_risk {
+    background: #c43d4e;
+    color: white;
+}
+
+.mapping-grafter {
+    background: #e05258;
+    color: white;
+}
+
+.mapping-overachiever {
+    background: #e9c34f;
+    color: #111827;
+}
+
+.mapping-underperforming {
+    background: #e05258;
+    color: white;
+}
+
+.mapping-core_player {
+    background: #e9c34f;
+    color: #111827;
+}
+
+.mapping-key_player {
+    background: #55d6a0;
+    color: #111827;
+}
+
+.mapping-rough_diamond {
+    background: #e9c34f;
+    color: #111827;
+}
+
+.mapping-rising_talent {
+    background: #55d6a0;
+    color: #111827;
+}
+
+.mapping-future_star {
+    background: #35659a;
+    color: white;
+}
+
+.mapping-chart-wrapper {
+    display: flex;
+    align-items: stretch;
+    gap: 12px;
+    margin-top: 20px;
+}
+
+.mapping-y-axis {
+    writing-mode: vertical-rl;
+    transform: rotate(180deg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 700;
+    color: #4b5563;
+    min-width: 25px;
+}
+
+.mapping-chart-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.mapping-x-axis {
+    text-align: center;
+    margin-top: 12px;
+    font-size: 13px;
+    font-weight: 700;
+    color: #4b5563;
+}
+
+@media (max-width: 700px) {
+
+    .mapping-grid {
+        gap: 6px;
+    }
+
+    .mapping-cell {
+        min-height: 85px;
+        padding: 8px 4px;
+    }
+
+    .mapping-cell-title {
+        font-size: 11px;
+    }
+
+    .mapping-current {
+        font-size: 9px;
+    }
+
+}
+
+    .player-profile-card {
+    margin-top: 20px;
+}
+
+.profile-table {
+    display: flex;
+    flex-direction: column;
+    margin-top: 18px;
+}
+
+.profile-row {
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.profile-label {
+    padding: 14px;
+    background: #eaf0f6;
+    font-weight: 700;
+    font-size: 13px;
+}
+
+.profile-value {
+    padding: 14px;
+    font-size: 13px;
+    line-height: 1.6;
+}
+
+.profile-value p {
+    margin: 6px 0 0;
+}
+
+@media (max-width: 700px) {
+
+    .profile-row {
+        grid-template-columns: 1fr;
+    }
+
+    .profile-label {
+        padding-bottom: 6px;
+    }
+
+    .profile-value {
+        padding-top: 6px;
+    }
+
+}
+
+    /* ========================================================= */
+    /* TREND VIEW */
+    /* ========================================================= */
+    .trend-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 20px;
+        flex-wrap: wrap;
+        margin-bottom: 22px;
+    }
+
+    .trend-title {
+        margin: 0 0 6px;
+        font-size: 28px;
+    }
+
+    .trend-subtitle {
+        margin: 0;
+        color: #6b7280;
+        font-size: 14px;
+    }
+
+    .trend-card {
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 18px;
+        padding: 24px;
+        margin-bottom: 20px;
+        box-shadow: 0 8px 24px rgba(15, 23, 42, .05);
+    }
+
+    .trend-card h2 {
+        margin: 0 0 6px;
+        font-size: 20px;
+    }
+
+    .trend-table-wrap {
+        overflow-x: auto;
+    }
+
+    .trend-table {
+        width: 100%;
+        min-width: 760px;
+        border-collapse: separate;
+        border-spacing: 0;
+        font-size: 14px;
+    }
+
+    .trend-table th {
+        background: #f1f5f9;
+        color: #334155;
+        font-size: 12px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: .03em;
+        white-space: nowrap;
+    }
+
+    .trend-table th,
+    .trend-table td {
+        padding: 14px 16px;
+        border-bottom: 1px solid #e5e7eb;
+        text-align: left;
+        vertical-align: middle;
+    }
+
+    .trend-table tbody tr:last-child td {
+        border-bottom: 0;
+    }
+
+    .trend-table tbody tr:hover {
+        background: #f8fafc;
+    }
+
+    .trend-period {
+        font-weight: 700;
+        color: #0f172a;
+    }
+
+    .trend-score {
+        font-variant-numeric: tabular-nums;
+        font-weight: 700;
+    }
+
+    .trend-category {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        white-space: nowrap;
+    }
+
+    .trend-category::before {
+        content: '';
+        width: 9px;
+        height: 9px;
+        border-radius: 50%;
+        background: #64748b;
+    }
+
+    .trend-empty {
+        margin: 0;
+        color: #6b7280;
+    }
+
+    .trend-actions {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin-top: 22px;
+    }
+
+    .trend-chart-wrap {
+        position: relative;
+        height: 330px;
+        margin-top: 20px;
+    }
+
+    @media (max-width: 700px) {
+        .trend-card {
+            padding: 16px;
+        }
+
+        .trend-title {
+            font-size: 24px;
+        }
+
+        .trend-chart-wrap {
+            height: 260px;
+        }
+    }
+
+</style>
+
+<div class="player-navigation">
+
+    <a href="{{ url_for(
+        'performance.player_detail',
+        player_id=player.id,
+        view='current',
+        period_id=current_period.id if current_period else None
+    ) }}"
+       class="view-switcher-btn {% if view == 'current' %}active{% endif %}">
+        Aktuális adatlap
+    </a>
+
+
+    {% if available_periods %}
+
+    <div class="period-selector">
+
+        <label for="period-select">
+            Mérési időszak
+        </label>
+
+        <select
+            id="period-select"
+            onchange="changePeriod(this.value)"
+        >
+
+            {% for item in available_periods %}
+
+                <option
+                    value="{{ item.period_id }}"
+                    {% if current_period and item.period_id == current_period.id %}
+                        selected
+                    {% endif %}
+                >
+                    {{ item.period.name }} ({{ item.assessment_count }})
+                </option>
+
+            {% endfor %}
+
+        </select>
+
+    </div>
+
+{% endif %}
+
+    <a href="{{ url_for(
+        'performance.player_detail',
+        player_id=player.id,
+        view='trend',
+        period_id=current_period.id if current_period else None
+    ) }}"
+       class="view-switcher-btn {% if view == 'trend' %}active{% endif %}">
+        Fejlődési trend
+    </a>
+
+</div>
+
+
+{% if view == "current" %}
+{% if aggregated %}
+
+    <!-- ========================================================= -->
+    <!-- HEADER -->
+    <!-- ========================================================= -->
+
+    <div class="report-header">
+
+        <div class="report-player">
+
+            <h1>{{ player.full_name }}</h1>
+
+            <div class="report-meta">
+
+                {{ player.team.name }}
+
+                {% if player.player_code %}
+                    · #{{ player.player_code }}
+                {% endif %}
+
+                {% if player.birth_date %}
+                    · {{ player.birth_date }}
+                {% endif %}
+
+            </div>
+
+            <div>
+                <span class="mapping-badge">
+                    {{ aggregated.mapping.name_hu }}
+                </span>
+            </div>
+
+            <div>
+                <span class="profile-badge">
+                    {{ aggregated.profiles.type_hu }}
+                    ·
+                    {{ aggregated.profiles.primary.name.name_hu }}
+
+                    {% if aggregated.profiles.secondary %}
+                        / {{ aggregated.profiles.secondary.name.name_hu }}
+                    {% endif %}
+                </span>
+            </div>
+
+        </div>
+
+
+        <div class="score-cards">
+
+            <div class="score-card">
+
+                <small>Performance</small>
+
+                <div class="score-value">
+                    {{ "%.2f"|format(aggregated.scores.performance) }}
+                </div>
+
+            </div>
+
+
+            <div class="score-card">
+
+                <small>Potential</small>
+
+                <div class="score-value">
+                    {{ "%.2f"|format(aggregated.scores.potential) }}
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+<!-- ========================================================= -->
+<!-- PERFORMANCE × POTENTIAL + RADAR -->
+<!-- ========================================================= -->
+
+<div class="dashboard-grid">
+
+    <div class="dashboard-card">
+
+        <h2>Performance × Potential</h2>
+
+        <div class="card-subtitle">
+            Játékos pozíciója a 9 kategóriás modellben
+        </div>
+
+        <div class="mapping-chart-wrapper">
+
+            <div class="mapping-y-axis">
+                Potential ↑
+            </div>
+
+            <div class="mapping-chart-content">
+
+                <div class="mapping-grid">
+
+                    {% for row in mapping_grid %}
+
+                        <div class="mapping-row">
+
+                            {% for cell in row %}
+
+                                <div class="mapping-cell
+                                    {% if aggregated.mapping.code == cell.code %}
+                                        mapping-cell-active
+                                    {% endif %}
+                                    mapping-{{ cell.code }}">
+
+                                    <div class="mapping-cell-title">
+                                        {{ cell.name_hu }}
+                                    </div>
+
+                                    {% if aggregated.mapping.code == cell.code %}
+
+                                        <div class="mapping-current">
+                                            ● Jelenlegi kategória
+                                        </div>
+
+                                    {% endif %}
+
+                                </div>
+
+                            {% endfor %}
+
+                        </div>
+
+                    {% endfor %}
+
+                </div>
+
+                <div class="mapping-x-axis">
+                    Performance →
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <div class="dashboard-card">
+
+        <h2>Teljesítményprofil</h2>
+
+        <div class="card-subtitle">
+            Játékos és korosztályátlag · 26 teljesítményattribútum
+        </div>
+
+        <div class="chart-container">
+            <div id="radialProfileChart"></div>
+        </div>
+
+        <div class="comparison-legend">
+
+            <span class="legend-player">
+                Játékos
+            </span>
+
+            <span class="legend-team">
+                Korosztályátlag
+            </span>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+    <!-- ========================================================= -->
+    <!-- MAIN CATEGORY SCORES -->
+    <!-- ========================================================= -->
+
+    <div class="dashboard-card">
+
+        <h2>Fő teljesítményterületek</h2>
+
+        <div class="card-subtitle">
+            Összehasonlítás a csapat átlagával
+        </div>
+
+
+        {% set categories = [
+            ("Taktikai", aggregated.scores.tactical,
+             team_averages.scores.tactical if team_averages else None),
+
+            ("Technikai", aggregated.scores.technical,
+             team_averages.scores.technical if team_averages else None),
+
+            ("Viselkedés / mentális", aggregated.scores.behaviour,
+             team_averages.scores.behaviour if team_averages else None)
+        ] %}
+
+
+        {% for label, player_value, team_value in categories %}
+
+            <div class="category-row">
+
+                <div class="category-header">
+
+                    <span class="category-label">
+                        {{ label }}
+                    </span>
+
+                    <span class="category-values">
+
+                        <strong>
+                            {{ "%.2f"|format(player_value) }}
+                        </strong>
+
+                        {% if team_value is not none %}
+                            · csapat {{ "%.2f"|format(team_value) }}
+                        {% endif %}
+
+                    </span>
+
+                </div>
+
+
+                <div class="bar-track">
+
+                    <div
+                        class="bar-player"
+                        style="width: {{ player_value * 10 }}%;"
+                    ></div>
+
+
+                    {% if team_value is not none %}
+
+                        <div
+                            class="team-marker"
+                            style="left: {{ team_value * 10 }}%;"
+                            title="Korosztályátlag: {{ '%.2f'|format(team_value) }}"
+                        ></div>
+
+                    {% endif %}
+
+                </div>
+
+            </div>
+
+        {% endfor %}
+
+    </div>
+
+<!-- ========================================================= -->
+<!-- JÁTÉKOSPROFIL -->
+<!-- ========================================================= -->
+
+<div class="dashboard-card player-profile-card">
+
+    <h2>Játékosprofil</h2>
+
+    <div class="card-subtitle">
+        Mapping és játékosprofil-értelmezés
+    </div>
+
+    <div class="profile-table">
+
+        <div class="profile-row">
+
+            <div class="profile-label">
+                Mapping
+            </div>
+
+            <div class="profile-value">
+                {{ aggregated.mapping.name_hu }}
+            </div>
+
+        </div>
+
+
+        <div class="profile-row">
+
+            <div class="profile-label">
+                Mapping értelmezése
+            </div>
+
+            <div class="profile-value">
+                {{ aggregated.mapping.description }}
+            </div>
+
+        </div>
+
+
+        <div class="profile-row">
+
+            <div class="profile-label">
+                Profil típusa
+            </div>
+
+            <div class="profile-value">
+                {{ aggregated.profiles.type_hu }}
+            </div>
+
+        </div>
+
+
+        <div class="profile-row">
+
+            <div class="profile-label">
+                Elsődleges profil
+            </div>
+
+            <div class="profile-value">
+
+                <strong>
+                    {{ aggregated.profiles.primary.name.name_hu }}
+                </strong>
+
+                <p>
+                    {{ aggregated.profiles.primary.name.description }}
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <div class="profile-row">
+
+            <div class="profile-label">
+                Másodlagos profil
+            </div>
+
+            <div class="profile-value">
+
+                <strong>
+                    {{ aggregated.profiles.secondary.name.name_hu }}
+                </strong>
+
+                <p>
+                    {{ aggregated.profiles.secondary.name.description }}
+                </p>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+    <!-- ========================================================= -->
+    <!-- INSIGHTS -->
+    <!-- ========================================================= -->
+
+
+{% if insights %}
+
+    <div class="insight-grid">
+
+        <!-- ERŐSSÉGEK -->
+
+        <div class="insight-card">
+
+            <h3>Erősségek</h3>
+
+            {% if insights.strengths %}
+
+                {% for item in insights.strengths %}
+
+                    <div class="insight-item">
+
+                        <div class="insight-item-header">
+                            <strong>{{ item.label }}</strong>
+
+                            <span class="insight-positive">
+                                +{{ "%.2f"|format(item.difference) }}
+                            </span>
+                        </div>
+
+                        <div class="insight-item-details">
+                            Játékos:
+                            {{ "%.2f"|format(item.player_value) }}
+                            · Korosztály:
+                            {{ "%.2f"|format(item.team_value) }}
+                        </div>
+
+                    </div>
+
+                {% endfor %}
+
+            {% else %}
+
+                <p class="insight-empty">
+                    Nincs pozitív eltérés a korosztályátlaghoz képest.
+                </p>
+
+            {% endif %}
+
+        </div>
+
+
+        <!-- FEJLESZTÉSI TERÜLETEK -->
+
+        <div class="insight-card">
+
+            <h3>Fejlesztési területek</h3>
+
+            {% if insights.development_areas %}
+
+                {% for item in insights.development_areas %}
+
+                    <div class="insight-item">
+
+                        <div class="insight-item-header">
+                            <strong>{{ item.label }}</strong>
+
+                            <span class="insight-negative">
+                                {{ "%.2f"|format(item.difference) }}
+                            </span>
+                        </div>
+
+                        <div class="insight-item-details">
+                            Játékos:
+                            {{ "%.2f"|format(item.player_value) }}
+                            · Korosztály:
+                            {{ "%.2f"|format(item.team_value) }}
+                        </div>
+
+                    </div>
+
+                {% endfor %}
+
+            {% else %}
+
+                <p class="insight-empty">
+                    Nincs negatív eltérés a korosztályátlaghoz képest.
+                </p>
+
+            {% endif %}
+
+        </div>
+
+    </div>
+
+{% endif %}
+
+    <!-- ========================================================= -->
+    <!-- INDIVIDUAL COACH ASSESSMENTS -->
+    <!-- ========================================================= -->
+
+    <div class="dashboard-card">
+
+        <h2>Edzői értékelések</h2>
+
+        <div class="card-subtitle">
+            {{ aggregated.assessment_count }} értékelés
+        </div>
+
+
+        {% for item in assessments %}
+
+            {% set assessment = item.assessment %}
+            {% set result = item.result %}
+
+            <div class="assessment-item">
+
+                <div class="assessment-top">
+
+                    <div>
+
+                        <strong>
+                            {{ assessment.coach.name }}
+                        </strong>
+
+                        <div class="card-subtitle" style="margin:4px 0 0 0;">
+
+                            {{ assessment.period.name }}
+
+                            ·
+
+                            {{ assessment.completed_at.strftime(
+                                "%Y.%m.%d. %H:%M"
+                            ) }}
+
+                        </div>
+
+                    </div>
+
+
+                    <div>
+
+                        <strong>
+                            {{ result.mapping.name_hu }}
+                        </strong>
+
+                    </div>
+
+                </div>
+
+
+                <div class="assessment-scores">
+
+                    <div class="assessment-score">
+
+                        <small>Performance</small>
+
+                        <br>
+
+                        <strong>
+                            {{ "%.2f"|format(
+                                result.scores.performance
+                            ) }}
+                        </strong>
+
+                    </div>
+
+
+                    <div class="assessment-score">
+
+                        <small>Potential</small>
+
+                        <br>
+
+                        <strong>
+                            {{ "%.2f"|format(
+                                result.scores.potential
+                            ) }}
+                        </strong>
+
+                    </div>
+
+
+                    <div class="assessment-score">
+
+                        <small>Taktikai</small>
+
+                        <br>
+
+                        {{ "%.2f"|format(
+                            result.scores.tactical
+                        ) }}
+
+                    </div>
+
+
+                    <div class="assessment-score">
+
+                        <small>Technikai</small>
+
+                        <br>
+
+                        {{ "%.2f"|format(
+                            result.scores.technical
+                        ) }}
+
+                    </div>
+
+
+                    <div class="assessment-score">
+
+                        <small>Viselkedés</small>
+
+                        <br>
+
+                        {{ "%.2f"|format(
+                            result.scores.behaviour
+                        ) }}
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        {% endfor %}
+
+    </div>
+
+
+{% else %}
+
+    <div class="dashboard-card">
+
+        <h1>{{ player.full_name }}</h1>
+
+        <p class="empty">
+            Ehhez a játékoshoz még nincs értékelés.
+        </p>
+
+    </div>
+
+{% endif %}
+
+
+<div class="page-actions">
+
+    <a href="{{ url_for(
+        'performance.team_detail',
+        team_id=player.team_id
+    ) }}"
+       class="btn btn-secondary">
+        ← Vissza a csapathoz
+    </a>
+
+    <a href="{{ url_for('performance.dashboard') }}"
+       class="btn btn-secondary">
+        ← Vissza a dashboardra
+    </a>
+
+    <a href="{{ url_for(
+        'performance.assessment_new'
+    ) }}"
+       class="btn btn-primary">
+        + Új értékelés
+    </a>
+
+    <a href="{{ url_for(
+        'performance.player_pdf',
+        player_id=player.id
+    ) }}"
+       class="btn btn-secondary">
+        ↓ PDF letöltése
+    </a>
+
+</div>
+
+{% endif %}
+
+<!-- ============================================================= -->
+<!-- CHART.JS -->
+<!-- ============================================================= -->
+
+{% if aggregated %}
+
+{% endif %}
+
+{% if view == "trend" %}
+
+<div class="trend-card">
+
+    <div class="trend-header">
+        <div>
+            <h1 class="trend-title">Fejlődési trend</h1>
+            <p class="trend-subtitle">{{ player.full_name }} · eredmények mérési időszakonként</p>
+        </div>
+    </div>
+
+    {% if trend_results %}
+
+        <div class="trend-card" style="margin-bottom: 20px;">
+            <h2>Kategóriaeredmények</h2>
+            <p class="card-subtitle">Taktikai, technikai és mentális/viselkedéses eredmények alakulása</p>
+            <div class="trend-chart-wrap">
+                <canvas id="developmentTrendChart"></canvas>
+            </div>
+        </div>
+
+        <div class="trend-table-wrap">
+            <table class="trend-table">
+                <thead>
+                    <tr>
+                        <th>Mérési időszak</th>
+                        <th>Performance</th>
+                        <th>Potential</th>
+                        <th><span class="trend-category">Taktikai</span></th>
+                        <th><span class="trend-category">Technikai</span></th>
+                        <th><span class="trend-category">Mentalitás</span></th>
+                        <th>Értékelések</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in trend_results %}
+                    <tr>
+                        <td class="trend-period">{{ item.period.name }}</td>
+                        <td class="trend-score">{{ "%.2f"|format(item.result.scores.performance) }}</td>
+                        <td class="trend-score">{{ "%.2f"|format(item.result.scores.potential) }}</td>
+                        <td>{{ "%.2f"|format(item.result.scores.tactical) }}</td>
+                        <td>{{ "%.2f"|format(item.result.scores.technical) }}</td>
+                        <td>{{ "%.2f"|format(item.result.scores.behaviour) }}</td>
+                        <td>{{ item.assessment_count }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+    {% else %}
+        <p class="trend-empty">Nincs elegendő adat a fejlődési trend megjelenítéséhez.</p>
+    {% endif %}
+
+    <div class="trend-actions">
+        <a href="{{ url_for('performance.dashboard') }}" class="btn btn-secondary">
+            ← Vissza a dashboardra
+        </a>
+
+        <a href="{{ url_for('performance.player_pdf', player_id=player.id) }}" class="btn btn-secondary">
+            ↓ PDF nyomtatása
+        </a>
+    </div>
+
+</div>
+
+{% if trend_results %}
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    new Chart(document.getElementById('developmentTrendChart'), {
+        type: 'line',
+        data: {
+            labels: [
+                {% for item in trend_results %}
+                    {{ item.period.name|tojson }}{% if not loop.last %},{% endif %}
+                {% endfor %}
+            ],
+            datasets: [
+                {
+                    label: 'Taktikai',
+                    data: [
+                        {% for item in trend_results %}
+                            {{ item.result.scores.tactical|tojson }}{% if not loop.last %},{% endif %}
+                        {% endfor %}
+                    ],
+                    tension: 0.3,
+                    borderWidth: 3,
+                    pointRadius: 4
+                },
+                {
+                    label: 'Technikai',
+                    data: [
+                        {% for item in trend_results %}
+                            {{ item.result.scores.technical|tojson }}{% if not loop.last %},{% endif %}
+                        {% endfor %}
+                    ],
+                    tension: 0.3,
+                    borderWidth: 3,
+                    pointRadius: 4
+                },
+                {
+                    label: 'Mentalitás',
+                    data: [
+                        {% for item in trend_results %}
+                            {{ item.result.scores.behaviour|tojson }}{% if not loop.last %},{% endif %}
+                        {% endfor %}
+                    ],
+                    tension: 0.3,
+                    borderWidth: 3,
+                    pointRadius: 4
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    min: 0,
+                    max: 10,
+                    ticks: { stepSize: 1 }
+                }
+            },
+            plugins: {
+                legend: { position: 'bottom' }
+            }
+        }
+    });
+</script>
+{% endif %}
+
+{% endif %}
+
+{% if view == "current" and aggregated %}
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+
+    const playerPerformance =
+        {{ aggregated.scores.performance|tojson }};
+
+    const playerPotential =
+        {{ aggregated.scores.potential|tojson }};
+
+
+    {% if team_averages %}
+
+    const teamPerformance =
+        {{ team_averages.scores.performance|tojson }};
+
+    const teamPotential =
+        {{ team_averages.scores.potential|tojson }};
+
+    {% else %}
+
+    const teamPerformance = null;
+    const teamPotential = null;
+
+    {% endif %}
+
+
+    /* ========================================================= */
+    /* PERFORMANCE × POTENTIAL */
+    /* ========================================================= */
+
+    /* ========================================================= */
+    /* RADAR */
+    /* ========================================================= */
+
+const radialAttributes = [
+    // TAKTIKAI – 6
+    { code: "finding_space", label: "Helyezkedés", category: "tactical" },
+    { code: "vision", label: "Játéklátás", category: "tactical" },
+    { code: "decision_making", label: "Döntéshozatal", category: "tactical" },
+    { code: "support_play", label: "Támogatójáték", category: "tactical" },
+    { code: "reading_play", label: "Játék olvasása", category: "tactical" },
+    { code: "reaction_to_losing_ball", label: "Labdavesztés reakció", category: "tactical" },
+
+    // TECHNIKAI – 14
+    { code: "ball_control", label: "Labdakontroll", category: "technical" },
+    { code: "receiving_under_pressure", label: "Átvétel nyomás alatt", category: "technical" },
+    { code: "twisting_turning", label: "Fordulás, irányváltás", category: "technical" },
+    { code: "one_v_one_dominance", label: "Egy az egyben dominancia", category: "technical" },
+    { code: "dribbling", label: "Cselezés", category: "technical" },
+    { code: "passing_range", label: "Passzterjedelem", category: "technical" },
+    { code: "passing_quality", label: "Passzminőség", category: "technical" },
+    { code: "attacking_heading", label: "Fejjáték támadásban", category: "technical" },
+    { code: "crossing", label: "Beadás", category: "technical" },
+    { code: "finishing", label: "Befejezés", category: "technical" },
+    { code: "hard_to_beat", label: "Nehezen átjátszható", category: "technical" },
+    { code: "defensive_heading", label: "Fejjáték védekezésben", category: "technical" },
+    { code: "tackling", label: "Szerelés", category: "technical" },
+    { code: "interceptions", label: "Labdaszerzés", category: "technical" },
+
+    // VISELKEDÉSES – 6
+    { code: "competitive_edge", label: "Versenyszellem", category: "behavioral" },
+    { code: "bravery_on_ball", label: "Bátorság labdával", category: "behavioral" },
+    { code: "bravery_without_ball", label: "Bátorság labda nélkül", category: "behavioral" },
+    { code: "control", label: "Kontroll", category: "behavioral" },
+    { code: "concentration", label: "Koncentráció", category: "behavioral" },
+    { code: "communication", label: "Kommunikáció", category: "behavioral" }
+];
+
+const categoryColors = {
+    tactical: {
+        fill: "#65A9E8",
+        background: "#EAF4FC",
+        text: "#2563A6"
+    },
+    technical: {
+        fill: "#75C878",
+        background: "#EAF8EA",
+        text: "#287A38"
+    },
+    behavioral: {
+        fill: "#E88980",
+        background: "#FCECEA",
+        text: "#A84038"
+    }
+};
+
+
+// Backendből érkező értékek
+const playerValues = [
+    {% for attribute in [
+        "finding_space",
+        "vision",
+        "decision_making",
+        "support_play",
+        "reading_play",
+        "reaction_to_losing_ball",
+        "ball_control",
+        "receiving_under_pressure",
+        "twisting_turning",
+        "one_v_one_dominance",
+        "dribbling",
+        "passing_range",
+        "passing_quality",
+        "attacking_heading",
+        "crossing",
+        "finishing",
+        "hard_to_beat",
+        "defensive_heading",
+        "tackling",
+        "interceptions",
+        "competitive_edge",
+        "bravery_on_ball",
+        "bravery_without_ball",
+        "control",
+        "concentration",
+        "communication"
+    ] %}
+        {{ (aggregated or {}).get("attributes", {}).get(attribute, 0) | tojson }}{% if not loop.last %},{% endif %}
+    {% endfor %}
+];
+
+const ageGroupValues = [
+    {% for attribute in [
+        "finding_space",
+        "vision",
+        "decision_making",
+        "support_play",
+        "reading_play",
+        "reaction_to_losing_ball",
+        "ball_control",
+        "receiving_under_pressure",
+        "twisting_turning",
+        "one_v_one_dominance",
+        "dribbling",
+        "passing_range",
+        "passing_quality",
+        "attacking_heading",
+        "crossing",
+        "finishing",
+        "hard_to_beat",
+        "defensive_heading",
+        "tackling",
+        "interceptions",
+        "competitive_edge",
+        "bravery_on_ball",
+        "bravery_without_ball",
+        "control",
+        "concentration",
+        "communication"
+    ] %}
+        {{ (team_averages or {}).get("attributes", {}).get(attribute, 0) | tojson }}{% if not loop.last %},{% endif %}
+    {% endfor %}
+];
+
+
+function createRadialProfileChart() {
+
+    const container = document.getElementById("radialProfileChart");
+
+    if (!container) return;
+
+    const width = 1000;
+    const height = 900;
+
+    const centerX = 500;
+    const centerY = 430;
+
+    const innerRadius = 115;
+    const outerRadius = 315;
+
+    const labelRadius = 365;
+    const maxValue = 10;
+
+    const angleStep = (Math.PI * 2) / radialAttributes.length;
+    const startAngle = -Math.PI / 2;
+
+
+    function polarToCartesian(angle, radius) {
+
+        return {
+            x: centerX + Math.cos(angle) * radius,
+            y: centerY + Math.sin(angle) * radius
+        };
+
+    }
+
+
+    function createSectorPath(startAngle, endAngle, value) {
+
+        const radius =
+            innerRadius +
+            (value / maxValue) * (outerRadius - innerRadius);
+
+        const startOuter = polarToCartesian(startAngle, radius);
+        const endOuter = polarToCartesian(endAngle, radius);
+
+        const startInner = polarToCartesian(startAngle, innerRadius);
+        const endInner = polarToCartesian(endAngle, innerRadius);
+
+        const largeArcFlag =
+            endAngle - startAngle > Math.PI ? 1 : 0;
+
+        return [
+            `M ${startInner.x} ${startInner.y}`,
+            `L ${startOuter.x} ${startOuter.y}`,
+            `A ${radius} ${radius} 0 ${largeArcFlag} 1 ${endOuter.x} ${endOuter.y}`,
+            `L ${endInner.x} ${endInner.y}`,
+            `A ${innerRadius} ${innerRadius} 0 ${largeArcFlag} 0 ${startInner.x} ${startInner.y}`,
+            "Z"
+        ].join(" ");
+
+    }
+
+
+    function createAveragePoint(angle, value) {
+
+        const radius =
+            innerRadius +
+            (value / maxValue) * (outerRadius - innerRadius);
+
+        return polarToCartesian(angle, radius);
+
+    }
+
+
+    let svg = `
+        <svg
+            viewBox="0 0 ${width} ${height}"
+            width="100%"
+            role="img"
+            aria-label="Játékos teljesítményprofil és korosztályátlag"
+        >
+
+        <rect
+            width="${width}"
+            height="${height}"
+            fill="white"
+        />
+
+        <text
+            x="500"
+            y="55"
+            text-anchor="middle"
+            font-size="26"
+            font-weight="bold"
+            fill="#172033"
+        >
+            Teljesítményprofil
+        </text>
+    `;
+
+
+    // Háttérkörök: 2, 4, 6, 8, 10
+    for (let level = 2; level <= 10; level += 2) {
+
+        const radius =
+            innerRadius +
+            (level / maxValue) * (outerRadius - innerRadius);
+
+        svg += `
+            <circle
+                cx="${centerX}"
+                cy="${centerY}"
+                r="${radius}"
+                fill="none"
+                stroke="#B8C2CC"
+                stroke-width="1.5"
+                stroke-dasharray="7 7"
+            />
+        `;
+
+    }
+
+
+    // Szektorok és játékosértékek
+    radialAttributes.forEach((attribute, index) => {
+
+        const value = Number(playerValues[index] || 0);
+
+        const sectorStart =
+            startAngle + index * angleStep;
+
+        const sectorEnd =
+            sectorStart + angleStep;
+
+        const padding = 0.012;
+
+        const color = categoryColors[attribute.category];
+
+        svg += `
+            <path
+                d="${createSectorPath(
+                    sectorStart + padding,
+                    sectorEnd - padding,
+                    value
+                )}"
+                fill="${color.fill}"
+                fill-opacity="0.88"
+                stroke="white"
+                stroke-width="2"
+            />
+        `;
+
+
+        // Értékfelirat
+        const valueRadius =
+            innerRadius +
+            (value / maxValue) * (outerRadius - innerRadius) * 0.72;
+
+        const valueAngle =
+            (sectorStart + sectorEnd) / 2;
+
+        const valuePosition =
+            polarToCartesian(valueAngle, valueRadius);
+
+        svg += `
+            <text
+                x="${valuePosition.x}"
+                y="${valuePosition.y}"
+                text-anchor="middle"
+                dominant-baseline="middle"
+                font-size="17"
+                font-weight="bold"
+                fill="#172033"
+            >
+                ${value.toFixed(1)}
+            </text>
+        `;
+
+    });
+
+
+    // =========================================================
+    // KOROSZTÁLYÁTLAG – PONTOK ÉS ÉRTÉKEK
+    // =========================================================
+
+    radialAttributes.forEach((attribute, index) => {
+
+        const value = Number(ageGroupValues[index] || 0);
+
+        const angle =
+            startAngle + (index + 0.5) * angleStep;
+
+        const point =
+            createAveragePoint(angle, value);
+
+        // Rövid, szaggatott sugárvonal
+        const innerPoint =
+            polarToCartesian(angle, innerRadius);
+
+        svg += `
+            <line
+                x1="${innerPoint.x}"
+                y1="${innerPoint.y}"
+                x2="${point.x}"
+                y2="${point.y}"
+                stroke="#26384D"
+                stroke-width="1.5"
+                stroke-dasharray="5 5"
+                opacity="0.75"
+            />
+        `;
+
+        // Korosztályátlag pont
+        svg += `
+            <circle
+                cx="${point.x}"
+                cy="${point.y}"
+                r="5"
+                fill="#26384D"
+                stroke="white"
+                stroke-width="1.5"
+            />
+        `;
+
+        // Átlagérték pozíciója
+        const labelRadius = 18;
+
+        const labelPoint =
+            polarToCartesian(
+                angle,
+                innerRadius +
+                (value / maxValue) * (outerRadius - innerRadius) +
+                labelRadius
+            );
+
+        // Korosztályátlag száma
+        svg += `
+            <text
+                x="${labelPoint.x}"
+                y="${labelPoint.y}"
+                text-anchor="middle"
+                dominant-baseline="middle"
+                font-size="13"
+                font-weight="500"
+                fill="#26384D"
+            >
+                ${value.toFixed(1)}
+            </text>
+        `;
+
+    });
+
+    // Zárás
+    const firstAveragePoint =
+        createAveragePoint(
+            startAngle + 0.5 * angleStep,
+            Number(ageGroupValues[0] || 0)
+        );
+
+
+    // Szektorhatároló vonalak és külső feliratok
+    radialAttributes.forEach((attribute, index) => {
+
+        const sectorStart =
+            startAngle + index * angleStep;
+
+        const sectorEnd =
+            sectorStart + angleStep;
+
+        const labelAngle =
+            (sectorStart + sectorEnd) / 2;
+
+        const boundaryStart =
+            polarToCartesian(sectorStart, innerRadius);
+
+        const boundaryEnd =
+            polarToCartesian(sectorStart, outerRadius);
+
+        svg += `
+            <line
+                x1="${boundaryStart.x}"
+                y1="${boundaryStart.y}"
+                x2="${boundaryEnd.x}"
+                y2="${boundaryEnd.y}"
+                stroke="#FFFFFF"
+                stroke-width="1.5"
+            />
+        `;
+
+
+        const labelPosition =
+            polarToCartesian(labelAngle, labelRadius);
+
+        let textAnchor = "middle";
+
+        if (labelPosition.x < centerX - 40) {
+            textAnchor = "end";
+        }
+
+        if (labelPosition.x > centerX + 40) {
+            textAnchor = "start";
+        }
+
+        const words = attribute.label.split(", ");
+
+        svg += `
+            <text
+                x="${labelPosition.x}"
+                y="${labelPosition.y}"
+                text-anchor="${textAnchor}"
+                font-size="14"
+                font-weight="600"
+                fill="#172033"
+        `;
+
+        words.forEach((word, wordIndex) => {
+
+            svg += `
+                <tspan
+                    x="${labelPosition.x}"
+                    dy="${wordIndex === 0 ? 0 : 17}"
+                >
+                    ${word}
+                </tspan>
+            `;
+
+        });
+
+        svg += `</text>`;
+
+    });
+
+
+    // Középső kör
+    svg += `
+        <circle
+            cx="${centerX}"
+            cy="${centerY}"
+            r="${innerRadius}"
+            fill="white"
+            stroke="#26384D"
+            stroke-width="2"
+        />
+
+        <text
+            x="${centerX}"
+            y="${centerY - 35}"
+            text-anchor="middle"
+            font-size="19"
+            font-weight="bold"
+            fill="#172033"
+        >
+            Összesített
+        </text>
+
+        <text
+            x="${centerX}"
+            y="${centerY - 10}"
+            text-anchor="middle"
+            font-size="19"
+            font-weight="bold"
+            fill="#172033"
+        >
+            profil
+        </text>
+
+        <line
+            x1="${centerX - 42}"
+            y1="${centerY + 10}"
+            x2="${centerX + 42}"
+            y2="${centerY + 10}"
+            stroke="#26384D"
+            stroke-width="1.5"
+        />
+
+        <text
+            x="${centerX}"
+            y="${centerY + 37}"
+            text-anchor="middle"
+            font-size="13"
+            fill="#526174"
+        >
+            Performance
+        </text>
+
+        <text
+            x="${centerX}"
+            y="${centerY + 61}"
+            text-anchor="middle"
+            font-size="24"
+            font-weight="bold"
+            fill="#3767A5"
+        >
+            {{ aggregated.scores.performance | default(0) }}
+        </text>
+
+        <text
+            x="${centerX}"
+            y="${centerY + 86}"
+            text-anchor="middle"
+            font-size="13"
+            fill="#526174"
+        >
+            Potential
+        </text>
+
+        <text
+            x="${centerX}"
+            y="${centerY + 110}"
+            text-anchor="middle"
+            font-size="24"
+            font-weight="bold"
+            fill="#3767A5"
+        >
+            {{ aggregated.scores.potential | default(0) }}
+        </text>
+    `;
+
+
+    // Jelmagyarázat
+    svg += `
+        <rect
+            x="45"
+            y="785"
+            width="330"
+            height="92"
+            rx="12"
+            fill="#F3F6F8"
+        />
+
+        <text
+            x="65"
+            y="812"
+            font-size="14"
+            font-weight="bold"
+            fill="#526174"
+        >
+            Összehasonlítás
+        </text>
+
+        <line
+            x1="65"
+            y1="835"
+            x2="110"
+            y2="835"
+            stroke="#26384D"
+            stroke-width="3"
+            stroke-dasharray="8 5"
+        />
+
+        <text
+            x="122"
+            y="840"
+            font-size="13"
+            fill="#526174"
+        >
+            Korosztályátlag
+        </text>
+
+        <line
+            x1="65"
+            y1="860"
+            x2="110"
+            y2="860"
+            stroke="#26384D"
+            stroke-width="3"
+        />
+
+        <text
+            x="122"
+            y="865"
+            font-size="13"
+            fill="#526174"
+        >
+            Játékos
+        </text>
+    `;
+
+
+    // Kategóriajelmagyarázat
+    svg += `
+        <circle cx="735" cy="810" r="9" fill="#65A9E8"/>
+        <text x="755" y="815" font-size="14" fill="#526174">
+            Taktikai jellemzők (6)
+        </text>
+
+        <circle cx="735" cy="840" r="9" fill="#75C878"/>
+        <text x="755" y="845" font-size="14" fill="#526174">
+            Technikai jellemzők (14)
+        </text>
+
+        <circle cx="735" cy="870" r="9" fill="#E88980"/>
+        <text x="755" y="875" font-size="14" fill="#526174">
+            Viselkedéses jellemzők (6)
+        </text>
+    `;
+
+
+    svg += `</svg>`;
+
+    container.innerHTML = svg;
+
+}
+
+document.addEventListener("DOMContentLoaded", function () {
+    createRadialProfileChart();
+});
+</script>
+
+<script>
+function changePeriod(periodId) {
+
+    const url = new URL(
+        window.location.href
+    );
+
+    url.searchParams.set(
+        "period_id",
+        periodId
+    );
+
+    url.searchParams.set(
+        "view",
+        "current"
+    );
+
+    window.location.href = url.toString();
+}
+</script>
+
+{% endif %}
+
+{% endblock %}

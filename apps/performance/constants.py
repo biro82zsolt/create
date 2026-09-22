@@ -1,0 +1,50 @@
+PERFORMANCE_ATTRIBUTES = [
+    ("Térnyerés", "finding_space", "Finding space"),
+    ("Játéklátás", "vision", "Vision"),
+    ("Döntéshozatal", "decision_making", "Decision making"),
+    ("Támogatójáték", "support_play", "Support play"),
+    ("Játék olvasása", "reading_play", "Reading play"),
+    (
+        "Labdavesztés utáni reakció",
+        "reaction_to_losing_ball",
+        "Reaction",
+    ),
+
+    ("Labdakontroll", "ball_control", "Ball control"),
+    (
+        "Nyomás alatti átvétel",
+        "receiving_under_pressure",
+        "Receiving",
+    ),
+    ("Fordulás / csel", "twisting_turning", "Turning"),
+    ("1v1 dominancia", "one_v_one_dominance", "1v1"),
+    ("Labdavezetés", "dribbling", "Dribbling"),
+    ("Passzolási tartomány", "passing_range", "Passing range"),
+    ("Passzminőség", "passing_quality", "Passing quality"),
+    (
+        "Támadó fejjáték",
+        "attacking_heading",
+        "Attacking heading",
+    ),
+    ("Beadás", "crossing", "Crossing"),
+    ("Befejezés", "finishing", "Finishing"),
+    ("Nehéz átjátszani", "hard_to_beat", "Hard to beat"),
+    (
+        "Védekező fejjáték",
+        "defensive_heading",
+        "Defensive heading",
+    ),
+    ("Szerelés", "tackling", "Tackling"),
+    ("Labdaszerzés", "interceptions", "Interceptions"),
+
+    ("Versenyszellem", "competitive_edge", "Competitive edge"),
+    ("Bátorság labdával", "bravery_on_ball", "Bravery on ball"),
+    (
+        "Bátorság labda nélkül",
+        "bravery_without_ball",
+        "Bravery without ball",
+    ),
+    ("Kontroll", "control", "Control"),
+    ("Koncentráció", "concentration", "Concentration"),
+    ("Kommunikáció", "communication", "Communication"),
+]

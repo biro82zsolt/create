@@ -38,12 +38,14 @@ readiness_app = load_flask_app("readiness.app")
 sport_app = load_flask_app("sportmotivation.app")
 sociometry_app = load_flask_app("sociometry.app")
 
+performance_app = load_flask_app("performance.app")
+
 # --- Root “héj” app csak gyökér/health célra ---
 root = Flask(__name__)
 
 @root.get("/")
 def index():
-    return "OK. Elérhető: /anthro , /readiness , /sportmotivation , /sociometry"
+    return "OK. Elérhető: /anthro , /readiness , /sportmotivation , /sociometry , /performance"
 
 @root.get("/anthro")
 def anthro_noslash():
@@ -61,11 +63,16 @@ def sport_noslash():
 def sociometry_noslash():
     return redirect("/sociometry/", code=308)
 
+@root.get("/performance")
+def performance_noslash():
+    return redirect("/performance/", code=308)
+
 application = DispatcherMiddleware(root, {
     "/anthro": anthro_app,
     "/readiness": readiness_app,
     "/sportmotivation": sport_app,
     "/sociometry": sociometry_app,
+    "/performance": performance_app,
 })
 
 # Gunicorn ezt a nevet keresi:

@@ -1,0 +1,383 @@
+{% extends "performance/base.html" %}
+
+{% block title %}
+    A Performance & Potential rendszer
+{% endblock %}
+
+{% block content %}
+
+<style>
+    .guide-hero {
+        background: linear-gradient(135deg, #1f4e85, #294f80);
+        color: white;
+        border-radius: 16px;
+        padding: 36px;
+        margin-bottom: 28px;
+    }
+
+    .guide-section {
+        background: white;
+        border-radius: 14px;
+        padding: 28px;
+        margin-bottom: 28px;
+        box-shadow: 0 2px 8px rgba(0,0,0,.06);
+    }
+
+    .guide-section h2 {
+        color: #1f4e85;
+        margin-top: 0;
+    }
+
+    .guide-image {
+        width: 100%;
+        max-width: 1100px;
+        display: block;
+        margin: 22px auto;
+        border-radius: 10px;
+        box-shadow: 0 4px 16px rgba(0,0,0,.12);
+    }
+
+    .guide-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 18px;
+    }
+
+    .guide-card {
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+        padding: 18px;
+        background: #fafafa;
+    }
+
+    .guide-card h3 {
+        margin-top: 0;
+        color: #1f4e85;
+    }
+
+    .guide-note {
+        background: #eef5ff;
+        border-left: 4px solid #2563eb;
+        padding: 16px 18px;
+        border-radius: 8px;
+    }
+
+    .guide-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 16px;
+    }
+
+    .guide-table th,
+    .guide-table td {
+        border: 1px solid #e5e7eb;
+        padding: 10px 12px;
+        text-align: left;
+    }
+
+    .guide-table th {
+        background: #f3f4f6;
+    }
+</style>
+
+<div class="guide-hero">
+    <h1>Performance & Potential</h1>
+    <p>
+        A rendszer célja, hogy strukturált értékelésen keresztül segítsen
+        megérteni a játékosok jelenlegi teljesítményét, fejlődési potenciálját
+        és domináns játékosprofilját.
+    </p>
+</div>
+
+<div class="guide-section">
+    <h2>1. Hogyan működik az értékelés?</h2>
+
+    <p>
+        Az edző a játékost 1–10 közötti skálán értékeli taktikai,
+        technikai és viselkedési / mentális szempontok alapján.
+        Ezen kívül három potenciálérték is rögzítésre kerül.
+    </p>
+
+    <div class="guide-grid">
+        <div class="guide-card">
+            <h3>Taktikai</h3>
+            <p>
+                Játékolvasás, helyezkedés, döntéshozatal, üres területek
+                felismerése és a játékhelyzetek értelmezése.
+            </p>
+        </div>
+
+        <div class="guide-card">
+            <h3>Technikai</h3>
+            <p>
+                Labdakezelés, passzolás, cselezés, 1v1 képesség,
+                befejezés és védekező technikai elemek.
+            </p>
+        </div>
+
+        <div class="guide-card">
+            <h3>Viselkedés / mentális</h3>
+            <p>
+                Versengés, bátorság, koncentráció, kommunikáció,
+                kontroll és labda nélküli aktivitás.
+            </p>
+        </div>
+
+        <div class="guide-card">
+            <h3>Potenciál</h3>
+            <p>
+                A játékos taktikai, technikai és viselkedési fejlődési
+                lehetőségének edzői becslése.
+            </p>
+        </div>
+    </div>
+
+    <div class="guide-note">
+        <strong>Fontos:</strong> az értékelés pillanatfelvétel.
+        A pontszámokat érdemes a mérkőzéshelyzetekkel, edzésviselkedéssel
+        és hosszabb távú fejlődési trendekkel együtt értelmezni.
+    </div>
+</div>
+
+<div class="guide-section">
+    <h2>2. A Performance és Potential számítása</h2>
+
+    <h3>Performance</h3>
+    <p>
+        A rendszer külön átlagot számol a taktikai, technikai és
+        viselkedési / mentális kategóriákra. Az összesített Performance
+        érték e három kategória egyszerű átlaga, azonos súlyozással.
+    </p>
+
+    <pre>
+Performance = (Tactical + Technical + Behaviour) / 3
+    </pre>
+
+    <h3>Potential</h3>
+    <p>
+        A Potential érték a három potenciálpontszám egyszerű átlaga.
+    </p>
+
+    <pre>
+Potential = (Tactical Potential + Technical Potential
+             + Behavioural Potential) / 3
+    </pre>
+
+    <table class="guide-table">
+        <thead>
+            <tr>
+                <th>Szint</th>
+                <th>Ponttartomány</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Alacsony</td>
+                <td>1,00–4,99</td>
+            </tr>
+            <tr>
+                <td>Közepes</td>
+                <td>5,00–6,99</td>
+            </tr>
+            <tr>
+                <td>Magas</td>
+                <td>7,00–10,00</td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+<div class="guide-section">
+    <h2>3. A játékosprofilok és a radar chart</h2>
+
+    <p>
+        A profilmotor hat domináns játékostípust vizsgál. A profilpontszámok
+        súlyozott számítással készülnek, és azt mutatják meg, hogy az adott
+        játékos mely képességmintázatokhoz áll közelebb.
+    </p>
+
+    <img class="guide-image"
+         src="{{ url_for('static', filename='performance_guide/profile_overview.png') }}"
+         alt="A hat játékosprofil áttekintése">
+
+    <div class="guide-grid">
+        <div class="guide-card">
+            <h3>Athlete – Atléta</h3>
+            <p>
+                Intenzív és aktív játékos, aki mozgásával, aktivitásával
+                és labda nélküli munkájával gyakorol hatást a játékra.
+            </p>
+        </div>
+
+        <div class="guide-card">
+            <h3>Warrior – Harcos</h3>
+            <p>
+                Párharcerős, versengő és bátor játékos, aki nehéz,
+                intenzív játékhelyzetekben is vállalja a küzdelmet.
+            </p>
+        </div>
+
+        <div class="guide-card">
+            <h3>Builder – Játéképítő</h3>
+            <p>
+                A játék felépítésében, összekapcsolásában és a csapat
+                struktúrájának támogatásában erős játékos.
+            </p>
+        </div>
+
+        <div class="guide-card">
+            <h3>Dribbler – Cselező</h3>
+            <p>
+                Labdával képes egyéni előnyt kialakítani, különösen
+                1v1 helyzetekben és szűk területeken.
+            </p>
+        </div>
+
+        <div class="guide-card">
+            <h3>Playmaker – Irányító</h3>
+            <p>
+                Játéklátásban, döntéshozatalban, passzolásban és a
+                megfelelő megoldások felismerésében erős.
+            </p>
+        </div>
+
+        <div class="guide-card">
+            <h3>Finisher – Befejező</h3>
+            <p>
+                A támadások végső szakaszában veszélyes, képes helyzetbe
+                kerülni és hatékonyan befejezni az akciókat.
+            </p>
+        </div>
+    </div>
+
+    <h3>Profilpontszámok értelmezése</h3>
+    <p>
+        A radar chart a hat profil relatív erősségét szemlélteti.
+        A legmagasabb pontszámú profil az elsődleges profil, a következő
+        pedig másodlagos profilként jelenhet meg. A profilok nem merev
+        kategóriák: egy játékos lehet hibrid vagy több területen is erős.
+    </p>
+
+</div>
+
+<div class="guide-section">
+    <h2>4. Performance × Potential mapping</h2>
+
+    <p>
+        A mapping a jelenlegi teljesítményt és a fejlődési potenciált
+        egy közös 3×3-as mátrixban jeleníti meg. A vízszintes tengely
+        a Performance, a függőleges tengely a Potential értékét mutatja.
+    </p>
+
+    <img class="guide-image"
+         src="{{ url_for('static', filename='performance_guide/mapping.png') }}"
+         alt="Performance és Potential mapping mátrix">
+
+    <div class="guide-grid">
+        <div class="guide-card">
+            <h3>Rough Diamond – Csiszolatlan gyémánt</h3>
+            <p>
+                Magas potenciál, amely jelenleg még nem jelenik meg
+                megfelelően a teljesítményben.
+            </p>
+        </div>
+
+        <div class="guide-card">
+            <h3>Rising Talent – Feltörekvő tehetség</h3>
+            <p>
+                Jelentős potenciál mellett a jelenlegi teljesítmény
+                is fejlődő irányt mutat.
+            </p>
+        </div>
+
+        <div class="guide-card">
+            <h3>Future Star – Jövő sztárja</h3>
+            <p>
+                Magas jelenlegi teljesítmény és magas fejlődési potenciál.
+            </p>
+        </div>
+
+        <div class="guide-card">
+            <h3>Core Player – Stabil csapattag</h3>
+            <p>
+                Kiegyensúlyozott, megbízható játékos közepes értékekkel.
+            </p>
+        </div>
+
+        <div class="guide-card">
+            <h3>Key Player – Kulcsjátékos</h3>
+            <p>
+                Magas jelenlegi teljesítmény és megfelelő fejlődési potenciál.
+            </p>
+        </div>
+
+        <div class="guide-card">
+            <h3>Underperforming – Alulteljesítő</h3>
+            <p>
+                A játékos képességei alapján magasabb teljesítmény lenne
+                várható; érdemes feltárni a háttérben álló okokat.
+            </p>
+        </div>
+
+        <div class="guide-card">
+            <h3>Overachiever – Túlteljesítő</h3>
+            <p>
+                A jelenlegi teljesítmény magasabb, mint amit a potenciál
+                alapján várnánk.
+            </p>
+        </div>
+
+        <div class="guide-card">
+            <h3>Grafter – Dolgozó / Küzdő</h3>
+            <p>
+                Közepes teljesítmény és alacsonyabb potenciál mellett
+                a kitartó munka és a fejlesztés fontos szerepet kap.
+            </p>
+        </div>
+
+        <div class="guide-card">
+            <h3>Development Risk – Fejlődési kockázat</h3>
+            <p>
+                Alacsonyabb teljesítmény és potenciál esetén kiemelt
+                támogatásra és egyéni fejlesztési fókuszra lehet szükség.
+            </p>
+        </div>
+    </div>
+
+    <div class="guide-note">
+        <strong>Értelmezési alapelv:</strong> a mapping nem végleges címke,
+        hanem beszélgetést és fejlesztési döntéseket támogató eszköz.
+        Az eredményeket mindig a játékos életkorával, szerepével,
+        környezetével és fejlődési előzményeivel együtt kell értelmezni.
+    </div>
+</div>
+
+<div class="guide-section">
+    <h2>5. Hogyan használjuk az eredményeket?</h2>
+
+    <ol>
+        <li>Vizsgáljuk meg a Performance és Potential értékeket.</li>
+        <li>Nézzük meg a taktikai, technikai és viselkedési részpontszámokat.</li>
+        <li>Értelmezzük a radar chart profilját.</li>
+        <li>Tekintsük át a mapping kategóriát.</li>
+        <li>Az eredmények alapján jelöljünk ki konkrét fejlesztési fókuszt.</li>
+        <li>A következő értékelésnél hasonlítsuk össze a változásokat.</li>
+    </ol>
+
+    <p>
+        A rendszer legfontosabb értéke nem önmagában a pontszám,
+        hanem az, hogy közös szakmai nyelvet ad az edzői stáb,
+        a játékos és a fejlesztési folyamat számára.
+    </p>
+</div>
+
+<div style="margin-top: 20px;">
+
+    <a href="{{ url_for('performance.dashboard') }}"
+       class="btn btn-secondary">
+        ← Vissza a dashboardra
+    </a>
+
+</div>
+
+{% endblock %}

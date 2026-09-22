@@ -1,0 +1,188 @@
+{% extends "performance/base.html" %}
+
+{% block title %}
+    Excel import ellenőrzése
+{% endblock %}
+
+{% block content %}
+
+<h1>Excel import ellenőrzése</h1>
+
+<div class="card">
+
+    <h2>{{ team.name }}</h2>
+
+    <p>
+        Ellenőrizd az alábbi listát.
+        Az adatbázisba még nem került be semmi.
+    </p>
+
+</div>
+
+
+<div class="card">
+
+    <h2>Import összesítő</h2>
+
+    {% set new_count = preview
+        |selectattr("status", "equalto", "new")
+        |list
+        |length
+    %}
+
+    {% set existing_count = preview
+        |selectattr("status", "equalto", "existing")
+        |list
+        |length
+    %}
+
+    {% set error_count = preview
+        |selectattr("status", "equalto", "error")
+        |list
+        |length
+    %}
+
+    <p>
+        <strong>{{ new_count }}</strong>
+        új játékos
+    </p>
+
+    <p>
+        <strong>{{ existing_count }}</strong>
+        már létező játékos
+    </p>
+
+    <p>
+        <strong>{{ error_count }}</strong>
+        hibás sor
+    </p>
+
+</div>
+
+
+<div class="card">
+
+    <h2>Játékosok</h2>
+
+    <table style="width: 100%; border-collapse: collapse;">
+
+        <thead>
+
+            <tr>
+                <th style="text-align:left; padding:8px;">
+                    Sor
+                </th>
+
+                <th style="text-align:left; padding:8px;">
+                    Player ID
+                </th>
+
+                <th style="text-align:left; padding:8px;">
+                    Vezetéknév
+                </th>
+
+                <th style="text-align:left; padding:8px;">
+                    Keresztnév
+                </th>
+
+                <th style="text-align:left; padding:8px;">
+                    Születési dátum
+                </th>
+
+                <th style="text-align:left; padding:8px;">
+                    Állapot
+                </th>
+            </tr>
+
+        </thead>
+
+        <tbody>
+
+        {% for item in preview %}
+
+            <tr>
+
+                <td style="padding:8px;">
+                    {{ item.row }}
+                </td>
+
+                <td style="padding:8px;">
+                    {{ item.player_code or "-" }}
+                </td>
+
+                <td style="padding:8px;">
+                    {{ item.last_name }}
+                </td>
+
+                <td style="padding:8px;">
+                    {{ item.first_name }}
+                </td>
+
+                <td style="padding:8px;">
+                    {{ item.birth_date or "-" }}
+                </td>
+
+                <td style="padding:8px;">
+
+                    {% if item.status == "new" %}
+                        <strong>✓ Új játékos</strong>
+
+                    {% elif item.status == "existing" %}
+                        Már létezik
+
+                    {% else %}
+                        <strong>⚠ {{ item.status_text }}</strong>
+
+                    {% endif %}
+
+                </td>
+
+            </tr>
+
+        {% endfor %}
+
+        </tbody>
+
+    </table>
+
+</div>
+
+
+<div class="card">
+
+    {% if new_count > 0 %}
+
+        <form
+            method="post"
+            action="{{ url_for(
+                'performance.import_players_confirm',
+                team_id=team.id
+            ) }}"
+        >
+
+            <button type="submit">
+                {{ new_count }} játékos importálása
+            </button>
+
+        </form>
+
+    {% else %}
+
+        <p>
+            Nincs importálható új játékos.
+        </p>
+
+    {% endif %}
+
+    <p>
+        <a href="{{ url_for(
+            'performance.team_detail',
+            team_id=team.id
+        ) }}">
+            ← Mégse
+        </a>
+    </p>
+
+</div>
+
+{% endblock %}
