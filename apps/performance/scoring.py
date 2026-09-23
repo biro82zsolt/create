@@ -31,14 +31,16 @@ TACTICAL_QUESTIONS = [
             "Képes felismerni és elfoglalni a szabad területeket, "
             "hogy megjátszható legyen, helyzetet teremtsen vagy segítse a játékot."
         ),
+        "phase": "possession"
     },
     {
         "code": "vision",
         "name": "Játéklátás",
         "statement": (
-            "Képes felismerni a társakat, az ellenfeleket és "
+            "Képes felismerni a társak és az ellenfelek pozícióját és "
             "a játék továbbépítésének lehetőségeit."
         ),
+        "phase": "possession"
     },
     {
         "code": "decision_making",
@@ -47,6 +49,7 @@ TACTICAL_QUESTIONS = [
             "Hatékony döntéseket hoz még a labda átvétele előtt, "
             "illetve labdabirtoklás közben."
         ),
+        "phase": "possession"
     },
     {
         "code": "support_play",
@@ -55,6 +58,7 @@ TACTICAL_QUESTIONS = [
             "Felismeri, mikor és hova kell mozognia ahhoz, "
             "hogy támogassa a labdás játékost."
         ),
+        "phase": "possession"
     },
     {
         "code": "reading_play",
@@ -63,6 +67,7 @@ TACTICAL_QUESTIONS = [
             "Képes előre felismerni, mi fog történni a következő "
             "játékhelyzetben a labda, a társak és az ellenfelek mozgása alapján."
         ),
+        "phase": "defending"
     },
     {
         "code": "reaction_to_losing_ball",
@@ -71,6 +76,7 @@ TACTICAL_QUESTIONS = [
             "Labdavesztés után megfelelően reagál: azonnal nyomást "
             "gyakorol vagy megfelelően visszarendeződik."
         ),
+        "phase": "defending"
     },
 ]
 
@@ -83,6 +89,7 @@ TECHNICAL_QUESTIONS = [
             "Első érintése minőségi, és úgy veszi át a labdát, "
             "hogy azzal előkészítse a következő játékhelyzetet."
         ),
+        "phase": "possession"
     },
     {
         "code": "receiving_under_pressure",
@@ -91,14 +98,16 @@ TECHNICAL_QUESTIONS = [
             "Nyomás alatt is képes hatékonyan átvenni és kontrollálni "
             "a labdát, megfelelő testhelyzetet és első érintést használva."
         ),
+        "phase": "possession"
     },
     {
         "code": "twisting_turning",
-        "name": "Fordulás és cselezés",
+        "name": "Fordulás és labda megőrzése",
         "statement": (
             "Képes megvédeni a labdát, manipulálni az ellenfelet "
             "és nyomás alatt is megtartani a labdabirtoklást."
         ),
+        "phase": "possession"
     },
     {
         "code": "one_v_one_dominance",
@@ -107,6 +116,7 @@ TECHNICAL_QUESTIONS = [
             "Képes sebesség-, mozgás- és ritmusváltással megverni "
             "ellenfelét és előnyt kialakítani 1v1 helyzetben."
         ),
+        "phase": "possession"
     },
     {
         "code": "dribbling",
@@ -115,14 +125,16 @@ TECHNICAL_QUESTIONS = [
             "Különböző sebességnél és irányváltásoknál is "
             "szoros kontroll alatt tartja a labdát."
         ),
+        "phase": "possession"
     },
     {
         "code": "passing_range",
         "name": "Passzolási távolság",
         "statement": (
             "Rövid, közepes és hosszú távolságra is hatékonyan "
-            "képes passzolni."
+            "képes passzolni (A magas pontszámhoz mindháromnak teljesülnie kell)."
         ),
+        "phase": "possession"
     },
     {
         "code": "passing_quality",
@@ -131,22 +143,25 @@ TECHNICAL_QUESTIONS = [
             "A megfelelő pontossággal, erővel, időzítéssel és irányba "
             "választja és hajtja végre a passzokat."
         ),
+        "phase": "possession"
     },
     {
         "code": "attacking_heading",
-        "name": "Támadó fejelés",
+        "name": "Támadó fejelés kapura",
         "statement": (
             "Megfelelő időzítéssel, pontossággal és erővel "
             "támadja a labdát a kapu felé."
         ),
+        "phase": "possession"
     },
     {
         "code": "crossing",
         "name": "Beadás",
         "statement": (
             "Pontos és veszélyes beadásokat képes végrehajtani "
-            "a pálya különböző területeiről."
+            "a szélső pozíciókból."
         ),
+        "phase": "possession"
     },
     {
         "code": "finishing",
@@ -155,22 +170,25 @@ TECHNICAL_QUESTIONS = [
             "Különböző helyzetekből, távolságokból és szögekből "
             "is pontosan és hatékonyan fejez be."
         ),
+        "phase": "possession"
     },
     {
         "code": "hard_to_beat",
-        "name": "Nehéz ellenfél ellen",
+        "name": "1v1 védekezésben",
         "statement": (
             "Türelemmel, agresszivitással és fegyelemmel képes "
             "megakadályozni az ellenfelet az előrejutásban 1v1 helyzetben."
         ),
+        "phase": "defending"
     },
     {
         "code": "defensive_heading",
         "name": "Védekező fejelés",
         "statement": (
             "Pontosan, megfelelő erővel és irányba képes védekező "
-            "fejest végrehajtani a veszély megszüntetésére."
+            "fejest végrehajtani a veszély megszüntetésére a posztjának megfelelően."
         ),
+        "phase": "defending"
     },
     {
         "code": "tackling",
@@ -179,6 +197,7 @@ TECHNICAL_QUESTIONS = [
             "Felismeri a megfelelő pillanatot a szerelésre, "
             "és biztonságosan, hatékonyan szerez labdát."
         ),
+        "phase": "defending"
     },
     {
         "code": "interceptions",
@@ -187,6 +206,7 @@ TECHNICAL_QUESTIONS = [
             "Képes előre olvasni a passzokat és mozgásokat, "
             "hogy közbeavatkozással labdát szerezzen."
         ),
+        "phase": "defending"
     },
 ]
 
@@ -199,6 +219,7 @@ BEHAVIOUR_QUESTIONS = [
             "Szeret versenyezni, párharcokat nyerni és pozitív hatást "
             "gyakorolni a játékra, az eredménytől függetlenül."
         ),
+        "phase": "mentality"
     },
     {
         "code": "bravery_on_ball",
@@ -207,6 +228,7 @@ BEHAVIOUR_QUESTIONS = [
             "Nyomás alatt is kéri, megjátssza és vállalja a labdát, "
             "és bízik saját döntéseiben."
         ),
+        "phase": "mentality"
     },
     {
         "code": "bravery_without_ball",
@@ -215,22 +237,25 @@ BEHAVIOUR_QUESTIONS = [
             "Labda nélkül is hajlandó védekezni, presszingelni, "
             "szerelni és a csapat érdekeit az egyéni szempontok elé helyezni."
         ),
+        "phase": "mentality"
     },
     {
         "code": "control",
-        "name": "Kontroll",
+        "name": "Érzelemkontroll",
         "statement": (
             "Megőrzi a nyugalmát, kezeli az érzelmeit és nyomás alatt "
             "is képes tiszta döntéseket hozni."
         ),
+        "phase": "mentality"
     },
     {
         "code": "concentration",
         "name": "Koncentráció",
         "statement": (
             "A mérkőzés során végig fókuszált, éber és aktív marad, "
-            "különösen a labdától távoli játékhelyzetekben."
+            "akkor is, ha nem aktív szereplője a játéknak."
         ),
+        "phase": "mentality"
     },
     {
         "code": "communication",
@@ -239,6 +264,7 @@ BEHAVIOUR_QUESTIONS = [
             "Világos, céltudatos és megfelelő időben történő verbális "
             "és nonverbális kommunikációval támogatja társait."
         ),
+        "phase": "mentality"
     },
 ]
 
@@ -250,7 +276,8 @@ POTENTIAL_QUESTIONS = [
         "statement": (
             "Mekkora fejlődési és tanulási potenciált látsz még "
             "a játékosban a játék olvasásában, döntéshozatalban, "
-            "helyezkedésben és taktikai megértésben?"
+            "helyezkedésben és taktikai megértésben? Mennyire hiszel benne, "
+            "hogy a játékos ezen a területen még fejlődni fog?"
         ),
     },
     {
@@ -259,7 +286,8 @@ POTENTIAL_QUESTIONS = [
         "statement": (
             "Mekkora fejlődési és tanulási potenciált látsz még "
             "a játékos technikai képességeiben és új technikai "
-            "megoldások elsajátításában?"
+            "megoldások elsajátításában? Mennyire hiszel benne, "
+            "hogy a játékos ezen a területen még fejlődni fog?"
         ),
     },
     {
@@ -269,7 +297,8 @@ POTENTIAL_QUESTIONS = [
             "Mekkora fejlődési és tanulási potenciált látsz még "
             "a játékos hozzáállásában, önszabályozásában, "
             "koncentrációjában, kommunikációjában és a versenyhelyzetek "
-            "kezelésében?"
+            "kezelésében? Mennyire hiszel benne, "
+            "hogy a játékos ezen a területen még fejlődni fog?"
         ),
     },
 ]

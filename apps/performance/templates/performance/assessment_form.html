@@ -3,6 +3,71 @@
 {% block title %}Játékosértékelés{% endblock %}
 
 {% block content %}
+<style>
+
+.phase-question {
+    position: relative;
+    margin-bottom: 28px;
+    padding-left: 42px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.phase-question::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 20px;
+    width: 5px;
+    border-radius: 5px;
+}
+
+.phase-question[data-phase="possession"]::before {
+    background: #22c55e;
+}
+
+.phase-question[data-phase="defending"]::before {
+    background: #ef4444;
+}
+
+.phase-question[data-phase="mentality"]::before {
+    background: #eab308;
+}
+
+
+/* Phase label */
+
+.phase-label {
+    position: absolute;
+
+    left: 8px;
+    top: 42%;
+
+    writing-mode: vertical-rl;
+    transform: translateY(-50%) rotate(180deg);
+
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.7px;
+    white-space: nowrap;
+
+    pointer-events: none;
+}
+
+.phase-question[data-phase="possession"] .phase-label {
+    color: #16a34a;
+}
+
+.phase-question[data-phase="defending"] .phase-label {
+    color: #dc2626;
+}
+
+.phase-question[data-phase="mentality"] .phase-label {
+    color: #ca8a04;
+}
+
+</style>
 
 <div class="card">
 
@@ -99,11 +164,20 @@
 
             {% for question in tactical %}
 
-                <div style="
-                    margin-bottom:28px;
-                    padding-bottom:20px;
-                    border-bottom:1px solid #e5e7eb;
-                ">
+                <div
+                    class="phase-question"
+                    data-phase="{{ question.phase }}"
+                >
+
+                    <span class="phase-label">
+                        {% if question.phase == "possession" %}
+                            LABDABIRTOKLÁS
+                        {% elif question.phase == "defending" %}
+                            VÉDEKEZÉS
+                        {% elif question.phase == "mentality" %}
+                            MENTALITÁS
+                        {% endif %}
+                    </span>
 
                     <h3>
                         {{ loop.index }}. {{ question.name }}
@@ -237,11 +311,20 @@
 
             {% for question in technical %}
 
-                <div style="
-                    margin-bottom:28px;
-                    padding-bottom:20px;
-                    border-bottom:1px solid #e5e7eb;
-                ">
+                <div
+                    class="phase-question"
+                    data-phase="{{ question.phase }}"
+                >
+
+                    <span class="phase-label">
+                        {% if question.phase == "possession" %}
+                            LABDABIRTOKLÁS
+                        {% elif question.phase == "defending" %}
+                            VÉDEKEZÉS
+                        {% elif question.phase == "mentality" %}
+                            MENTALITÁS
+                        {% endif %}
+                    </span>
 
                     <h3>
                         {{ loop.index }}. {{ question.name }}
@@ -375,11 +458,20 @@
 
             {% for question in behaviour %}
 
-                <div style="
-                    margin-bottom:28px;
-                    padding-bottom:20px;
-                    border-bottom:1px solid #e5e7eb;
-                ">
+                <div
+                    class="phase-question"
+                    data-phase="{{ question.phase }}"
+                >
+
+                    <span class="phase-label">
+                        {% if question.phase == "possession" %}
+                            LABDABIRTOKLÁS
+                        {% elif question.phase == "defending" %}
+                            VÉDEKEZÉS
+                        {% elif question.phase == "mentality" %}
+                            MENTALITÁS
+                        {% endif %}
+                    </span>
 
                     <h3>
                         {{ loop.index }}. {{ question.name }}
