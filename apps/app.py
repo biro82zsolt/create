@@ -39,7 +39,6 @@ sport_app = load_flask_app("sportmotivation.app")
 sociometry_app = load_flask_app("sociometry.app")
 
 performance_app = load_flask_app("performance.app")
-performance_v2_app = load_flask_app("performance_v2.app")
 
 # --- Root “héj” app csak gyökér/health célra ---
 root = Flask(__name__)
@@ -68,9 +67,6 @@ def sociometry_noslash():
 def performance_noslash():
     return redirect("/performance/", code=308)
 
-@root.get("/performance-v2")
-def performance_v2_noslash():
-    return redirect("/performance-v2/", code=308)
 
 application = DispatcherMiddleware(root, {
     "/anthro": anthro_app,
@@ -78,7 +74,6 @@ application = DispatcherMiddleware(root, {
     "/sportmotivation": sport_app,
     "/sociometry": sociometry_app,
     "/performance": performance_app,
-    "/performance-v2": performance_v2_app,
 })
 
 # Gunicorn ezt a nevet keresi:
