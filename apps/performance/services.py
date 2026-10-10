@@ -18,13 +18,18 @@ from reportlab.lib.styles import (
     getSampleStyleSheet,
     ParagraphStyle,
 )
-from reportlab.lib.enums import TA_CENTER
+from reportlab.lib.enums import TA_CENTER, TA_LEFT
 from reportlab.platypus import (
     SimpleDocTemplate,
     Paragraph,
     Spacer,
     Table,
     TableStyle,
+    Image,
+    KeepTogether,
+    KeepInFrame,
+    PageBreak,
+    Flowable,
 )
 from reportlab.lib.units import inch, mm
 from xml.sax.saxutils import escape
@@ -746,6 +751,39 @@ def generate_performance_potential_chart(
 
     return chart_buffer
 
+
+class RotatedLabel(Flowable):
+    """90 fokkal elforgatott tengelyfelirat."""
+
+    def __init__(self, text, style, width=18, height=160):
+        super().__init__()
+        self.text = text
+        self.style = style
+        self.width = width
+        self.height = height
+
+    def wrap(self, availWidth, availHeight):
+        return self.width, self.height
+
+    def draw(self):
+        self.canv.saveState()
+        self.canv.translate(self.width / 2, self.height / 2)
+        self.canv.rotate(90)
+
+        paragraph = Paragraph(self.text, self.style)
+        text_width, text_height = paragraph.wrap(
+            self.height,
+            self.width,
+        )
+        paragraph.drawOn(
+            self.canv,
+            -text_width / 2,
+            -text_height / 2,
+        )
+
+        self.canv.restoreState()
+
+
 def build_mapping_grid(mapping_grid, active_code, styles):
     """
     Build the 3×3 Performance × Potential mapping grid for PDF.
@@ -853,7 +891,51 @@ def build_mapping_grid(mapping_grid, active_code, styles):
         ])
     )
 
-    return grid_table
+
+    # Tengelyfeliratok hozzáadása a mapping rácshoz
+    x_label = Paragraph(
+        "<b>PERFORMANCE →</b>",
+        ParagraphStyle(
+            "MappingXAxis",
+            parent=styles["normal"],
+            fontName="DejaVuSans-Bold",
+            fontSize=9,
+            alignment=1,
+        ),
+    )
+
+    y_label = RotatedLabel(
+        "POTENTIAL →",
+        ParagraphStyle(
+            "MappingYAxis",
+            parent=styles["normal"],
+            fontName="DejaVuSans-Bold",
+            fontSize=9,
+            alignment=1,
+        ),
+    )
+
+    mapping_with_axes = Table(
+        [
+            [y_label, grid_table],
+            ["", x_label],
+        ],
+        colWidths=[65, 468],
+    )
+
+    mapping_with_axes.setStyle(
+        TableStyle([
+            ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+            ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+            ("SPAN", (1, 0), (1, 0)),
+            ("LEFTPADDING", (0, 0), (-1, -1), 2),
+            ("RIGHTPADDING", (0, 0), (-1, -1), 2),
+            ("TOPPADDING", (0, 0), (-1, -1), 3),
+            ("BOTTOMPADDING", (0, 0), (-1, -1), 3),
+        ])
+    )
+
+    return mapping_with_axes
 
 def generate_radar_chart(assessments, team_averages):
     """
@@ -1013,7 +1095,19 @@ def generate_player_pdf(
 ):
     """
     A játékos adatlapjának PDF-generálása.
-    Az adatlaphoz használt aggregált eredményeket használja.
+
+    Az adatlap vizuális logikáját követő, A4-es PDF:
+    - játékos fejléc
+    - Performance / Potential
+    - Performance × Potential mapping
+    - radar chart
+    - teljesítménykategóriák
+    - játékosprofil
+    - erősségek / fejlesztési területek
+    - egyéni edzői értékelések
+    - edzői megjegyzések
+
+    A mapping és a radar chart egyetlen, nem törhető blokkot alkot.
     """
 
     buffer = BytesIO()
@@ -1021,45 +1115,95 @@ def generate_player_pdf(
     document = SimpleDocTemplate(
         buffer,
         pagesize=A4,
-        rightMargin=40,
-        leftMargin=40,
-        topMargin=40,
-        bottomMargin=40,
+        rightMargin=32,
+        leftMargin=32,
+        topMargin=32,
+        bottomMargin=32,
     )
 
     styles = getSampleStyleSheet()
 
+    # -------------------------------------------------
+    # STÍLUSOK
+    # -------------------------------------------------
+
     title_style = ParagraphStyle(
-        "CustomTitle",
+        "PlayerTitle",
         parent=styles["Title"],
         fontName="DejaVuSans-Bold",
-        alignment=TA_CENTER,
         fontSize=20,
-        spaceAfter=20,
+        leading=24,
+        alignment=TA_LEFT,
+        textColor=colors.HexColor("#111827"),
+        spaceAfter=4,
     )
 
-    heading_style = ParagraphStyle(
-        "CustomHeading",
+    subtitle_style = ParagraphStyle(
+        "PlayerSubtitle",
+        parent=styles["Normal"],
+        fontName="DejaVuSans",
+        fontSize=9,
+        leading=12,
+        textColor=colors.HexColor("#6b7280"),
+    )
+
+    section_style = ParagraphStyle(
+        "SectionTitle",
         parent=styles["Heading2"],
         fontName="DejaVuSans-Bold",
-        fontSize=14,
-        spaceBefore=16,
-        spaceAfter=8,
+        fontSize=12,
+        leading=15,
+        textColor=colors.HexColor("#111827"),
+        spaceBefore=10,
+        spaceAfter=6,
     )
 
     normal_style = ParagraphStyle(
         "CustomNormal",
         parent=styles["Normal"],
         fontName="DejaVuSans",
-        fontSize=9,
-        leading=13,
+        fontSize=8.5,
+        leading=11.5,
+        textColor=colors.HexColor("#374151"),
+    )
+
+    small_style = ParagraphStyle(
+        "Small",
+        parent=normal_style,
+        fontSize=7.5,
+        leading=9.5,
+    )
+
+    score_style = ParagraphStyle(
+        "Score",
+        parent=styles["Normal"],
+        fontName="DejaVuSans-Bold",
+        fontSize=22,
+        leading=24,
+        alignment=TA_CENTER,
+        textColor=colors.HexColor("#111827"),
+    )
+
+    score_label_style = ParagraphStyle(
+        "ScoreLabel",
+        parent=styles["Normal"],
+        fontName="DejaVuSans-Bold",
+        fontSize=6.5,
+        leading=8,
+        alignment=TA_CENTER,
+        textColor=colors.HexColor("#6b7280"),
+    )
+
+    white_small_style = ParagraphStyle(
+        "WhiteSmall",
+        parent=small_style,
+        textColor=colors.white,
     )
 
     story = []
 
-
     # -------------------------------------------------
-    # Segédváltozók
+    # SEGÉDVÁLTOZÓK
     # -------------------------------------------------
 
     aggregated_scores = aggregated.get("scores", {})
@@ -1088,180 +1232,418 @@ def generate_player_pdf(
         )
 
     # -------------------------------------------------
-    # Cím
+    # FEJLÉC
     # -------------------------------------------------
 
-    story.append(
+    player_name = safe_text(player.full_name)
+
+    player_meta = (
+        f"{safe_text(player.team.name if player.team else '-')}"
+        f" · #{safe_text(player.player_code)}"
+    )
+
+    if player.birth_date:
+        player_meta += (
+            f" · {player.birth_date.strftime('%Y-%m-%d')}"
+        )
+
+    # Mérési időszak neve
+    period_name = "-"
+
+    if assessments:
+        first_item = assessments[0]
+        assessment = first_item.get("assessment")
+
+        if assessment and assessment.period:
+            period_name = safe_text(assessment.period.name)
+
+    player_meta += f" · {period_name}"
+
+    header_left = [
         Paragraph(
-            "Performance & Potential Assessment",
+            player_name,
             title_style,
-        )
+        ),
+        Paragraph(
+            player_meta,
+            subtitle_style,
+        ),
+    ]
+
+    performance_score = format_score(
+        aggregated_scores.get("performance")
     )
 
-    # -------------------------------------------------
-    # Játékos adatai
-    # -------------------------------------------------
+    potential_score = format_score(
+        aggregated_scores.get("potential")
+    )
 
-    player_data = [
-        ["Játékos", safe_text(player.full_name)],
-        ["Játékoskód", safe_text(player.player_code)],
+    performance_box = Table(
         [
-            "Születési dátum",
+            [
+                Paragraph(
+                    "PERFORMANCE",
+                    score_label_style,
+                )
+            ],
+            [
+                Paragraph(
+                    performance_score,
+                    score_style,
+                )
+            ],
+        ],
+        colWidths=[78],
+    )
+
+    performance_box.setStyle(
+        TableStyle([
             (
-                player.birth_date.strftime("%Y-%m-%d")
-                if player.birth_date
-                else "-"
+                "BACKGROUND",
+                (0, 0),
+                (-1, -1),
+                colors.HexColor("#f3f4f6"),
             ),
-        ],
-        [
-            "Csapat",
-            player.team.name if player.team else "-",
-        ],
-    ]
-
-    player_table = Table(
-        player_data,
-        colWidths=[150, 250],
-    )
-
-    player_table.setStyle(
-        TableStyle([
-            ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
-            ("BACKGROUND", (0, 0), (0, -1), colors.HexColor("#eaf0f6")),
-            ("FONTNAME", (0, 0), (0, -1), "DejaVuSans"),
-            ("PADDING", (0, 0), (-1, -1), 7),
+            (
+                "BOX",
+                (0, 0),
+                (-1, -1),
+                0.8,
+                colors.HexColor("#d1d5db"),
+            ),
+            (
+                "VALIGN",
+                (0, 0),
+                (-1, -1),
+                "MIDDLE",
+            ),
+            (
+                "LEFTPADDING",
+                (0, 0),
+                (-1, -1),
+                5,
+            ),
+            (
+                "RIGHTPADDING",
+                (0, 0),
+                (-1, -1),
+                5,
+            ),
+            (
+                "TOPPADDING",
+                (0, 0),
+                (-1, -1),
+                5,
+            ),
+            (
+                "BOTTOMPADDING",
+                (0, 0),
+                (-1, -1),
+                5,
+            ),
         ])
     )
 
-    story.append(player_table)
+    potential_box = Table(
+        [
+            [
+                Paragraph(
+                    "POTENTIAL",
+                    score_label_style,
+                )
+            ],
+            [
+                Paragraph(
+                    potential_score,
+                    score_style,
+                )
+            ],
+        ],
+        colWidths=[78],
+    )
 
+    potential_box.setStyle(
+        TableStyle([
+            (
+                "BACKGROUND",
+                (0, 0),
+                (-1, -1),
+                colors.HexColor("#f3f4f6"),
+            ),
+            (
+                "BOX",
+                (0, 0),
+                (-1, -1),
+                0.8,
+                colors.HexColor("#d1d5db"),
+            ),
+            (
+                "VALIGN",
+                (0, 0),
+                (-1, -1),
+                "MIDDLE",
+            ),
+            (
+                "LEFTPADDING",
+                (0, 0),
+                (-1, -1),
+                5,
+            ),
+            (
+                "RIGHTPADDING",
+                (0, 0),
+                (-1, -1),
+                5,
+            ),
+            (
+                "TOPPADDING",
+                (0, 0),
+                (-1, -1),
+                5,
+            ),
+            (
+                "BOTTOMPADDING",
+                (0, 0),
+                (-1, -1),
+                5,
+            ),
+        ])
+    )
+
+    score_boxes = Table(
+        [
+            [
+                performance_box,
+                potential_box,
+            ]
+        ],
+        colWidths=[78, 78],
+    )
+
+    score_boxes.setStyle(
+        TableStyle([
+            (
+                "VALIGN",
+                (0, 0),
+                (-1, -1),
+                "MIDDLE",
+            ),
+            (
+                "LEFTPADDING",
+                (0, 0),
+                (-1, -1),
+                2,
+            ),
+            (
+                "RIGHTPADDING",
+                (0, 0),
+                (-1, -1),
+                2,
+            ),
+        ])
+    )
+
+    header_table = Table(
+        [
+            [
+                header_left,
+                score_boxes,
+            ]
+        ],
+        colWidths=[334, 166],
+    )
+
+    header_table.setStyle(
+        TableStyle([
+            (
+                "VALIGN",
+                (0, 0),
+                (-1, -1),
+                "MIDDLE",
+            ),
+            (
+                "ALIGN",
+                (1, 0),
+                (1, 0),
+                "RIGHT",
+            ),
+            (
+                "LINEBELOW",
+                (0, 0),
+                (-1, -1),
+                1,
+                colors.HexColor("#e5e7eb"),
+            ),
+            (
+                "BOTTOMPADDING",
+                (0, 0),
+                (-1, -1),
+                12,
+            ),
+        ])
+    )
+
+    story.append(header_table)
+    story.append(Spacer(1, 12))
 
     # -------------------------------------------------
-    # Összesített eredmények
+    # FŐ TELJESÍTMÉNYTERÜLETEK
     # -------------------------------------------------
 
     story.append(
         Paragraph(
-            "Összesített eredmények",
-            heading_style,
+            "Fő teljesítményterületek",
+            section_style,
         )
     )
 
-    summary_data = [
-        ["Mutató", "Játékos", "Korosztályos átlag"],
-        [
-            "Performance",
-            format_score(aggregated_scores.get("performance")),
-            format_score(average_scores.get("performance")),
-        ],
-        [
-            "Potential",
-            format_score(aggregated_scores.get("potential")),
-            format_score(average_scores.get("potential")),
-        ],
-    ]
-
-    summary_table = Table(
-        summary_data,
-        colWidths=[160, 120, 120],
-    )
-
-    summary_table.setStyle(
-        TableStyle([
-            ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#1f4e79")),
-            ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
-            ("FONTNAME", (0, 0), (-1, 0), "DejaVuSans"),
-            ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
-            ("PADDING", (0, 0), (-1, -1), 8),
-        ])
-    )
-
-    story.append(summary_table)
-
-    # -------------------------------------------------
-    # Kategóriaeredmények
-    # -------------------------------------------------
-
-    story.append(
-        Paragraph(
-            "Teljesítménykategóriák",
-            heading_style,
-        )
-    )
-
-    category_data = [
+    category_rows = [
         ["Terület", "Játékos", "Korosztályos átlag"],
         [
             "Taktikai",
-            format_score(aggregated_scores.get("tactical")),
-            format_score(average_scores.get("tactical")),
+            format_score(
+                aggregated_scores.get("tactical")
+            ),
+            format_score(
+                average_scores.get("tactical")
+            ),
         ],
         [
             "Technikai",
-            format_score(aggregated_scores.get("technical")),
-            format_score(average_scores.get("technical")),
+            format_score(
+                aggregated_scores.get("technical")
+            ),
+            format_score(
+                average_scores.get("technical")
+            ),
         ],
         [
-            "Viselkedési",
-            format_score(aggregated_scores.get("behaviour")),
-            format_score(average_scores.get("behaviour")),
+            "Viselkedési / mentális",
+            format_score(
+                aggregated_scores.get("behaviour")
+            ),
+            format_score(
+                average_scores.get("behaviour")
+            ),
         ],
     ]
 
     category_table = Table(
-        category_data,
-        colWidths=[160, 120, 120],
+        category_rows,
+        colWidths=[245, 125, 130],
     )
 
     category_table.setStyle(
         TableStyle([
-            ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#1f4e79")),
-            ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
-            ("FONTNAME", (0, 0), (-1, 0), "DejaVuSans"),
-            ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
-            ("PADDING", (0, 0), (-1, -1), 8),
+            (
+                "BACKGROUND",
+                (0, 0),
+                (-1, 0),
+                colors.HexColor("#1f4e79"),
+            ),
+            (
+                "TEXTCOLOR",
+                (0, 0),
+                (-1, 0),
+                colors.white,
+            ),
+            (
+                "FONTNAME",
+                (0, 0),
+                (-1, 0),
+                "DejaVuSans-Bold",
+            ),
+            (
+                "FONTNAME",
+                (0, 1),
+                (-1, -1),
+                "DejaVuSans",
+            ),
+            (
+                "FONTSIZE",
+                (0, 0),
+                (-1, -1),
+                8,
+            ),
+            (
+                "GRID",
+                (0, 0),
+                (-1, -1),
+                0.5,
+                colors.HexColor("#d1d5db"),
+            ),
+            (
+                "PADDING",
+                (0, 0),
+                (-1, -1),
+                6,
+            ),
         ])
     )
 
     story.append(category_table)
 
     # -------------------------------------------------
-    # Mapping és profil
+    # JÁTÉKOSPROFIL
     # -------------------------------------------------
 
     story.append(
         Paragraph(
             "Játékosprofil",
-            heading_style,
+            section_style,
         )
     )
 
-    def cell_text(value, style=normal_style):
-        return Paragraph(
-            escape(safe_text(value)),
-            style,
-        )
+    primary_data = (
+            aggregated_profiles.get("primary") or {}
+    )
 
-    primary_data = aggregated_profiles.get("primary") or {}
-    secondary_data = aggregated_profiles.get("secondary") or {}
+    secondary_data = (
+            aggregated_profiles.get("secondary") or {}
+    )
 
-    primary_details = primary_data.get("name") or {}
-    secondary_details = secondary_data.get("name") or {}
+    primary_details = (
+            primary_data.get("name") or {}
+    )
 
-    primary_profile = primary_details.get("name_hu", "-")
-    primary_description = primary_details.get("description", "-")
+    secondary_details = (
+            secondary_data.get("name") or {}
+    )
 
-    secondary_profile = secondary_details.get("name_hu", "-")
-    secondary_description = secondary_details.get("description", "-")
+    primary_profile = primary_details.get(
+        "name_hu",
+        "-"
+    )
+
+    primary_description = primary_details.get(
+        "description",
+        "-"
+    )
+
+    secondary_profile = secondary_details.get(
+        "name_hu",
+        "-"
+    )
+
+    secondary_description = secondary_details.get(
+        "description",
+        "-"
+    )
 
     mapping_name = (
-        aggregated_mapping.get("name_hu", "-")
+        aggregated_mapping.get(
+            "name_hu",
+            "-"
+        )
         if aggregated_mapping
         else "-"
     )
 
     mapping_description = (
-        aggregated_mapping.get("description", "-")
+        aggregated_mapping.get(
+            "description",
+            "-"
+        )
         if aggregated_mapping
         else "-"
     )
@@ -1277,14 +1659,20 @@ def generate_player_pdf(
         ],
         [
             cell_text("Profil típusa"),
-            cell_text(aggregated_profiles.get("type_hu")),
+            cell_text(
+                aggregated_profiles.get(
+                    "type_hu"
+                )
+            ),
         ],
         [
             cell_text("Elsődleges profil"),
             cell_text(primary_profile),
         ],
         [
-            cell_text("Elsődleges profil leírása"),
+            cell_text(
+                "Elsődleges profil leírása"
+            ),
             cell_text(primary_description),
         ],
         [
@@ -1292,65 +1680,226 @@ def generate_player_pdf(
             cell_text(secondary_profile),
         ],
         [
-            cell_text("Másodlagos profil leírása"),
+            cell_text(
+                "Másodlagos profil leírása"
+            ),
             cell_text(secondary_description),
         ],
     ]
 
     profile_table = Table(
         profile_data,
-        colWidths=[160, 240],
+        colWidths=[155, 345],
     )
 
     profile_table.setStyle(
         TableStyle([
-            ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
+            (
+                "GRID",
+                (0, 0),
+                (-1, -1),
+                0.5,
+                colors.HexColor("#d1d5db"),
+            ),
             (
                 "BACKGROUND",
                 (0, 0),
                 (0, -1),
-                colors.HexColor("#eaf0f6"),
+                colors.HexColor("#f3f4f6"),
             ),
-            ("FONTNAME", (0, 0), (-1, -1), "DejaVuSans"),
-            ("PADDING", (0, 0), (-1, -1), 7),
-            ("VALIGN", (0, 0), (-1, -1), "TOP"),
+            (
+                "FONTNAME",
+                (0, 0),
+                (-1, -1),
+                "DejaVuSans",
+            ),
+            (
+                "FONTSIZE",
+                (0, 0),
+                (-1, -1),
+                7.8,
+            ),
+            (
+                "PADDING",
+                (0, 0),
+                (-1, -1),
+                6,
+            ),
+            (
+                "VALIGN",
+                (0, 0),
+                (-1, -1),
+                "TOP",
+            ),
         ])
     )
 
     story.append(profile_table)
 
+
     # -------------------------------------------------
-    # Erősségek és fejlesztési területek
+    # MAPPING
     # -------------------------------------------------
 
-    if insights:
+    mapping_grid = get_mapping_grid()
+
+    active_mapping_code = (
+        aggregated_mapping.get("code")
+        if aggregated_mapping
+        else None
+    )
+
+    mapping_table = build_mapping_grid(
+        mapping_grid=mapping_grid,
+        active_code=active_mapping_code,
+        styles={
+            "normal": small_style,
+        },
+    )
+
+    # -------------------------------------------------
+    # RADAR
+    # -------------------------------------------------
+
+    radar_buffer = generate_radar_chart(
+        assessments=[
+            item["assessment"]
+            for item in assessments
+        ],
+        team_averages=team_averages,
+    )
+
+    radar_image = Image(
+        radar_buffer,
+        width=245,
+        height=222,
+    )
+
+
+    # -------------------------------------------------
+    # MAPPING + RADAR BLOKK - EGYMÁS ALATT
+    # -------------------------------------------------
+
+    mapping_heading = Paragraph(
+        "Performance × Potential",
+        section_style,
+    )
+
+    mapping_subtitle = Paragraph(
+        "Játékos pozíciója a 9 kategóriás modellben",
+        small_style,
+    )
+
+
+    radar_heading = Paragraph(
+        "Teljesítményprofil",
+        section_style,
+    )
+
+    radar_subtitle = Paragraph(
+        "Játékos és korosztályátlag · 26 teljesítményattribútum",
+        small_style,
+    )
+
+    # A mapping teljes szélességben, zsugorítás nélkül,
+    # amennyiben az oldal szélessége ezt lehetővé teszi.
+    mapping_frame = KeepInFrame(
+        maxWidth=500,
+        maxHeight=230,
+        content=[mapping_table],
+        mode="shrink",
+    )
+
+    story.append(mapping_heading)
+    story.append(mapping_subtitle)
+    story.append(Spacer(1, 6))
+    story.append(mapping_frame)
+    story.append(Spacer(1, 12))
+
+    # Nagyobb radar diagram, teljes szélességben.
+    radar_image = Image(
+        radar_buffer,
+        width=450,
+        height=405,
+    )
+
+    story.append(PageBreak())
+    story.append(radar_heading)
+    story.append(radar_subtitle)
+    story.append(Spacer(1, 4))
+    story.append(
+        KeepTogether([
+            radar_image,
+        ])
+    )
+
+    story.append(Spacer(1, 10))
+
+
+    # -------------------------------------------------
+    # ERŐSSÉGEK / FEJLESZTÉSI TERÜLETEK
+    # -------------------------------------------------
+
+    strengths = (
+        insights.get("strengths", [])
+        if insights
+        else []
+    )
+
+    development_areas = (
+        insights.get("development_areas", [])
+        if insights
+        else []
+    )
+
+    if strengths or development_areas:
 
         story.append(
             Paragraph(
                 "Erősségek és fejlesztési területek",
-                heading_style,
+                section_style,
             )
         )
 
         insight_data = [
             [
-                cell_text("Erősségek"),
-                cell_text("Fejlesztési területek"),
+                Paragraph(
+                    "ERŐSSÉGEK",
+                    white_small_style,
+                ),
+                Paragraph(
+                    "FEJLESZTÉSI TERÜLETEK",
+                    white_small_style,
+                ),
             ]
         ]
 
         max_items = max(
-            len(insights.get("strengths", [])),
-            len(insights.get("development_areas", [])),
+            len(
+                insights.get(
+                    "strengths",
+                    []
+                )
+            ),
+            len(
+                insights.get(
+                    "development_areas",
+                    []
+                )
+            ),
+        )
+
+        strength_items = insights.get(
+            "strengths",
+            []
+        )
+
+        development_items = insights.get(
+            "development_areas",
+            []
         )
 
         for index in range(max_items):
-
-            strength_items = insights.get("strengths", [])
-            development_items = insights.get(
-                "development_areas",
-                [],
-            )
 
             strength = (
                 strength_items[index]
@@ -1359,8 +1908,8 @@ def generate_player_pdf(
             )
 
             development = (
-                development_items[index]
-                if index < len(development_items)
+                development_areas[index]
+                if index < len(development_areas)
                 else None
             )
 
@@ -1370,10 +1919,13 @@ def generate_player_pdf(
 
                 return (
                     f"<b>{escape(item['label'])}</b><br/>"
-                    f"Játékos: {item['player_value']:.2f}"
-                    f" · Korosztály: {item['team_value']:.2f}"
+                    f"Játékos: "
+                    f"{item['player_value']:.2f}"
+                    f" · Korosztály: "
+                    f"{item['team_value']:.2f}"
                     f"<br/>"
-                    f"Eltérés: {item['difference']:+.2f}"
+                    f"Eltérés: "
+                    f"{item['difference']:+.2f}"
                 )
 
             insight_data.append(
@@ -1391,7 +1943,7 @@ def generate_player_pdf(
 
         insight_table = Table(
             insight_data,
-            colWidths=[200, 200],
+            colWidths=[250, 250],
         )
 
         insight_table.setStyle(
@@ -1413,7 +1965,7 @@ def generate_player_pdf(
                     (0, 0),
                     (-1, -1),
                     0.5,
-                    colors.grey,
+                    colors.HexColor("#d1d5db"),
                 ),
                 (
                     "VALIGN",
@@ -1425,92 +1977,21 @@ def generate_player_pdf(
                     "PADDING",
                     (0, 0),
                     (-1, -1),
-                    8,
+                    7,
                 ),
             ])
         )
 
         story.append(insight_table)
-    # -------------------------------------------------
-    # Performance × Potential mapping grid
-    # -------------------------------------------------
-
-    story.append(
-        Paragraph(
-            "Performance × Potential",
-            heading_style,
-        )
-    )
-
-    story.append(
-        Paragraph(
-            "Játékos pozíciója a 9 kategóriás modellben",
-            normal_style,
-        )
-    )
-
-    mapping_grid = get_mapping_grid()
-
-    active_mapping_code = (
-        aggregated_mapping.get("code")
-        if aggregated_mapping
-        else None
-    )
-
-    mapping_table = build_mapping_grid(
-        mapping_grid=mapping_grid,
-        active_code=active_mapping_code,
-        styles={
-            "normal": normal_style,
-        },
-    )
-
-    story.append(Spacer(1, 8))
-    story.append(mapping_table)
 
     # -------------------------------------------------
-    # Teljesítményprofil radar diagram
-    # -------------------------------------------------
-
-    story.append(
-        Paragraph(
-            "Teljesítményprofil",
-            heading_style,
-        )
-    )
-
-    story.append(
-        Paragraph(
-            "Játékos és korosztályátlag · 26 teljesítményattribútum",
-            normal_style,
-        )
-    )
-
-    radar_buffer = generate_radar_chart(
-        assessments=[
-            item["assessment"]
-            for item in assessments
-        ],
-        team_averages=team_averages,
-    )
-
-    radar_image = Image(
-        radar_buffer,
-        width=420,
-        height=380,
-    )
-
-    story.append(Spacer(1, 8))
-    story.append(radar_image)
-
-    # -------------------------------------------------
-    # Egyéni edzői értékelések
+    # EGYÉNI EDZŐI ÉRTÉKELÉSEK
     # -------------------------------------------------
 
     story.append(
         Paragraph(
             "Egyéni edzői értékelések",
-            heading_style,
+            section_style,
         )
     )
 
@@ -1525,6 +2006,7 @@ def generate_player_pdf(
     ]
 
     for item in assessments:
+
         assessment = item["assessment"]
         result = item["result"]
 
@@ -1540,72 +2022,168 @@ def generate_player_pdf(
                 else "-"
             ),
             (
-                assessment.completed_at.strftime("%Y-%m-%d")
+                assessment.completed_at.strftime(
+                    "%Y-%m-%d"
+                )
                 if assessment.completed_at
                 else "-"
             ),
             format_score(
-                result.get("scores", {}).get("performance")
+                result.get(
+                    "scores",
+                    {}
+                ).get("performance")
             ),
             format_score(
-                result.get("scores", {}).get("potential")
+                result.get(
+                    "scores",
+                    {}
+                ).get("potential")
             ),
         ])
 
     assessment_table = Table(
         assessment_data,
-        colWidths=[100, 100, 75, 65, 65],
+        colWidths=[
+            120,
+            120,
+            80,
+            90,
+            90,
+        ],
         repeatRows=1,
     )
 
     assessment_table.setStyle(
         TableStyle([
-            ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#1f4e79")),
-            ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
-            ("FONTNAME", (0, 0), (-1, -1), "DejaVuSans"),
-            ("FONTNAME", (0, 0), (-1, 0), "DejaVuSans-Bold"),
-            ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
-            ("PADDING", (0, 0), (-1, -1), 6),
-            ("FONTSIZE", (0, 0), (-1, -1), 8),
+            (
+                "BACKGROUND",
+                (0, 0),
+                (-1, 0),
+                colors.HexColor("#1f4e79"),
+            ),
+            (
+                "TEXTCOLOR",
+                (0, 0),
+                (-1, 0),
+                colors.white,
+            ),
+            (
+                "FONTNAME",
+                (0, 0),
+                (-1, 0),
+                "DejaVuSans-Bold",
+            ),
+            (
+                "FONTNAME",
+                (0, 1),
+                (-1, -1),
+                "DejaVuSans",
+            ),
+            (
+                "GRID",
+                (0, 0),
+                (-1, -1),
+                0.5,
+                colors.HexColor("#d1d5db"),
+            ),
+            (
+                "PADDING",
+                (0, 0),
+                (-1, -1),
+                6,
+            ),
+            (
+                "FONTSIZE",
+                (0, 0),
+                (-1, -1),
+                6.5,
+            ),
         ])
     )
 
     story.append(assessment_table)
 
     # -------------------------------------------------
-    # Edzői megjegyzések
+    # EDZŐI MEGJEGYZÉSEK
     # -------------------------------------------------
 
+    notes_added = False
+
     for item in assessments:
+
         assessment = item["assessment"]
 
         if assessment.coach_note:
+
+            if not notes_added:
+                story.append(
+                    Paragraph(
+                        "Edzői megjegyzések",
+                        section_style,
+                    )
+                )
+
+                notes_added = True
+
             story.append(
-                Paragraph(
-                    "Edzői megjegyzés",
-                    heading_style,
+                Table(
+                    [
+                        [
+                            Paragraph(
+                                safe_text(
+                                    assessment.coach_note
+                                ),
+                                normal_style,
+                            )
+                        ]
+                    ],
+                    colWidths=[500],
+                    style=TableStyle([
+                        (
+                            "BACKGROUND",
+                            (0, 0),
+                            (-1, -1),
+                            colors.HexColor("#f9fafb"),
+                        ),
+                        (
+                            "BOX",
+                            (0, 0),
+                            (-1, -1),
+                            0.5,
+                            colors.HexColor("#d1d5db"),
+                        ),
+                        (
+                            "PADDING",
+                            (0, 0),
+                            (-1, -1),
+                            8,
+                        ),
+                    ]),
                 )
             )
 
-            story.append(
-                Paragraph(
-                    safe_text(assessment.coach_note),
-                    normal_style,
-                )
-            )
+            story.append(Spacer(1, 6))
 
     # -------------------------------------------------
-    # Generálás dátuma
+    # GENERÁLÁS DÁTUMA
     # -------------------------------------------------
 
-    story.append(Spacer(1, 25))
+    story.append(Spacer(1, 16))
 
     story.append(
         Paragraph(
-            f"Generálva: {datetime.now().strftime('%Y-%m-%d %H:%M')}",
-            normal_style,
+            (
+                "Generálva: "
+                f"{datetime.now().strftime('%Y-%m-%d %H:%M')}"
+            ),
+            small_style,
         )
     )
+
+    # -------------------------------------------------
+    # PDF GENERÁLÁSA
+    # -------------------------------------------------
 
     document.build(story)
 
