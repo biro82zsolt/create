@@ -31,7 +31,7 @@ TACTICAL_QUESTIONS = [
             "Képes felismerni és elfoglalni a szabad területeket, "
             "hogy megjátszható legyen, helyzetet teremtsen vagy segítse a játékot."
         ),
-        "phase": "possession"
+        "phase": "attacking"
     },
     {
         "code": "vision",
@@ -40,7 +40,7 @@ TACTICAL_QUESTIONS = [
             "Képes felismerni a társak és az ellenfelek pozícióját és "
             "a játék továbbépítésének lehetőségeit."
         ),
-        "phase": "possession"
+        "phase": "attacking"
     },
     {
         "code": "decision_making",
@@ -49,7 +49,7 @@ TACTICAL_QUESTIONS = [
             "Hatékony döntéseket hoz még a labda átvétele előtt, "
             "illetve labdabirtoklás közben."
         ),
-        "phase": "possession"
+        "phase": "attacking"
     },
     {
         "code": "support_play",
@@ -58,7 +58,7 @@ TACTICAL_QUESTIONS = [
             "Felismeri, mikor és hova kell mozognia ahhoz, "
             "hogy támogassa a labdás játékost."
         ),
-        "phase": "possession"
+        "phase": "attacking"
     },
     {
         "code": "reading_play",
@@ -89,7 +89,7 @@ TECHNICAL_QUESTIONS = [
             "Első érintése minőségi, és úgy veszi át a labdát, "
             "hogy azzal előkészítse a következő játékhelyzetet."
         ),
-        "phase": "possession"
+        "phase": "attacking"
     },
     {
         "code": "receiving_under_pressure",
@@ -98,7 +98,7 @@ TECHNICAL_QUESTIONS = [
             "Nyomás alatt is képes hatékonyan átvenni és kontrollálni "
             "a labdát, megfelelő testhelyzetet és első érintést használva."
         ),
-        "phase": "possession"
+        "phase": "attacking"
     },
     {
         "code": "twisting_turning",
@@ -107,7 +107,7 @@ TECHNICAL_QUESTIONS = [
             "Képes megvédeni a labdát, manipulálni az ellenfelet "
             "és nyomás alatt is megtartani a labdabirtoklást."
         ),
-        "phase": "possession"
+        "phase": "attacking"
     },
     {
         "code": "one_v_one_dominance",
@@ -116,7 +116,7 @@ TECHNICAL_QUESTIONS = [
             "Képes sebesség-, mozgás- és ritmusváltással megverni "
             "ellenfelét és előnyt kialakítani 1v1 helyzetben."
         ),
-        "phase": "possession"
+        "phase": "attacking"
     },
     {
         "code": "dribbling",
@@ -125,7 +125,7 @@ TECHNICAL_QUESTIONS = [
             "Különböző sebességnél és irányváltásoknál is "
             "szoros kontroll alatt tartja a labdát."
         ),
-        "phase": "possession"
+        "phase": "attacking"
     },
     {
         "code": "passing_range",
@@ -134,7 +134,7 @@ TECHNICAL_QUESTIONS = [
             "Rövid, közepes és hosszú távolságra is hatékonyan "
             "képes passzolni (A magas pontszámhoz mindháromnak teljesülnie kell)."
         ),
-        "phase": "possession"
+        "phase": "attacking"
     },
     {
         "code": "passing_quality",
@@ -143,7 +143,7 @@ TECHNICAL_QUESTIONS = [
             "A megfelelő pontossággal, erővel, időzítéssel és irányba "
             "választja és hajtja végre a passzokat."
         ),
-        "phase": "possession"
+        "phase": "attacking"
     },
     {
         "code": "attacking_heading",
@@ -152,7 +152,7 @@ TECHNICAL_QUESTIONS = [
             "Megfelelő időzítéssel, pontossággal és erővel "
             "támadja a labdát a kapu felé."
         ),
-        "phase": "possession"
+        "phase": "attacking"
     },
     {
         "code": "crossing",
@@ -161,7 +161,7 @@ TECHNICAL_QUESTIONS = [
             "Pontos és veszélyes beadásokat képes végrehajtani "
             "a szélső pozíciókból."
         ),
-        "phase": "possession"
+        "phase": "attacking"
     },
     {
         "code": "finishing",
@@ -170,7 +170,7 @@ TECHNICAL_QUESTIONS = [
             "Különböző helyzetekből, távolságokból és szögekből "
             "is pontosan és hatékonyan fejez be."
         ),
-        "phase": "possession"
+        "phase": "attacking"
     },
     {
         "code": "hard_to_beat",
