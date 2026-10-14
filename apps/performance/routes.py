@@ -1274,9 +1274,23 @@ def assessment_save():
             scores["communication"]
         ),
 
-        # Potential: persist all 26 attribute-level ratings.
-        # The question codes already match the Assessment model columns,
-        # e.g. "potential_finding_space".
+        # Legacy Potential mezők: kompatibilitás a régi adatbázissal.
+        tactical_potential=sum(
+            float(scores[f"potential_{q['code']}"])
+            for q in get_questions_by_category("tactical")
+        ) / len(get_questions_by_category("tactical")),
+
+        technical_potential=sum(
+            float(scores[f"potential_{q['code']}"])
+            for q in get_questions_by_category("technical")
+        ) / len(get_questions_by_category("technical")),
+
+        behavioural_potential=sum(
+            float(scores[f"potential_{q['code']}"])
+            for q in get_questions_by_category("behaviour")
+        ) / len(get_questions_by_category("behaviour")),
+
+        # Potential: mind a 26 attribútum értékének mentése.
         **{
             question["code"]: float(scores[question["code"]])
             for question in get_questions_by_category("potential")

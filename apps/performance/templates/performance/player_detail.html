@@ -788,7 +788,11 @@
 
             <div>
                 <span class="mapping-badge">
-                    {{ aggregated.mapping.name_hu }}
+                    {% if aggregated.mapping %}
+                        {{ aggregated.mapping.name_hu }}
+                    {% else %}
+                        Nincs elegendő Potential-adat
+                    {% endif %}
                 </span>
             </div>
 
@@ -825,7 +829,11 @@
                 <small>Potential</small>
 
                 <div class="score-value">
-                    {{ "%.2f"|format(aggregated.scores.potential) }}
+                    {% if aggregated.scores.potential is not none %}
+                        {{ "%.2f"|format(aggregated.scores.potential) }}
+                    {% else %}
+                        —
+                    {% endif %}
                 </div>
 
             </div>
@@ -865,7 +873,7 @@
                             {% for cell in row %}
 
                                 <div class="mapping-cell
-                                    {% if aggregated.mapping.code == cell.code %}
+                                    {% if aggregated.mapping and aggregated.mapping.code == cell.code %}
                                         mapping-cell-active
                                     {% endif %}
                                     mapping-{{ cell.code }}">
@@ -874,7 +882,7 @@
                                         {{ cell.name_hu }}
                                     </div>
 
-                                    {% if aggregated.mapping.code == cell.code %}
+                                    {% if aggregated.mapping and aggregated.mapping.code == cell.code %}
 
                                         <div class="mapping-current">
                                             ● Jelenlegi kategória
@@ -1048,7 +1056,11 @@
             </div>
 
             <div class="profile-value">
-                {{ aggregated.mapping.name_hu }}
+                {% if aggregated.mapping %}
+                    {{ aggregated.mapping.name_hu }}
+                {% else %}
+                    Nincs elegendő Potential-adat
+                {% endif %}
             </div>
 
         </div>
@@ -1267,7 +1279,11 @@
                     <div>
 
                         <strong>
-                            {{ result.mapping.name_hu }}
+                            {% if result.mapping %}
+                                {{ result.mapping.name_hu }}
+                            {% else %}
+                                Nincs elegendő Potential-adat
+                            {% endif %}
                         </strong>
 
                     </div>
@@ -1493,7 +1509,13 @@
                     <tr>
                         <td class="trend-period">{{ item.period.name }}</td>
                         <td class="trend-score">{{ "%.2f"|format(item.result.scores.performance) }}</td>
-                        <td class="trend-score">{{ "%.2f"|format(item.result.scores.potential) }}</td>
+                        <td class="trend-score">
+                            {% if item.result.scores.potential is not none %}
+                                {{ "%.2f"|format(item.result.scores.potential) }}
+                            {% else %}
+                                —
+                            {% endif %}
+                        </td>
                         <td>{% if item.result.mapping %}<span class="trend-category" style="color: {{ item.result.mapping.color }};">{{ item.result.mapping.name_hu }}</span>{% else %}—{% endif %}</td>
                         <td>{{ "%.2f"|format(item.result.scores.tactical) }}</td>
                         <td>{{ "%.2f"|format(item.result.scores.technical) }}</td>
@@ -1571,7 +1593,7 @@
                     {% for item in trend_results %}
                     {
                         x: {{ item.result.scores.performance|tojson }},
-                        y: {{ item.result.scores.potential|tojson }},
+                        y: {{ (item.result.scores.potential if item.result.scores.potential is not none else none)|tojson }},
                         period: {{ item.period.name|tojson }},
                         category: {{ (item.result.mapping.name_hu if item.result.mapping else 'Nincs kategória')|tojson }}
                     }{% if not loop.last %},{% endif %}

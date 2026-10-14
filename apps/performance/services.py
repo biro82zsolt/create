@@ -337,17 +337,24 @@ def aggregate_assessments(assessments):
     # AGGREGATED ATTRIBUTE SCORES
     # -----------------------------------------------------
 
+
+    # -----------------------------------------------------
+    # AGGREGATED ATTRIBUTE SCORES
+    # -----------------------------------------------------
+
     aggregated_attributes = {}
 
     for field in RATING_FIELDS:
         values = [
             getattr(assessment, field)
             for assessment in assessments
+            if getattr(assessment, field) is not None
         ]
 
-        aggregated_attributes[field] = round(
-            sum(values) / len(values),
-            2,
+        aggregated_attributes[field] = (
+            round(sum(values) / len(values), 2)
+            if values
+            else None
         )
 
     return {
@@ -432,9 +439,14 @@ def calculate_team_averages(team_id, period_id):
             values = [
                 getattr(assessment, field)
                 for assessment in player_assessment_list
+                if getattr(assessment, field) is not None
             ]
 
-            ratings[field] = sum(values) / len(values)
+            ratings[field] = (
+                sum(values) / len(values)
+                if values
+                else None
+            )
 
         player_ratings[player_id] = ratings
 
@@ -445,11 +457,13 @@ def calculate_team_averages(team_id, period_id):
         values = [
             ratings[field]
             for ratings in player_ratings.values()
+            if ratings[field] is not None
         ]
 
-        team_attributes[field] = round(
-            sum(values) / len(values),
-            2,
+        team_attributes[field] = (
+            round(sum(values) / len(values), 2)
+            if values
+            else None
         )
 
     # A három fő kategória és Performance / Potential
@@ -515,28 +529,39 @@ def calculate_age_group_averages(birth_year, period_id):
     for player_id, assessment_list in player_assessments.items():
         ratings = {}
 
+
         for field in RATING_FIELDS:
             values = [
                 getattr(assessment, field)
                 for assessment in assessment_list
+                if getattr(assessment, field) is not None
             ]
 
-            ratings[field] = sum(values) / len(values)
+            ratings[field] = (
+                sum(values) / len(values)
+                if values
+                else None
+            )
+
 
         player_ratings[player_id] = ratings
 
     age_group_attributes = {}
 
+
     for field in RATING_FIELDS:
         values = [
             ratings[field]
             for ratings in player_ratings.values()
+            if ratings[field] is not None
         ]
 
-        age_group_attributes[field] = round(
-            sum(values) / len(values),
-            2,
+        age_group_attributes[field] = (
+            round(sum(values) / len(values), 2)
+            if values
+            else None
         )
+
 
     age_group_scores = calculate_scores(age_group_attributes)
 

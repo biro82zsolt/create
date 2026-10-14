@@ -405,7 +405,9 @@ def calculate_scores(scores):
         2
     )
 
+
     if len(present_potential) == len(potential_codes):
+        # Új értékelés: mind a 26 attribútum rendelkezésre áll.
         potential_tactical = _average(scores, [
             {**question, "code": f"potential_{question['code']}"}
             for question in TACTICAL_QUESTIONS
@@ -419,26 +421,59 @@ def calculate_scores(scores):
             for question in BEHAVIOUR_QUESTIONS
         ])
         potential_source = "attribute"
+
     elif not present_potential:
+        # Régi értékelés: csak a három kategóriaszintű adat állhat rendelkezésre.
         legacy_keys = [
             "tactical_potential",
             "technical_potential",
             "behavioural_potential",
         ]
-        if not all(scores.get(key) not in (None, "") for key in legacy_keys):
-            raise ValueError(
-                "Ehhez az értékeléshez nincs teljes Potential-adat. "
-                "A régi értékelést újra kell értékelni."
-            )
-        potential_tactical = validate_rating(scores["tactical_potential"])
-        potential_technical = validate_rating(scores["technical_potential"])
-        potential_behaviour = validate_rating(scores["behavioural_potential"])
-        potential_source = "legacy_category"
-    else:
-        raise ValueError("Az értékelés csak részleges Potential-adatokat tartalmaz.")
 
-    # Equal weighting of the three main areas, matching Performance.
-    potential = round(mean([potential_tactical, potential_technical, potential_behaviour]), 2)
+        if all(scores.get(key) not in (None, "") for key in legacy_keys):
+            potential_tactical = validate_rating(
+                scores["tactical_potential"]
+            )
+            potential_technical = validate_rating(
+                scores["technical_potential"]
+            )
+            potential_behaviour = validate_rating(
+                scores["behavioural_potential"]
+            )
+            potential_source = "legacy_category"
+        else:
+            # Nincs elegendő Potential-adat: nem találunk ki pontszámot.
+            potential_tactical = None
+            potential_technical = None
+            potential_behaviour = None
+            potential_source = "missing"
+
+    else:
+        # Hiányos attribútumszintű adatok: a Potential nem számítható ki.
+        potential_tactical = None
+        potential_technical = None
+        potential_behaviour = None
+        potential_source = "missing"
+
+    # Potential csak akkor számolható, ha mindhárom kategória rendelkezésre áll.
+    if all(
+        value is not None
+        for value in (
+            potential_tactical,
+            potential_technical,
+            potential_behaviour,
+        )
+    ):
+        potential = round(
+            mean([
+                potential_tactical,
+                potential_technical,
+                potential_behaviour,
+            ]),
+            2,
+        )
+    else:
+        potential = None
 
     return {
         "tactical": tactical,
