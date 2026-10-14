@@ -120,10 +120,26 @@ pdfmetrics.registerFont(
     )
 
 
-def assessment_to_ratings(assessment):
-    """Return the 52 attribute-level ratings stored on an assessment."""
-    return {field: getattr(assessment, field) for field in RATING_FIELDS}
 
+def assessment_to_ratings(assessment):
+    """Return stored attribute-level and legacy category-level ratings."""
+    ratings = {
+        field: getattr(assessment, field)
+        for field in RATING_FIELDS
+    }
+
+    # Legacy category-level Potential scores for historical assessments.
+    ratings["tactical_potential"] = getattr(
+        assessment, "tactical_potential", None
+    )
+    ratings["technical_potential"] = getattr(
+        assessment, "technical_potential", None
+    )
+    ratings["behavioural_potential"] = getattr(
+        assessment, "behavioural_potential", None
+    )
+
+    return ratings
 
 
 def analyze_assessment(assessment):
