@@ -254,6 +254,12 @@ class Assessment(db.Model):
     potential_concentration = db.Column(db.Float, nullable=True)
     potential_communication = db.Column(db.Float, nullable=True)
 
+    # Legacy category-level Potential scores.
+    # Required for compatibility with existing database records.
+    tactical_potential = db.Column(db.Float, nullable=True)
+    technical_potential = db.Column(db.Float, nullable=True)
+    behavioural_potential = db.Column(db.Float, nullable=True)
+
 
     # ---------------------------------------------------------
     # EXTRA
