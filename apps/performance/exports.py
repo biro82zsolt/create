@@ -18,7 +18,7 @@ from .services import analyze_assessment
 # ASSESSMENT RAW FIELDS
 # ---------------------------------------------------------
 
-RAW_ASSESSMENT_FIELDS = [
+PERFORMANCE_ASSESSMENT_FIELDS = [
     # Tactical
     "finding_space",
     "vision",
@@ -50,15 +50,16 @@ RAW_ASSESSMENT_FIELDS = [
     "control",
     "concentration",
     "communication",
-
-    # Potential
-    "tactical_potential",
-    "technical_potential",
-    "behavioural_potential",
-
-    # Extra
-    "coach_note",
 ]
+
+# Potential is stored at attribute level, with the same 26 attributes
+# prefixed by "potential_". Category-level Potential values are calculated
+# summary scores below, not raw model fields.
+RAW_ASSESSMENT_FIELDS = (
+    PERFORMANCE_ASSESSMENT_FIELDS
+    + [f"potential_{field}" for field in PERFORMANCE_ASSESSMENT_FIELDS]
+    + ["coach_note"]
+)
 
 
 # ---------------------------------------------------------
@@ -163,6 +164,10 @@ def create_assessments_dataframe():
                 "technical": scores["technical"],
                 "behaviour": scores["behaviour"],
                 "performance": scores["performance"],
+                "tactical_attacking": scores["tactical_attacking"],
+                "tactical_defending": scores["tactical_defending"],
+                "technical_attacking": scores["technical_attacking"],
+                "technical_defending": scores["technical_defending"],
 
                 "tactical_potential": (
                     scores["tactical_potential"]

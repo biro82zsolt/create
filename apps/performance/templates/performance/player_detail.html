@@ -945,19 +945,38 @@
         </div>
 
 
-        {% set categories = [
-            ("Taktikai", aggregated.scores.tactical,
-             team_averages.scores.tactical if team_averages else None),
 
-            ("Technikai", aggregated.scores.technical,
-             team_averages.scores.technical if team_averages else None),
+{% set categories = [
+    ("Taktika – támadás",
+     aggregated.scores.tactical_attacking,
+     team_averages.scores.tactical_attacking if team_averages else None),
 
-            ("Viselkedés / mentális", aggregated.scores.behaviour,
-             team_averages.scores.behaviour if team_averages else None)
-        ] %}
+    ("Taktika – védekezés",
+     aggregated.scores.tactical_defending,
+     team_averages.scores.tactical_defending if team_averages else None),
+
+    ("Technika – támadás",
+     aggregated.scores.technical_attacking,
+     team_averages.scores.technical_attacking if team_averages else None),
+
+    ("Technika – védekezés",
+     aggregated.scores.technical_defending,
+     team_averages.scores.technical_defending if team_averages else None),
+
+    ("Viselkedés / mentális",
+     aggregated.scores.behaviour,
+     team_averages.scores.behaviour if team_averages else None)
+] %}
 
 
         {% for label, player_value, team_value in categories %}
+        {% if 'védekezés' in label|lower %}
+            {% set bar_color = '#dc3545' %}
+        {% elif 'támadás' in label|lower %}
+            {% set bar_color = '#198754' %}
+        {% else %}
+            {% set bar_color = '#ffc107' %}
+        {% endif %}
 
             <div class="category-row">
 
@@ -986,7 +1005,7 @@
 
                     <div
                         class="bar-player"
-                        style="width: {{ player_value * 10 }}%;"
+                        style="width: {{ player_value * 10 }}%; background-color: {{ bar_color }}"
                     ></div>
 
 
@@ -1326,6 +1345,38 @@
 
                     </div>
 
+                    <div class="assessment-score">
+                        <small>Taktika – támadás</small>
+                        <br>
+                        <strong>
+                            {{ "%.2f"|format(result.scores.tactical_attacking) }}
+                        </strong>
+                    </div>
+
+                    <div class="assessment-score">
+                        <small>Taktika – védekezés</small>
+                        <br>
+                        <strong>
+                            {{ "%.2f"|format(result.scores.tactical_defending) }}
+                        </strong>
+                    </div>
+
+                    <div class="assessment-score">
+                        <small>Technika – támadás</small>
+                        <br>
+                        <strong>
+                            {{ "%.2f"|format(result.scores.technical_attacking) }}
+                        </strong>
+                    </div>
+
+                    <div class="assessment-score">
+                        <small>Technika – védekezés</small>
+                        <br>
+                        <strong>
+                            {{ "%.2f"|format(result.scores.technical_defending) }}
+                        </strong>
+                    </div>
+
                 </div>
 
             </div>
@@ -1372,10 +1423,12 @@
         + Új értékelés
     </a>
 
+
     <a href="{{ url_for(
-        'performance.player_pdf',
-        player_id=player.id
-    ) }}"
+            'performance.player_pdf',
+            player_id=player.id,
+            period_id=current_period.id if current_period else none
+        ) }}"
        class="btn btn-secondary">
         ↓ PDF letöltése
     </a>
@@ -1406,6 +1459,14 @@
     {% if trend_results %}
 
         <div class="trend-card" style="margin-bottom: 20px;">
+            <h2>Mátrixbeli elmozdulás</h2>
+            <p class="card-subtitle">A pontok a játékos Performance- és Potential-értékét mutatják mérési időszakonként. A vonal az időbeli változást köti össze.</p>
+            <div class="trend-chart-wrap">
+                <canvas id="matrixMovementChart"></canvas>
+            </div>
+        </div>
+
+        <div class="trend-card" style="margin-bottom: 20px;">
             <h2>Kategóriaeredmények</h2>
             <p class="card-subtitle">Taktikai, technikai és mentális/viselkedéses eredmények alakulása</p>
             <div class="trend-chart-wrap">
@@ -1420,6 +1481,7 @@
                         <th>Mérési időszak</th>
                         <th>Performance</th>
                         <th>Potential</th>
+                        <th>Mátrixkategória</th>
                         <th><span class="trend-category">Taktikai</span></th>
                         <th><span class="trend-category">Technikai</span></th>
                         <th><span class="trend-category">Mentalitás</span></th>
@@ -1432,6 +1494,7 @@
                         <td class="trend-period">{{ item.period.name }}</td>
                         <td class="trend-score">{{ "%.2f"|format(item.result.scores.performance) }}</td>
                         <td class="trend-score">{{ "%.2f"|format(item.result.scores.potential) }}</td>
+                        <td>{% if item.result.mapping %}<span class="trend-category" style="color: {{ item.result.mapping.color }};">{{ item.result.mapping.name_hu }}</span>{% else %}—{% endif %}</td>
                         <td>{{ "%.2f"|format(item.result.scores.tactical) }}</td>
                         <td>{{ "%.2f"|format(item.result.scores.technical) }}</td>
                         <td>{{ "%.2f"|format(item.result.scores.behaviour) }}</td>
@@ -1462,6 +1525,111 @@
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
+    const matrixCategoryBackground = {
+        id: 'matrixCategoryBackground',
+        beforeDraw(chart) {
+            const {ctx, scales} = chart;
+            if (!chart.chartArea || !scales.x || !scales.y) return;
+            const cells = [
+                {x0:1,x1:5,y0:7,y1:10,label:'Csiszolatlan gyémánt',color:'#E9C34F'},
+                {x0:5,x1:7,y0:7,y1:10,label:'Feltörekvő tehetség',color:'#55D6A0'},
+                {x0:7,x1:10,y0:7,y1:10,label:'Jövő sztárja',color:'#35659A'},
+                {x0:1,x1:5,y0:5,y1:7,label:'Alulteljesítő',color:'#E05258'},
+                {x0:5,x1:7,y0:5,y1:7,label:'Stabil csapattag',color:'#E9C34F'},
+                {x0:7,x1:10,y0:5,y1:7,label:'Kulcsjátékos',color:'#55D6A0'},
+                {x0:1,x1:5,y0:1,y1:5,label:'Fejlődési kockázat',color:'#C43D4E'},
+                {x0:5,x1:7,y0:1,y1:5,label:'Dolgozó / Küzdő',color:'#E05258'},
+                {x0:7,x1:10,y0:1,y1:5,label:'Túlteljesítő',color:'#E9C34F'}
+            ];
+            ctx.save();
+            cells.forEach(cell => {
+                const left = scales.x.getPixelForValue(cell.x0);
+                const right = scales.x.getPixelForValue(cell.x1);
+                const top = scales.y.getPixelForValue(cell.y1);
+                const bottom = scales.y.getPixelForValue(cell.y0);
+                ctx.globalAlpha = 0.13;
+                ctx.fillStyle = cell.color;
+                ctx.fillRect(left, top, right-left, bottom-top);
+                ctx.globalAlpha = 0.62;
+                ctx.fillStyle = cell.color;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.font = `600 ${(right-left) < 150 ? 9 : 12}px Arial`;
+                ctx.fillText(cell.label, (left+right)/2, (top+bottom)/2, Math.max(20,right-left-8));
+            });
+            ctx.restore();
+        }
+    };
+
+    new Chart(document.getElementById('matrixMovementChart'), {
+        type: 'line',
+        plugins: [matrixCategoryBackground],
+        data: {
+            datasets: [{
+                label: 'Mátrixpozíció',
+                data: [
+                    {% for item in trend_results %}
+                    {
+                        x: {{ item.result.scores.performance|tojson }},
+                        y: {{ item.result.scores.potential|tojson }},
+                        period: {{ item.period.name|tojson }},
+                        category: {{ (item.result.mapping.name_hu if item.result.mapping else 'Nincs kategória')|tojson }}
+                    }{% if not loop.last %},{% endif %}
+                    {% endfor %}
+                ],
+                showLine: true,
+                tension: 0.15,
+                borderWidth: 2,
+                pointRadius: 6,
+                pointHoverRadius: 9
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            parsing: false,
+            scales: {
+                x: {
+                    type: 'linear',
+                    min: 1,
+                    max: 10,
+                    title: { display: true, text: 'Performance: alacsony → magas' },
+                    ticks: { stepSize: 1 },
+                    grid: {
+                        color: context => [5, 7].includes(context.tick.value) ? '#64748b' : '#e5e7eb',
+                        lineWidth: context => [5, 7].includes(context.tick.value) ? 2 : 1
+                    }
+                },
+                y: {
+                    min: 1,
+                    max: 10,
+                    title: { display: true, text: 'Potential: alacsony → magas' },
+                    ticks: { stepSize: 1 },
+                    grid: {
+                        color: context => [5, 7].includes(context.tick.value) ? '#64748b' : '#e5e7eb',
+                        lineWidth: context => [5, 7].includes(context.tick.value) ? 2 : 1
+                    }
+                }
+            },
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: context => {
+                            const point = context.raw;
+                            return [
+                                point.period,
+                                'Performance: ' + Number(point.x).toFixed(2),
+                                'Potential: ' + Number(point.y).toFixed(2),
+                                point.category
+                            ];
+                        }
+                    }
+                }
+            }
+        }
+    });
+
     new Chart(document.getElementById('developmentTrendChart'), {
         type: 'line',
         data: {

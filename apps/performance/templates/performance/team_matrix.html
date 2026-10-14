@@ -1,0 +1,48 @@
+{% extends "performance/base.html" %}
+{% block title %}{{ team.name }} – Performance × Potential{% endblock %}
+{% block content %}
+<style>
+.matrix-wrap{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(280px,.8fr);gap:22px;align-items:start}
+.matrix-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.matrix-chart{display:grid;grid-template-columns:28px minmax(0,1fr);gap:10px;align-items:stretch}.matrix-y-axis{writing-mode:vertical-rl;transform:rotate(180deg);display:flex;align-items:center;justify-content:center;font-weight:700;color:#475569;text-align:center}.matrix-grid-wrap{min-width:0}
+.matrix-cell{display:flex;flex-direction:column;justify-content:space-between;min-height:118px;padding:12px;border-radius:12px;border:2px solid transparent;color:#111827;text-decoration:none;transition:transform .15s ease}
+.matrix-cell:hover{transform:translateY(-2px);box-shadow:0 4px 14px #0001}
+.matrix-cell.selected{border-color:#111827;box-shadow:0 0 0 2px #fff,0 0 0 4px #111827}
+.matrix-cell strong{font-size:14px;line-height:1.25}.matrix-count{font-size:28px;font-weight:700;margin-top:10px}.matrix-axis{font-weight:700;color:#475569;margin:12px 0;text-align:center}
+.matrix-player{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 0;border-bottom:1px solid #e5e7eb}.matrix-player:last-child{border-bottom:0}.matrix-badge{display:inline-block;padding:5px 9px;border-radius:999px;font-size:12px;font-weight:700}
+@media(max-width:800px){.matrix-wrap{grid-template-columns:1fr}.matrix-cell{min-height:95px;padding:8px}.matrix-cell strong{font-size:12px}.matrix-count{font-size:23px}.matrix-chart{grid-template-columns:22px minmax(0,1fr);gap:6px}.matrix-y-axis{font-size:12px}}
+</style>
+<h1>{{ team.name }} – Performance × Potential</h1>
+<p style="color:#64748b">Válassz mérési időszakot, majd kattints egy kategóriára a játékosok szűréséhez.</p>
+<form method="get" class="card" style="display:flex;gap:12px;align-items:end;flex-wrap:wrap;margin-bottom:22px">
+  <div><label for="period_id">Mérési időszak</label><br><select id="period_id" name="period_id" onchange="this.form.submit()" style="min-width:220px;padding:9px">
+    {% for period in periods %}<option value="{{ period.id }}" {% if period.id == selected_period_id %}selected{% endif %}>{{ period.name }}</option>{% endfor %}
+  </select></div>
+  <a class="btn btn-secondary" href="{{ url_for('performance.team_matrix', team_id=team.id, period_id=selected_period_id) }}">Összes kategória</a>
+  <a class="btn btn-secondary" href="{{ url_for('performance.team_detail', team_id=team.id) }}">← Csapatkezelés</a>
+</form>
+<div class="matrix-wrap">
+  <section class="card">
+    <h2>Csapatmátrix</h2>
+    <div class="matrix-chart">
+      <div class="matrix-y-axis">Potential →</div>
+      <div class="matrix-grid-wrap"><div class="matrix-grid">
+      {% for row in mapping_grid %}{% for cell in row %}
+      <a class="matrix-cell {% if selected_category == cell.code %}selected{% endif %}" href="{{ url_for('performance.team_matrix', team_id=team.id, period_id=selected_period_id, category='' if selected_category == cell.code else cell.code) }}" style="background:{{ cell.color }};color:{% if cell.code in ['future_star','development_risk','underperforming','grafter'] %}#fff{% else %}#111827{% endif %}">
+        <strong>{{ cell.name_hu }}</strong><span class="matrix-count">{{ category_counts[cell.code] }}</span><small>játékos</small>
+      </a>
+      {% endfor %}{% endfor %}
+      </div><div class="matrix-axis">Performance →</div></div>
+    </div>
+  </section>
+  <section class="card">
+    <h2>{% if selected_category and category_lookup.get(selected_category) %}{{ category_lookup[selected_category].name_hu }}{% else %}Játékosok{% endif %}</h2>
+    <p style="color:#64748b">{{ player_rows|length }} játékos a kiválasztott nézetben</p>
+    {% if player_rows %}
+      {% for row in player_rows %}<div class="matrix-player">
+        <div><a href="{{ url_for('performance.player_detail', player_id=row.player.id) }}"><strong>{{ row.player.full_name }}</strong></a><br><small>{{ row.player.player_code or ('ID: ' ~ row.player.id) }}</small></div>
+        {% if row.result and row.mapping %}<div style="text-align:right"><span class="matrix-badge" style="background:{{ row.mapping.color }};color:{% if row.mapping.code in ['future_star','development_risk','underperforming','grafter'] %}#fff{% else %}#111827{% endif %}">{{ row.mapping.name_hu }}</span><br><small>Perf. {{ '%.2f'|format(row.result.scores.performance) }} · Pot. {{ '%.2f'|format(row.result.scores.potential) }}</small></div>{% else %}<small>Nincs értékelés ebben az időszakban</small>{% endif %}
+      </div>{% endfor %}
+    {% else %}<p>Nincs játékos a kiválasztott kategóriában.</p>{% endif %}
+  </section>
+</div>
+{% endblock %}

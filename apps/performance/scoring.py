@@ -8,10 +8,8 @@ Performance & Potential scoring engine.
 - 14 Technical
 - 6 Behaviour
 
-+ 3 Potential scores:
-- Tactical Potential
-- Technical Potential
-- Behavioural Potential
++ 26 attribute-level Potential ratings, with legacy category-level fallback
+  for historical assessments only.
 
 All ratings are on a 1-10 scale.
 """
@@ -269,38 +267,17 @@ BEHAVIOUR_QUESTIONS = [
 ]
 
 
+# Potential is rated for each existing attribute, using the same 1–10 scale.
+# The statement is shared, while the form explains the context for each dimension.
 POTENTIAL_QUESTIONS = [
     {
-        "code": "tactical_potential",
-        "name": "Taktikai fejlődési potenciál",
-        "statement": (
-            "Mekkora fejlődési és tanulási potenciált látsz még "
-            "a játékosban a játék olvasásában, döntéshozatalban, "
-            "helyezkedésben és taktikai megértésben? Mennyire hiszel benne, "
-            "hogy a játékos ezen a területen még fejlődni fog?"
-        ),
-    },
-    {
-        "code": "technical_potential",
-        "name": "Technikai fejlődési potenciál",
-        "statement": (
-            "Mekkora fejlődési és tanulási potenciált látsz még "
-            "a játékos technikai képességeiben és új technikai "
-            "megoldások elsajátításában? Mennyire hiszel benne, "
-            "hogy a játékos ezen a területen még fejlődni fog?"
-        ),
-    },
-    {
-        "code": "behavioural_potential",
-        "name": "Viselkedési / mentális fejlődési potenciál",
-        "statement": (
-            "Mekkora fejlődési és tanulási potenciált látsz még "
-            "a játékos hozzáállásában, önszabályozásában, "
-            "koncentrációjában, kommunikációjában és a versenyhelyzetek "
-            "kezelésében? Mennyire hiszel benne, "
-            "hogy a játékos ezen a területen még fejlődni fog?"
-        ),
-    },
+        **question,
+        "code": f"potential_{question['code']}",
+        "performance_code": question["code"],
+    }
+    for question in (
+        TACTICAL_QUESTIONS + TECHNICAL_QUESTIONS + BEHAVIOUR_QUESTIONS
+    )
 ]
 
 
@@ -341,31 +318,13 @@ def validate_rating(value):
 
 
 def validate_assessment(scores):
-    """
-    Validate that an assessment contains all 29 ratings.
-
-    Returns:
-        True if valid.
-
-    Raises:
-        ValueError if anything is missing or invalid.
-    """
-
+    """Validate that a new assessment contains all 52 ratings."""
     required_codes = [q["code"] for q in ALL_QUESTIONS]
-
-    missing = [
-        code for code in required_codes
-        if code not in scores
-    ]
-
+    missing = [code for code in required_codes if code not in scores or scores[code] in (None, "")]
     if missing:
-        raise ValueError(
-            f"Hiányzó értékelések: {', '.join(missing)}"
-        )
-
+        raise ValueError(f"Hiányzó értékelések: {', '.join(missing)}")
     for code in required_codes:
         validate_rating(scores[code])
-
     return True
 
 
@@ -403,11 +362,40 @@ def calculate_scores(scores):
         potential
     """
 
-    validate_assessment(scores)
+    # Historical records may only have the previous three category-level
+    # Potential scores. New assessment submissions are still validated strictly
+    # by validate_assessment() in the POST route.
+    performance_questions = TACTICAL_QUESTIONS + TECHNICAL_QUESTIONS + BEHAVIOUR_QUESTIONS
+    for question in performance_questions:
+        if question["code"] not in scores or scores[question["code"]] in (None, ""):
+            raise ValueError(f"Hiányzó Performance-értékelés: {question['code']}")
+        validate_rating(scores[question["code"]])
+
+    potential_codes = [q["code"] for q in POTENTIAL_QUESTIONS]
+    present_potential = [
+        code for code in potential_codes
+        if code in scores and scores[code] not in (None, "")
+    ]
 
     tactical = _average(scores, TACTICAL_QUESTIONS)
     technical = _average(scores, TECHNICAL_QUESTIONS)
     behaviour = _average(scores, BEHAVIOUR_QUESTIONS)
+
+    # Phase subscores are derived from the canonical question-bank metadata.
+    # Keep category (tactical/technical) and phase (attacking/defending)
+    # separate; mentality remains its own behavioural phase.
+    tactical_attacking = _average(
+        scores, [q for q in TACTICAL_QUESTIONS if q.get("phase") == "attacking"]
+    )
+    tactical_defending = _average(
+        scores, [q for q in TACTICAL_QUESTIONS if q.get("phase") == "defending"]
+    )
+    technical_attacking = _average(
+        scores, [q for q in TECHNICAL_QUESTIONS if q.get("phase") == "attacking"]
+    )
+    technical_defending = _average(
+        scores, [q for q in TECHNICAL_QUESTIONS if q.get("phase") == "defending"]
+    )
 
     # Important:
     # Tactical, Technical and Behaviour each have equal weight
@@ -417,37 +405,55 @@ def calculate_scores(scores):
         2
     )
 
-    tactical_potential = validate_rating(
-        scores["tactical_potential"]
-    )
+    if len(present_potential) == len(potential_codes):
+        potential_tactical = _average(scores, [
+            {**question, "code": f"potential_{question['code']}"}
+            for question in TACTICAL_QUESTIONS
+        ])
+        potential_technical = _average(scores, [
+            {**question, "code": f"potential_{question['code']}"}
+            for question in TECHNICAL_QUESTIONS
+        ])
+        potential_behaviour = _average(scores, [
+            {**question, "code": f"potential_{question['code']}"}
+            for question in BEHAVIOUR_QUESTIONS
+        ])
+        potential_source = "attribute"
+    elif not present_potential:
+        legacy_keys = [
+            "tactical_potential",
+            "technical_potential",
+            "behavioural_potential",
+        ]
+        if not all(scores.get(key) not in (None, "") for key in legacy_keys):
+            raise ValueError(
+                "Ehhez az értékeléshez nincs teljes Potential-adat. "
+                "A régi értékelést újra kell értékelni."
+            )
+        potential_tactical = validate_rating(scores["tactical_potential"])
+        potential_technical = validate_rating(scores["technical_potential"])
+        potential_behaviour = validate_rating(scores["behavioural_potential"])
+        potential_source = "legacy_category"
+    else:
+        raise ValueError("Az értékelés csak részleges Potential-adatokat tartalmaz.")
 
-    technical_potential = validate_rating(
-        scores["technical_potential"]
-    )
-
-    behavioural_potential = validate_rating(
-        scores["behavioural_potential"]
-    )
-
-    potential = round(
-        mean([
-            tactical_potential,
-            technical_potential,
-            behavioural_potential
-        ]),
-        2
-    )
+    # Equal weighting of the three main areas, matching Performance.
+    potential = round(mean([potential_tactical, potential_technical, potential_behaviour]), 2)
 
     return {
         "tactical": tactical,
         "technical": technical,
         "behaviour": behaviour,
         "performance": performance,
-
-        "tactical_potential": round(tactical_potential, 2),
-        "technical_potential": round(technical_potential, 2),
-        "behavioural_potential": round(behavioural_potential, 2),
+        "tactical_attacking": tactical_attacking,
+        "tactical_defending": tactical_defending,
+        "technical_attacking": technical_attacking,
+        "technical_defending": technical_defending,
+        "tactical_potential": potential_tactical,
+        "technical_potential": potential_technical,
+        "behavioural_potential": potential_behaviour,
         "potential": potential,
+        "potential_source": potential_source,
     }
 
 
@@ -475,7 +481,7 @@ def get_questions_by_category(category):
         tactical
         technical
         behaviour
-        potential
+        potential (all 26 attribute-level Potential ratings)
     """
 
     category = category.lower()

@@ -213,6 +213,68 @@ def remove_player_from_team(team_id, player_id):
     )
 
 # ---------------------------------------------------------
+# TEAM PERFORMANCE × POTENTIAL MATRIX
+# ---------------------------------------------------------
+
+@performance_bp.get("/teams/<int:team_id>/matrix")
+def team_matrix(team_id):
+    """Interactive team matrix filtered by assessment period/category."""
+    team = db.session.get(Team, team_id)
+    if not team:
+        return "Team not found", 404
+
+    period_id = request.args.get("period_id", type=int)
+    category_code = request.args.get("category", "").strip()
+
+    periods = (
+        AssessmentPeriod.query
+        .join(Assessment, Assessment.period_id == AssessmentPeriod.id)
+        .join(Player, Assessment.player_id == Player.id)
+        .filter(Player.roster_teams.any(Team.id == team.id))
+        .distinct()
+        .order_by(AssessmentPeriod.start_date.desc(), AssessmentPeriod.id.desc())
+        .all()
+    )
+
+    if period_id is None and periods:
+        period_id = periods[0].id
+
+    cells = {cell["code"]: cell for row in get_mapping_grid() for cell in row}
+    player_rows = []
+    for player in sorted(team.roster_players, key=lambda p: (p.last_name, p.first_name)):
+        query = Assessment.query.filter_by(player_id=player.id)
+        if period_id is not None:
+            query = query.filter_by(period_id=period_id)
+        assessments = query.order_by(Assessment.completed_at.desc()).all()
+        result = aggregate_assessments(assessments) if assessments else None
+        mapping = result.get("mapping") if result else None
+        player_rows.append({"player": player, "result": result, "mapping": mapping})
+
+    counts = {code: 0 for code in cells}
+    for row in player_rows:
+        if row["mapping"]:
+            counts[row["mapping"]["code"]] += 1
+
+    if category_code:
+        player_rows = [
+            row for row in player_rows
+            if row["mapping"] and row["mapping"].get("code") == category_code
+        ]
+
+    return render_template(
+        "performance/team_matrix.html",
+        team=team,
+        periods=periods,
+        selected_period_id=period_id,
+        selected_category=category_code,
+        mapping_grid=get_mapping_grid(),
+        player_rows=player_rows,
+        category_counts=counts,
+        category_lookup=cells,
+    )
+
+
+# ---------------------------------------------------------
 # ALL PLAYERS
 # ---------------------------------------------------------
 
@@ -1212,16 +1274,13 @@ def assessment_save():
             scores["communication"]
         ),
 
-        # Potential
-        tactical_potential=float(
-            scores["tactical_potential"]
-        ),
-        technical_potential=float(
-            scores["technical_potential"]
-        ),
-        behavioural_potential=float(
-            scores["behavioural_potential"]
-        ),
+        # Potential: persist all 26 attribute-level ratings.
+        # The question codes already match the Assessment model columns,
+        # e.g. "potential_finding_space".
+        **{
+            question["code"]: float(scores[question["code"]])
+            for question in get_questions_by_category("potential")
+        },
 
         coach_note=request.form.get(
             "coach_note",
@@ -1591,6 +1650,7 @@ def merge_duplicate_players():
         )
     )
 
+
 @performance_bp.get("/players/<int:player_id>/pdf")
 def player_pdf(player_id):
     player = db.session.get(Player, player_id)
@@ -1598,7 +1658,13 @@ def player_pdf(player_id):
     if not player:
         return "Player not found", 404
 
-    context = get_player_detail_context(player)
+    period_id = request.args.get("period_id", type=int)
+
+    context = get_player_detail_context(
+        player,
+        view="current",
+        period_id=period_id,
+    )
 
     if not context["assessments"]:
         flash(
@@ -1608,7 +1674,8 @@ def player_pdf(player_id):
         return redirect(
             url_for(
                 "performance.player_detail",
-                player_id=player_id
+                player_id=player_id,
+                period_id=period_id,
             )
         )
 
@@ -1631,6 +1698,7 @@ def player_pdf(player_id):
         as_attachment=True,
         download_name=filename,
     )
+
 
 # ---------------------------------------------------------
 # EXCEL EXPORTS

@@ -7,11 +7,6 @@ from flask import Flask, jsonify, render_template, request, redirect, url_for, s
 from .routes import performance_bp
 from .models import (
     db,
-    Team,
-    Coach,
-    Player,
-    AssessmentPeriod,
-    Assessment,
 )
 
 from .services import (
@@ -39,21 +34,26 @@ if not app.secret_key:
 # DATABASE
 # ---------------------------------------------------------
 
-DATABASE_URL = os.environ.get("DATABASE_URL")
+DATABASE_URL = (os.environ.get("DATABASE_URL") or "").strip()
 
-if DATABASE_URL:
-    # Render / PostgreSQL
+if DATABASE_URL.startswith(("postgres://", "postgresql://", "postgresql+")):
+    # Render / PostgreSQL. Render URLs may use the legacy postgres:// prefix.
+    if DATABASE_URL.startswith("postgres://"):
+        DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
     app.config["SQLALCHEMY_DATABASE_URI"] = DATABASE_URL
 else:
-    # Local development / SQLite
+    # Local development / SQLite. Ignore a generic DATABASE_URL that points
+    # to sqlite:///app.db: the monorepo may use that value for another app.
     db_path = os.path.join(BASE_DIR, "performance.db")
     app.config["SQLALCHEMY_DATABASE_URI"] = f"sqlite:///{db_path}"
-    print(f"Using database: {db_path}")
+    print(f"Using Performance database: {db_path}")
 
 
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 db.init_app(app)
+
+
 
 # ---------------------------------------------------------
 # CREATE TABLES AND REGISTER BLUEPRINT

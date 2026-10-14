@@ -223,12 +223,37 @@ class Assessment(db.Model):
     communication = db.Column(db.Float, nullable=False)
 
     # ---------------------------------------------------------
-    # POTENTIAL
+    # POTENTIAL – attribute-level ratings from training
+    # Every assessment stores both dimensions for all 26 attributes.
     # ---------------------------------------------------------
 
-    tactical_potential = db.Column(db.Float, nullable=False)
-    technical_potential = db.Column(db.Float, nullable=False)
-    behavioural_potential = db.Column(db.Float, nullable=False)
+    potential_finding_space = db.Column(db.Float, nullable=True)
+    potential_vision = db.Column(db.Float, nullable=True)
+    potential_decision_making = db.Column(db.Float, nullable=True)
+    potential_support_play = db.Column(db.Float, nullable=True)
+    potential_reading_play = db.Column(db.Float, nullable=True)
+    potential_reaction_to_losing_ball = db.Column(db.Float, nullable=True)
+    potential_ball_control = db.Column(db.Float, nullable=True)
+    potential_receiving_under_pressure = db.Column(db.Float, nullable=True)
+    potential_twisting_turning = db.Column(db.Float, nullable=True)
+    potential_one_v_one_dominance = db.Column(db.Float, nullable=True)
+    potential_dribbling = db.Column(db.Float, nullable=True)
+    potential_passing_range = db.Column(db.Float, nullable=True)
+    potential_passing_quality = db.Column(db.Float, nullable=True)
+    potential_attacking_heading = db.Column(db.Float, nullable=True)
+    potential_crossing = db.Column(db.Float, nullable=True)
+    potential_finishing = db.Column(db.Float, nullable=True)
+    potential_hard_to_beat = db.Column(db.Float, nullable=True)
+    potential_defensive_heading = db.Column(db.Float, nullable=True)
+    potential_tackling = db.Column(db.Float, nullable=True)
+    potential_interceptions = db.Column(db.Float, nullable=True)
+    potential_competitive_edge = db.Column(db.Float, nullable=True)
+    potential_bravery_on_ball = db.Column(db.Float, nullable=True)
+    potential_bravery_without_ball = db.Column(db.Float, nullable=True)
+    potential_control = db.Column(db.Float, nullable=True)
+    potential_concentration = db.Column(db.Float, nullable=True)
+    potential_communication = db.Column(db.Float, nullable=True)
+
 
     # ---------------------------------------------------------
     # EXTRA

@@ -45,15 +45,12 @@ from reportlab.platypus import Image
 from .constants import PERFORMANCE_ATTRIBUTES
 
 RATING_FIELDS = [
-    # Tactical
     "finding_space",
     "vision",
     "decision_making",
     "support_play",
     "reading_play",
     "reaction_to_losing_ball",
-
-    # Technical
     "ball_control",
     "receiving_under_pressure",
     "twisting_turning",
@@ -68,19 +65,38 @@ RATING_FIELDS = [
     "defensive_heading",
     "tackling",
     "interceptions",
-
-    # Behaviour
     "competitive_edge",
     "bravery_on_ball",
     "bravery_without_ball",
     "control",
     "concentration",
     "communication",
-
-    # Potential
-    "tactical_potential",
-    "technical_potential",
-    "behavioural_potential",
+    "potential_finding_space",
+    "potential_vision",
+    "potential_decision_making",
+    "potential_support_play",
+    "potential_reading_play",
+    "potential_reaction_to_losing_ball",
+    "potential_ball_control",
+    "potential_receiving_under_pressure",
+    "potential_twisting_turning",
+    "potential_one_v_one_dominance",
+    "potential_dribbling",
+    "potential_passing_range",
+    "potential_passing_quality",
+    "potential_attacking_heading",
+    "potential_crossing",
+    "potential_finishing",
+    "potential_hard_to_beat",
+    "potential_defensive_heading",
+    "potential_tackling",
+    "potential_interceptions",
+    "potential_competitive_edge",
+    "potential_bravery_on_ball",
+    "potential_bravery_without_ball",
+    "potential_control",
+    "potential_concentration",
+    "potential_communication",
 ]
 
 FONT_DIR = os.path.join(
@@ -105,16 +121,9 @@ pdfmetrics.registerFont(
 
 
 def assessment_to_ratings(assessment):
-    """
-    Assessment SQLAlchemy objektumból
-    létrehozza a scoring által használt
-    rating dictionary-t.
-    """
+    """Return the 52 attribute-level ratings stored on an assessment."""
+    return {field: getattr(assessment, field) for field in RATING_FIELDS}
 
-    return {
-        field: getattr(assessment, field)
-        for field in RATING_FIELDS
-    }
 
 
 def analyze_assessment(assessment):
@@ -143,9 +152,10 @@ def analyze_assessment(assessment):
     # PERFORMANCE × POTENTIAL MAPPING
     # ---------------------------------------------------------
 
-    mapping = get_mapping_category(
-        scores["performance"],
-        scores["potential"],
+    mapping = (
+        get_mapping_category(scores["performance"], scores["potential"])
+        if scores.get("potential") is not None
+        else None
     )
 
     # ---------------------------------------------------------
@@ -227,6 +237,10 @@ def aggregate_assessments(assessments):
         "technical_potential",
         "behavioural_potential",
         "potential",
+        "tactical_attacking",
+        "tactical_defending",
+        "technical_attacking",
+        "technical_defending",
     ]
 
     aggregated_scores = {}
@@ -237,18 +251,24 @@ def aggregate_assessments(assessments):
             for result in results
         ]
 
-        aggregated_scores[key] = round(
-            sum(values) / len(values),
-            2,
+        available_values = [value for value in values if value is not None]
+        aggregated_scores[key] = (
+            round(sum(available_values) / len(available_values), 2)
+            if available_values
+            else None
         )
 
     # -----------------------------------------------------
     # AGGREGATED MAPPING
     # -----------------------------------------------------
 
-    mapping = get_mapping_category(
-        aggregated_scores["performance"],
-        aggregated_scores["potential"],
+    mapping = (
+        get_mapping_category(
+            aggregated_scores["performance"],
+            aggregated_scores["potential"],
+        )
+        if aggregated_scores["potential"] is not None
+        else None
     )
 
     # -----------------------------------------------------
@@ -561,12 +581,6 @@ PERFORMANCE_FIELDS = [
     "communication",
 ]
 
-
-POTENTIAL_FIELDS = [
-    "tactical_potential",
-    "technical_potential",
-    "behavioural_potential",
-]
 
 def calculate_player_insights(
     player_attributes,
@@ -1498,33 +1512,31 @@ def generate_player_pdf(
     )
 
     category_rows = [
-        ["Terület", "Játékos", "Korosztályos átlag"],
+        ["Részterület", "Játékos", "Csapatátlag"],
         [
-            "Taktikai",
-            format_score(
-                aggregated_scores.get("tactical")
-            ),
-            format_score(
-                average_scores.get("tactical")
-            ),
+            "Taktika – védekezés",
+            format_score(aggregated_scores.get("tactical_defending")),
+            format_score(average_scores.get("tactical_defending")),
         ],
         [
-            "Technikai",
-            format_score(
-                aggregated_scores.get("technical")
-            ),
-            format_score(
-                average_scores.get("technical")
-            ),
+            "Taktika – támadás",
+            format_score(aggregated_scores.get("tactical_attacking")),
+            format_score(average_scores.get("tactical_attacking")),
         ],
         [
-            "Viselkedési / mentális",
-            format_score(
-                aggregated_scores.get("behaviour")
-            ),
-            format_score(
-                average_scores.get("behaviour")
-            ),
+            "Technika – védekezés",
+            format_score(aggregated_scores.get("technical_defending")),
+            format_score(average_scores.get("technical_defending")),
+        ],
+        [
+            "Technika – támadás",
+            format_score(aggregated_scores.get("technical_attacking")),
+            format_score(average_scores.get("technical_attacking")),
+        ],
+        [
+            "Mentalitás",
+            format_score(aggregated_scores.get("behaviour")),
+            format_score(average_scores.get("behaviour")),
         ],
     ]
 
@@ -1735,6 +1747,8 @@ def generate_player_pdf(
     )
 
     story.append(profile_table)
+
+    story.append(PageBreak())
 
 
     # -------------------------------------------------

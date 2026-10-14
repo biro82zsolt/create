@@ -8,6 +8,10 @@
 
 <h1>{{ team.name }}</h1>
 
+<div style="margin: 16px 0 24px;">
+    <a class="btn btn-primary" href="{{ url_for('performance.team_matrix', team_id=team.id) }}">Performance × Potential mátrix →</a>
+</div>
+
 <div class="card">
 
     <h2>Játékosok importálása Excelből</h2>
