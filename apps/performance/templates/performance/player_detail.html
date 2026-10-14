@@ -1315,9 +1315,11 @@
                         <br>
 
                         <strong>
-                            {{ "%.2f"|format(
-                                result.scores.potential
-                            ) }}
+                            {% if result.scores.potential is not none %}
+                                {{ "%.2f"|format(result.scores.potential) }}
+                            {% else %}
+                                —
+                            {% endif %}
                         </strong>
 
                     </div>
