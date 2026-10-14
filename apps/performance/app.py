@@ -15,6 +15,7 @@ from .services import (
 )
 from .admin import init_admin
 from .auth import login_coach, login_admin, is_authenticated, is_admin
+from .schema_migrations import migrate_assessment_potential_columns
 
 BASE_DIR = os.path.dirname(__file__)
 
@@ -64,6 +65,7 @@ with app.app_context():
     print("DATABASE URI:", app.config["SQLALCHEMY_DATABASE_URI"])
 
     db.create_all()
+    migrate_assessment_potential_columns()
     app.register_blueprint(performance_bp)
 
 init_admin(app)
