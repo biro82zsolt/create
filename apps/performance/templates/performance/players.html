@@ -1,16 +1,16 @@
 {% extends "performance/base.html" %}
 
 {% block title %}
-    Játékosok
+    {{ t("players") }}
 {% endblock %}
 
 {% block content %}
 
-<h1>Játékosok</h1>
+<h1>{{ t("players") }}</h1>
 
 <div class="card">
 
-    <h2>Keresés és szűrés</h2>
+    <h2>{{ t("players_search_filter") }}</h2>
 
     <form method="GET"
           action="{{ url_for('performance.players') }}">
@@ -20,14 +20,14 @@
             <input
                 type="text"
                 name="search"
-                placeholder="Név vagy játékoskód"
+                placeholder="{{ t('player_search_placeholder') }}"
                 value="{{ search or '' }}"
             >
 
             <input
                 type="number"
                 name="birth_year"
-                placeholder="Születési év"
+                placeholder="{{ t('birth_year_placeholder') }}"
                 value="{{ birth_year or '' }}"
                 min="1900"
                 max="2100"
@@ -36,11 +36,10 @@
             <select name="team_id">
 
                 <option value="">
-                    Minden csapat
+                    {{ t("all_teams") }}
                 </option>
 
                 {% for team in teams %}
-
                     <option
                         value="{{ team.id }}"
                         {% if selected_team_id == team.id %}
@@ -49,7 +48,6 @@
                     >
                         {{ team.name }}
                     </option>
-
                 {% endfor %}
 
             </select>
@@ -58,14 +56,14 @@
                 type="submit"
                 class="btn btn-primary"
             >
-                Szűrés
+                {{ t("filter") }}
             </button>
 
             <a
                 href="{{ url_for('performance.players') }}"
                 class="btn btn-primary"
             >
-                Törlés
+                {{ t("clear_filters") }}
             </a>
 
         </div>
@@ -73,7 +71,6 @@
     </form>
 
 </div>
-
 
 <div class="card">
 
@@ -85,14 +82,13 @@
         gap: 10px;
     ">
 
-        <h2>Játékoslista</h2>
+        <h2>{{ t("player_list") }}</h2>
 
         <span>
-            {{ players|length }} játékos
+            {{ t("player_count", count=players|length) }}
         </span>
 
     </div>
-
 
     {% if players %}
 
@@ -101,35 +97,32 @@
             <table style="width: 100%; border-collapse: collapse;">
 
                 <thead>
-
                     <tr>
                         <th style="text-align: left; padding: 10px;">
-                            Név
+                            {{ t("name") }}
                         </th>
 
                         <th style="text-align: left; padding: 10px;">
-                            Játékoskód
+                            {{ t("player_code") }}
                         </th>
 
                         <th style="text-align: left; padding: 10px;">
-                            Születési dátum
+                            {{ t("date_of_birth") }}
                         </th>
 
                         <th style="text-align: left; padding: 10px;">
-                            Elsődleges csapat
+                            {{ t("primary_team") }}
                         </th>
 
                         <th style="text-align: left; padding: 10px;">
-                            Csapatkapcsolatok
+                            {{ t("team_memberships") }}
                         </th>
 
                         <th style="text-align: right; padding: 10px;">
-                            Művelet
+                            {{ t("action") }}
                         </th>
                     </tr>
-
                 </thead>
-
 
                 <tbody>
 
@@ -138,71 +131,55 @@
                         <tr style="border-top: 1px solid #e5e7eb;">
 
                             <td style="padding: 10px;">
-
                                 <strong>
                                     {{ player.full_name }}
                                 </strong>
-
                             </td>
 
-
                             <td style="padding: 10px;">
-
                                 {{ player.player_code or "—" }}
-
                             </td>
 
-
                             <td style="padding: 10px;">
-
                                 {{ player.birth_date or "—" }}
+                            </td>
 
                             <td style="padding: 10px;">
-
                                 {% if player.team %}
                                     {{ player.team.name }}
                                 {% else %}
                                     <span style="color: #6b7280;">
-                                        Nincs elsődleges csapat
+                                        {{ t("no_primary_team") }}
                                     </span>
                                 {% endif %}
-
                             </td>
 
                             <td style="padding: 10px;">
-
                                 {% if player.roster_teams %}
 
                                     {% for team in player.roster_teams %}
-
                                         <span>
                                             {{ team.name }}{% if not loop.last %}, {% endif %}
                                         </span>
-
                                     {% endfor %}
 
                                 {% else %}
-
                                     <span style="color: #6b7280;">
-                                        Nincs csapatkapcsolat
+                                        {{ t("no_team_membership") }}
                                     </span>
-
                                 {% endif %}
-
                             </td>
 
-
                             <td style="padding: 10px; text-align: right;">
-
                                 <a
                                     href="{{ url_for(
                                         'performance.player_detail',
                                         player_id=player.id
                                     ) }}"
-                                class="btn btn-secondary">
-                                    Adatlap →
+                                    class="btn btn-secondary"
+                                >
+                                    {{ t("player_profile") }}
                                 </a>
-
                             </td>
 
                         </tr>
@@ -218,20 +195,22 @@
     {% else %}
 
         <p class="empty">
-            A keresési feltételeknek megfelelő játékos nem található.
+            {{ t("no_players_match") }}
         </p>
 
     {% endif %}
 
 </div>
 
-
 <div style="margin-top: 20px;">
 
-    <a href="{{ url_for('performance.dashboard') }}"
-       class="btn btn-secondary">
-        ← Vissza a dashboardra
+    <a
+        href="{{ url_for('performance.dashboard') }}"
+        class="btn btn-secondary"
+    >
+        {{ t("back_to_dashboard") }}
     </a>
 
 </div>
+
 {% endblock %}

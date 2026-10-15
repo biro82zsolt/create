@@ -33,7 +33,10 @@ PROFILE_RULES = {
         "name_hu": "Atléta",
         "description": (
             "Intenzív, aktív játékos, aki mozgásával, aktivitásával "
-            "és labda nélküli munkájával jelentős hatást gyakorol a játékra."
+            "és labda nélküli munkájával jelentős hatást gyakorol a játékra."),
+        "description_en": (
+            "An intense, active player who has a significant impact on the game "
+            "through movement, activity, and off-the-ball work."
         ),
         "attributes": {
             "reaction_to_losing_ball": 1.8,
@@ -53,6 +56,10 @@ PROFILE_RULES = {
             "Párharcerős, versengő és bátor játékos, aki különösen "
             "a nehéz és intenzív játékhelyzetekben képes hatást gyakorolni."
         ),
+        "description_en": (
+            "A competitive and brave player who excels in duels and can make "
+            "a significant impact in difficult, high-intensity game situations."
+        ),
         "attributes": {
             "competitive_edge": 2.0,
             "bravery_without_ball": 1.8,
@@ -70,6 +77,10 @@ PROFILE_RULES = {
         "description": (
             "A játék felépítésében, összekapcsolásában és a csapat "
             "játékstruktúrájának támogatásában erős játékos."
+        ),
+        "description_en": (
+            "A player who excels at building up play, linking different phases, "
+            "and supporting the team's overall playing structure."
         ),
         "attributes": {
             "reading_play": 2.0,
@@ -91,6 +102,10 @@ PROFILE_RULES = {
             "Labdával képes egyéni előnyt kialakítani, különösen "
             "1v1 helyzetekben és szűk területeken."
         ),
+        "description_en": (
+            "A player who can create individual advantages with the ball, "
+            "especially in one-versus-one situations and tight spaces."
+        ),
         "attributes": {
             "dribbling": 2.2,
             "one_v_one_dominance": 2.0,
@@ -108,6 +123,10 @@ PROFILE_RULES = {
         "description": (
             "A játékot látja, értelmezi és irányítja. Erőssége a "
             "játéklátás, a döntéshozatal és a megfelelő megoldások felismerése."
+        ),
+        "description_en": (
+            "A player who sees, interprets, and directs the game. Key strengths "
+            "include vision, decision-making, and recognizing the right solutions."
         ),
         "attributes": {
             "vision": 2.0,
@@ -127,6 +146,10 @@ PROFILE_RULES = {
         "description": (
             "A támadások végső szakaszában különösen veszélyes játékos, "
             "aki képes helyzetbe kerülni és hatékonyan befejezni."
+        ),
+        "description_en": (
+            "A player who is particularly dangerous in the final phase of attacks, "
+            "capable of finding scoring opportunities and finishing effectively."
         ),
         "attributes": {
             "finishing": 2.2,

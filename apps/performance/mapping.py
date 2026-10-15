@@ -52,6 +52,11 @@ MAPPING_CATEGORIES = {
             "potenciált mutat. Kiemelt támogatást, fejlesztési fókuszt "
             "és egyéni figyelmet igényel."
         ),
+        "description_en": (
+            "Currently demonstrates low performance and limited development "
+            "potential. Requires targeted support, a clear development focus, "
+            "and individual attention."
+),
     },
 
     ("medium", "low"): {
@@ -63,6 +68,11 @@ MAPPING_CATEGORIES = {
             "A jelenlegi teljesítménye közepes, miközben a további "
             "fejlődési lehetősége korlátozottabb. Kitartó munkával "
             "és megfelelő fejlesztéssel stabil szereplővé válhat."
+        ),
+        "description_en": (
+            "Current performance is moderate, while further development "
+            "potential is more limited. With persistent effort and appropriate "
+            "development, the player can become a reliable team member."
         ),
     },
 
@@ -77,6 +87,12 @@ MAPPING_CATEGORIES = {
             "de érdemes figyelni arra, hogy a teljesítménye hosszú távon "
             "is fenntartható legyen."
         ),
+        "description_en": (
+            "Current performance is higher than expected based on development "
+            "potential. The player is highly productive at present, but it is "
+            "important to ensure that this performance remains sustainable "
+            "in the long term."
+        ),
     },
 
     ("low", "medium"): {
@@ -88,6 +104,11 @@ MAPPING_CATEGORIES = {
             "A játékosban megvannak a szükséges képességek, de jelenleg "
             "nem teljesít a lehetőségeinek megfelelően. Érdemes feltárni "
             "a háttérben álló okokat."
+        ),
+        "description_en": (
+            "The player has the necessary abilities but is currently not "
+            "performing in line with their potential. It is worth exploring "
+            "the underlying reasons."
         ),
     },
 
@@ -101,6 +122,11 @@ MAPPING_CATEGORIES = {
             "csapat stabil középpontját jelenti. Teljesítménye és "
             "fejlődési potenciálja is közepes."
         ),
+        "description_en": (
+            "A reliable, well-balanced player who currently represents a "
+            "stable part of the team. Both performance and development "
+            "potential are moderate."
+        ),
     },
 
     ("high", "medium"): {
@@ -112,6 +138,11 @@ MAPPING_CATEGORIES = {
             "A jelenlegi teljesítménye magas, és fejlődési potenciálja "
             "is megfelelő. Fontos szerepet tölt be a csapatban, "
             "és érdemes tovább támogatni a fejlődését."
+        ),
+        "description_en": (
+            "Current performance is high, and development potential is also "
+            "promising. The player has an important role in the team and "
+            "should continue to receive support for further development."
         ),
     },
 
@@ -125,6 +156,11 @@ MAPPING_CATEGORIES = {
             "de ez jelenleg még nem jelenik meg a teljesítményében. "
             "Kiemelt fejlesztési lehetőség."
         ),
+        "description_en": (
+            "The player shows significant development potential, but this "
+            "is not yet reflected in current performance. Represents a "
+            "significant development opportunity."
+        ),
     },
 
     ("medium", "high"): {
@@ -135,6 +171,11 @@ MAPPING_CATEGORIES = {
         "description": (
             "A játékosban jelentős potenciál látható, és teljesítménye "
             "már elindult felfelé. Jó fejlődési pályán van."
+        ),
+        "description_en": (
+            "The player shows significant potential, and performance is "
+            "already trending upwards. The player is on a positive "
+            "development trajectory."
         ),
     },
 
@@ -147,6 +188,11 @@ MAPPING_CATEGORIES = {
             "A játékos jelenlegi teljesítménye is magas, és jelentős "
             "fejlődési potenciál látható benne. Kiemelt figyelmet és "
             "további fejlesztést érdemel."
+        ),
+        "description_en": (
+            "The player demonstrates high current performance and significant "
+            "development potential. Deserves focused attention and continued "
+            "development."
         ),
     },
 }

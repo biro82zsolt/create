@@ -828,7 +828,7 @@
         period_id=current_period.id if current_period else None
     ) }}"
        class="view-switcher-btn {% if view == 'current' %}active{% endif %}">
-        Aktuális adatlap
+        {{ t("current_profile") }}
     </a>
 
 
@@ -837,7 +837,7 @@
     <div class="period-selector">
 
         <label for="period-select">
-            Mérési időszak
+            {{ t("select_period") }}
         </label>
 
         <select
@@ -871,7 +871,7 @@
         period_id=current_period.id if current_period else None
     ) }}"
        class="view-switcher-btn {% if view == 'trend' %}active{% endif %}">
-        Fejlődési trend
+        {{ t("trend_view") }}
     </a>
 
 </div>
@@ -906,18 +906,18 @@
 
             <div>
                 <span class="mapping-badge">
-                    {{ aggregated.mapping.name_hu }}
+                    {{ aggregated.mapping.name if session.get('language', 'hu') == 'en' else aggregated.mapping.name_hu }}
                 </span>
             </div>
 
             <div>
                 <span class="profile-badge">
-                    {{ aggregated.profiles.type_hu }}
+                    {{ aggregated.profiles.type if session.get('language', 'hu') == 'en' else aggregated.profiles.type_hu }}
                     ·
-                    {{ aggregated.profiles.primary.name.name_hu }}
+                    {{ aggregated.profiles.primary.name.name if session.get('language', 'hu') == 'en' else aggregated.profiles.primary.name.name_hu }}
 
                     {% if aggregated.profiles.secondary %}
-                        / {{ aggregated.profiles.secondary.name.name_hu }}
+                        / {{ aggregated.profiles.secondary.name.name if session.get('language', 'hu') == 'en' else aggregated.profiles.secondary.name.name_hu }}
                     {% endif %}
                 </span>
             </div>
@@ -960,10 +960,10 @@
 
     <div class="dashboard-card">
 
-        <h2>Performance × Potential</h2>
+        <h2>{{ t("performance_potential") }}</h2>
 
         <div class="card-subtitle">
-            Játékos pozíciója a 9 kategóriás modellben
+            {{ t("player_position_model") }}
         </div>
 
         <div class="mapping-chart-wrapper">
@@ -989,13 +989,13 @@
                                     mapping-{{ cell.code }}">
 
                                     <div class="mapping-cell-title">
-                                        {{ cell.name_hu }}
+                                         {{ cell.name if session.get('language', 'hu') == 'en' else cell.name_hu }}
                                     </div>
 
                                     {% if aggregated.mapping.code == cell.code %}
 
                                         <div class="mapping-current">
-                                            ● Jelenlegi kategória
+                                            {{ t("current_category") }}
                                         </div>
 
                                     {% endif %}
@@ -1023,10 +1023,10 @@
 
     <div class="dashboard-card">
 
-        <h2>Teljesítményprofil</h2>
+        <h2>{{ t("performance_profile") }}</h2>
 
         <div class="card-subtitle">
-            Játékos és korosztályátlag · 26 teljesítményattribútum
+            {{ t("player_age_average") }}
         </div>
 
         <div class="chart-container">
@@ -1036,11 +1036,11 @@
         <div class="comparison-legend">
 
             <span class="legend-player">
-                Játékos
+                {{ t("player") }}
             </span>
 
             <span class="legend-team">
-                Korosztályátlag
+                {{ t("age_group_average") }}
             </span>
 
         </div>
@@ -1056,41 +1056,32 @@
 
     <div class="dashboard-card">
 
-        <h2>Fő teljesítményterületek</h2>
+        <h2>{{ t("main_performance_areas") }}</h2>
 
         <div class="card-subtitle">
-            Összehasonlítás a csapat átlagával
+            {{ t("team_average_comparison") }}
         </div>
 
 
 
 {% set categories = [
-    ("Taktika – támadás",
-     aggregated.scores.tactical_attacking,
+    ("tactical_attacking", aggregated.scores.tactical_attacking,
      team_averages.scores.tactical_attacking if team_averages else None),
-
-    ("Taktika – védekezés",
-     aggregated.scores.tactical_defending,
+    ("tactical_defending", aggregated.scores.tactical_defending,
      team_averages.scores.tactical_defending if team_averages else None),
-
-    ("Technika – támadás",
-     aggregated.scores.technical_attacking,
+    ("technical_attacking", aggregated.scores.technical_attacking,
      team_averages.scores.technical_attacking if team_averages else None),
-
-    ("Technika – védekezés",
-     aggregated.scores.technical_defending,
+    ("technical_defending", aggregated.scores.technical_defending,
      team_averages.scores.technical_defending if team_averages else None),
-
-    ("Viselkedés / mentális",
-     aggregated.scores.behaviour,
+    ("behaviour_mental", aggregated.scores.behaviour,
      team_averages.scores.behaviour if team_averages else None)
 ] %}
 
 
-        {% for label, player_value, team_value in categories %}
-        {% if 'védekezés' in label|lower %}
+        {% for label_key, player_value, team_value in categories %}
+        {% if label_key in ['tactical_defending', 'technical_defending'] %}
             {% set bar_color = '#dc3545' %}
-        {% elif 'támadás' in label|lower %}
+        {% elif label_key in ['tactical_attacking', 'technical_attacking'] %}
             {% set bar_color = '#198754' %}
         {% else %}
             {% set bar_color = '#ffc107' %}
@@ -1101,7 +1092,7 @@
                 <div class="category-header">
 
                     <span class="category-label">
-                        {{ label }}
+                        {{ t(label_key) }}
                     </span>
 
                     <span class="category-values">
@@ -1111,7 +1102,7 @@
                         </strong>
 
                         {% if team_value is not none %}
-                            · csapat {{ "%.2f"|format(team_value) }}
+                            · {{ t("team_score") }} {{ "%.2f"|format(team_value) }}
                         {% endif %}
 
                     </span>
@@ -1150,10 +1141,10 @@
 
 <div class="dashboard-card player-profile-card">
 
-    <h2>Játékosprofil</h2>
+    <h2>{{ t("player_profile_title") }}</h2>
 
     <div class="card-subtitle">
-        Mapping és játékosprofil-értelmezés
+        {{ t("mapping_profile_interpretation") }}
     </div>
 
     <div class="profile-table">
@@ -1161,11 +1152,11 @@
         <div class="profile-row">
 
             <div class="profile-label">
-                Mapping
+                {{ t("mapping") }}
             </div>
 
             <div class="profile-value">
-                {{ aggregated.mapping.name_hu }}
+                {{ aggregated.mapping.name if session.get('language', 'hu') == 'en' else aggregated.mapping.name_hu }}
             </div>
 
         </div>
@@ -1174,11 +1165,11 @@
         <div class="profile-row">
 
             <div class="profile-label">
-                Mapping értelmezése
+                {{ t("mapping_interpretation") }}
             </div>
 
             <div class="profile-value">
-                {{ aggregated.mapping.description }}
+                {{ aggregated.mapping.description_en if session.get('language', 'hu') == 'en' else aggregated.mapping.description }}
             </div>
 
         </div>
@@ -1187,11 +1178,13 @@
         <div class="profile-row">
 
             <div class="profile-label">
-                Profil típusa
+               {{ t("profile_type") }}
             </div>
 
             <div class="profile-value">
-                {{ aggregated.profiles.type_hu }}
+                <strong>
+                    {{ (aggregated.profiles.type if session.get('language', 'hu') == 'en' else aggregated.profiles.type_hu) | capitalize }}
+                </strong>
             </div>
 
         </div>
@@ -1200,17 +1193,17 @@
         <div class="profile-row">
 
             <div class="profile-label">
-                Elsődleges profil
+                {{ t("primary_profile") }}
             </div>
 
             <div class="profile-value">
 
                 <strong>
-                    {{ aggregated.profiles.primary.name.name_hu }}
+                    {{ aggregated.profiles.primary.name.name if session.get('language', 'hu') == 'en' else aggregated.profiles.primary.name.name_hu }}
                 </strong>
 
                 <p>
-                    {{ aggregated.profiles.primary.name.description }}
+                    {{ aggregated.profiles.primary.name.description_en if session.get('language', 'hu') == 'en' else aggregated.profiles.primary.name.description }}
                 </p>
 
             </div>
@@ -1221,17 +1214,17 @@
         <div class="profile-row">
 
             <div class="profile-label">
-                Másodlagos profil
+                {{ t("secondary_profile") }}
             </div>
 
             <div class="profile-value">
 
                 <strong>
-                    {{ aggregated.profiles.secondary.name.name_hu }}
+                    {{ aggregated.profiles.secondary.name.name if session.get('language', 'hu') == 'en' else aggregated.profiles.secondary.name.name_hu }}
                 </strong>
 
                 <p>
-                    {{ aggregated.profiles.secondary.name.description }}
+                    {{ aggregated.profiles.secondary.name.description_en if session.get('language', 'hu') == 'en' else aggregated.profiles.secondary.name.description }}
                 </p>
 
             </div>
@@ -1255,7 +1248,7 @@
 
         <div class="insight-card">
 
-            <h3>Erősségek</h3>
+            <h3>{{ t("strengths") }}</h3>
 
             {% if insights.strengths %}
 
@@ -1264,7 +1257,9 @@
                     <div class="insight-item">
 
                         <div class="insight-item-header">
-                            <strong>{{ item.label }}</strong>
+                            <strong>
+                                {{ item.label_en if session.get('language', 'hu') == 'en' and item.label_en is defined else item.label }}
+                            </strong>
 
                             <span class="insight-positive">
                                 +{{ "%.2f"|format(item.difference) }}
@@ -1272,9 +1267,9 @@
                         </div>
 
                         <div class="insight-item-details">
-                            Játékos:
+                            {{ t("player_value") }}
                             {{ "%.2f"|format(item.player_value) }}
-                            · Korosztály:
+                            · {{ t("age_group") }}
                             {{ "%.2f"|format(item.team_value) }}
                         </div>
 
@@ -1285,7 +1280,7 @@
             {% else %}
 
                 <p class="insight-empty">
-                    Nincs pozitív eltérés a korosztályátlaghoz képest.
+                    {{ t("no_positive_difference") }}
                 </p>
 
             {% endif %}
@@ -1297,7 +1292,7 @@
 
         <div class="insight-card">
 
-            <h3>Fejlesztési területek</h3>
+            <h3>{{ t("development_areas") }}</h3>
 
             {% if insights.development_areas %}
 
@@ -1306,7 +1301,9 @@
                     <div class="insight-item">
 
                         <div class="insight-item-header">
-                            <strong>{{ item.label }}</strong>
+                            <strong>
+                                {{ item.label_en if session.get('language', 'hu') == 'en' and item.label_en is defined else item.label }}
+                            </strong>
 
                             <span class="insight-negative">
                                 {{ "%.2f"|format(item.difference) }}
@@ -1314,9 +1311,9 @@
                         </div>
 
                         <div class="insight-item-details">
-                            Játékos:
+                            {{ t("player_value") }}
                             {{ "%.2f"|format(item.player_value) }}
-                            · Korosztály:
+                            · {{ t("age_group") }}
                             {{ "%.2f"|format(item.team_value) }}
                         </div>
 
@@ -1327,7 +1324,7 @@
             {% else %}
 
                 <p class="insight-empty">
-                    Nincs negatív eltérés a korosztályátlaghoz képest.
+                    {{ t("no_negative_difference") }}
                 </p>
 
             {% endif %}
@@ -1344,36 +1341,40 @@
 
     <div class="dashboard-card">
 
-        <h2>Edzői értékelések közötti eltérések</h2>
-        <p class="card-subtitle">A legalább 2 pontos különbségek jelennek meg a jelenlegi mérési időszakban.</p>
+        <h2>{{ t("coach_assessment_differences") }}</h2>
+        <p class="card-subtitle">{{ t("coach_differences_description") }}</p>
 
         {% if major_coach_differences %}
             <div class="coach-difference-list">
                 {% for item in major_coach_differences %}
                     <div class="coach-difference-row">
                         <div>
-                            <strong>{{ item.label }}</strong>
+                            <strong>
+                                {{ item.label_en if session.get('language', 'hu') == 'en' and item.label_en is defined else item.label }}
+                            </strong>
                             <div class="card-subtitle" style="margin:4px 0 0 0;">
                                 {% if item.performance_range is not none and item.performance_range >= 2.0 %}
-                                    Performance eltérés: {{ "%.1f"|format(item.performance_range) }} pont
+                                    {{ t("performance_difference") }}: {{ "%.1f"|format(item.performance_range) }} {{ "points" if session.get("language") == "en" else "pont" }}
                                 {% endif %}
                                 {% if item.performance_range is not none and item.performance_range >= 2.0 and item.potential_range is not none and item.potential_range >= 2.0 %} · {% endif %}
                                 {% if item.potential_range is not none and item.potential_range >= 2.0 %}
-                                    Potential eltérés: {{ "%.1f"|format(item.potential_range) }} pont
+                                    {{ t("potential_difference") }}: {{ "%.1f"|format(item.potential_range) }} {{ "points" if session.get("language") == "en" else "pont" }}
                                 {% endif %}
                             </div>
                         </div>
-                        <span class="coach-difference-value">Max. {{ "%.1f"|format(item.max_range) }} pont</span>
+                        <span class="coach-difference-value">
+                            {{ t("max_points", value="%.1f"|format(item.max_range)) }}
+                        </span>
                     </div>
                 {% endfor %}
             </div>
         {% else %}
-            <p class="insight-empty">Nincs legalább 2 pontos eltérés a rendelkezésre álló edzői értékelések között, vagy még nincs összehasonlítható adat.</p>
+            <p class="insight-empty">{{ t("no_major_coach_differences") }}</p>
         {% endif %}
 
         <div class="consensus-actions">
             <button type="button" class="consensus-button" onclick="openCoachConsensus()">
-                Összes attribútum és edzői konszenzus
+                {{ t("all_attributes_coach_consensus") }}
             </button>
         </div>
 
@@ -1383,10 +1384,10 @@
         <section class="consensus-modal-panel" role="dialog" aria-modal="true" aria-labelledby="coachConsensusTitle">
             <header class="consensus-modal-header">
                 <div>
-                    <h2 id="coachConsensusTitle">Attribútumok és edzői konszenzus</h2>
-                    <p class="card-subtitle">Az átlag a rendelkezésre álló értékelésekből készül; a hiányzó Potential értékek nem számítanak bele.</p>
+                    <h2 id="coachConsensusTitle">{{ t("attributes_coach_consensus") }}</h2>
+                    <p class="card-subtitle">{{ t("consensus_average_description") }}</p>
                 </div>
-                <button type="button" class="consensus-modal-close" aria-label="Bezárás" onclick="closeCoachConsensus()">&times;</button>
+                <button type="button" class="consensus-modal-close" aria-label="{{ t('close_dialog') }}" onclick="closeCoachConsensus()">&times;</button>
             </header>
             <div class="consensus-modal-body">
                 {% if coach_consensus %}
@@ -1394,25 +1395,27 @@
                         <table class="consensus-table">
                             <thead>
                                 <tr>
-                                    <th rowspan="2">Attribútum</th>
+                                    <th rowspan="2">{{ t("attribute") }}</th>
                                     {% for item in assessments %}
-                                        <th colspan="2">{{ item.assessment.coach.name if item.assessment.coach else "Ismeretlen edző" }}</th>
+                                        <th colspan="2">{{ item.assessment.coach.name if item.assessment.coach else t("unknown_coach") }}</th>
                                     {% endfor %}
-                                    <th colspan="2">Konszenzusátlag</th>
-                                    <th colspan="2">Eltérés (min–max)</th>
+                                    <th colspan="2">{{ t("consensus_average") }}</th>
+                                    <th colspan="2">{{ t("difference_min_max") }}</th>
                                 </tr>
                                 <tr>
                                     {% for item in assessments %}
-                                        <th>Perf.</th><th>Pot.</th>
+                                        <th>{{ t("performance_short") }}</th><th>{{ t("potential_short") }}</th>
                                     {% endfor %}
-                                    <th>Perf.</th><th>Pot.</th>
-                                    <th>Perf.</th><th>Pot.</th>
+                                    <th>{{ t("performance_short") }}</th><th>{{ t("potential_short") }}</th>
+                                    <th>{{ t("performance_short") }}</th><th>{{ t("potential_short") }}</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {% for item in coach_consensus %}
                                     <tr>
-                                        <td>{{ item.label }}</td>
+                                        <td>
+                                            {{ item.label_en if session.get('language', 'hu') == 'en' and item.label_en is defined else item.label }}
+                                        </td>
                                         {% for coach in item.coaches %}
                                             <td>{{ "%.1f"|format(coach.performance) if coach.performance is not none else "—" }}</td>
                                             <td>{{ "%.1f"|format(coach.potential) if coach.potential is not none else "—" }}</td>
@@ -1427,7 +1430,7 @@
                         </table>
                     </div>
                 {% else %}
-                    <p>Még nincs megjeleníthető edzői értékelés.</p>
+                    <p>{{ t("no_coach_assessments_display") }}</p>
                 {% endif %}
             </div>
         </section>
@@ -1435,10 +1438,10 @@
 
     <div class="dashboard-card">
 
-        <h2>Edzői értékelések</h2>
+        <h2>{{ t("coach_assessments") }}</h2>
 
         <div class="card-subtitle">
-            {{ aggregated.assessment_count }} értékelés
+            {{ aggregated.assessment_count }} {{ t("assessment_count") }}
         </div>
 
 
@@ -1517,7 +1520,7 @@
 
                     <div class="assessment-score">
 
-                        <small>Taktikai</small>
+                        <small>{{ t("tactical") }}</small>
 
                         <br>
 
@@ -1530,7 +1533,7 @@
 
                     <div class="assessment-score">
 
-                        <small>Technikai</small>
+                        <small>{{ t("technical") }}</small>
 
                         <br>
 
@@ -1543,7 +1546,7 @@
 
                     <div class="assessment-score">
 
-                        <small>Viselkedés</small>
+                        <small>{{ t("behavior") }}</small>
 
                         <br>
 
@@ -1584,19 +1587,19 @@
         team_id=player.team_id
     ) }}"
        class="btn btn-secondary">
-        ← Vissza a csapathoz
+        {{ t("back_to_team") }}
     </a>
 
     <a href="{{ url_for('performance.dashboard') }}"
        class="btn btn-secondary">
-        ← Vissza a dashboardra
+        {{ t("back_to_dashboard") }}
     </a>
 
     <a href="{{ url_for(
         'performance.assessment_new'
     ) }}"
        class="btn btn-primary">
-        + Új értékelés
+        {{ t("new_assessment") }}
     </a>
 
     <a href="{{ url_for(
@@ -1604,7 +1607,7 @@
         player_id=player.id
     ) }}"
        class="btn btn-secondary">
-        ↓ PDF letöltése
+        {{ t("download_pdf") }}
     </a>
 
 </div>
@@ -1905,38 +1908,143 @@
     /* RADAR */
     /* ========================================================= */
 
+
 const radialAttributes = [
-    // TAKTIKAI – 6
-    { code: "finding_space", label: "Helyezkedés", category: "tactical" },
-    { code: "vision", label: "Játéklátás", category: "tactical" },
-    { code: "decision_making", label: "Döntéshozatal", category: "tactical" },
-    { code: "support_play", label: "Támogatójáték", category: "tactical" },
-    { code: "reading_play", label: "Játék olvasása", category: "tactical" },
-    { code: "reaction_to_losing_ball", label: "Labdavesztés reakció", category: "tactical" },
+    // TACTICAL – 6
+    {
+        code: "finding_space",
+        label: {{ ("Finding space" if session.get("language", "hu") == "en" else "Helyezkedés") | tojson }},
+        category: "tactical"
+    },
+    {
+        code: "vision",
+        label: {{ ("Vision" if session.get("language", "hu") == "en" else "Játéklátás") | tojson }},
+        category: "tactical"
+    },
+    {
+        code: "decision_making",
+        label: {{ ("Decision making" if session.get("language", "hu") == "en" else "Döntéshozatal") | tojson }},
+        category: "tactical"
+    },
+    {
+        code: "support_play",
+        label: {{ ("Support play" if session.get("language", "hu") == "en" else "Támogatójáték") | tojson }},
+        category: "tactical"
+    },
+    {
+        code: "reading_play",
+        label: {{ ("Reading the game" if session.get("language", "hu") == "en" else "Játék olvasása") | tojson }},
+        category: "tactical"
+    },
+    {
+        code: "reaction_to_losing_ball",
+        label: {{ ("Reaction to losing the ball" if session.get("language", "hu") == "en" else "Labdavesztés reakció") | tojson }},
+        category: "tactical"
+    },
 
-    // TECHNIKAI – 14
-    { code: "ball_control", label: "Labdakontroll", category: "technical" },
-    { code: "receiving_under_pressure", label: "Átvétel nyomás alatt", category: "technical" },
-    { code: "twisting_turning", label: "Fordulás, irányváltás", category: "technical" },
-    { code: "one_v_one_dominance", label: "Egy az egyben dominancia", category: "technical" },
-    { code: "dribbling", label: "Cselezés", category: "technical" },
-    { code: "passing_range", label: "Passzterjedelem", category: "technical" },
-    { code: "passing_quality", label: "Passzminőség", category: "technical" },
-    { code: "attacking_heading", label: "Fejjáték támadásban", category: "technical" },
-    { code: "crossing", label: "Beadás", category: "technical" },
-    { code: "finishing", label: "Befejezés", category: "technical" },
-    { code: "hard_to_beat", label: "Nehezen átjátszható", category: "technical" },
-    { code: "defensive_heading", label: "Fejjáték védekezésben", category: "technical" },
-    { code: "tackling", label: "Szerelés", category: "technical" },
-    { code: "interceptions", label: "Labdaszerzés", category: "technical" },
+    // TECHNICAL – 14
+    {
+        code: "ball_control",
+        label: {{ ("Ball control" if session.get("language", "hu") == "en" else "Labdakontroll") | tojson }},
+        category: "technical"
+    },
+    {
+        code: "receiving_under_pressure",
+        label: {{ ("Receiving under pressure" if session.get("language", "hu") == "en" else "Átvétel nyomás alatt") | tojson }},
+        category: "technical"
+    },
+    {
+        code: "twisting_turning",
+        label: {{ ("Turning and changing direction" if session.get("language", "hu") == "en" else "Fordulás, irányváltás") | tojson }},
+        category: "technical"
+    },
+    {
+        code: "one_v_one_dominance",
+        label: {{ ("1v1 dominance" if session.get("language", "hu") == "en" else "Egy az egyben dominancia") | tojson }},
+        category: "technical"
+    },
+    {
+        code: "dribbling",
+        label: {{ ("Dribbling" if session.get("language", "hu") == "en" else "Cselezés") | tojson }},
+        category: "technical"
+    },
+    {
+        code: "passing_range",
+        label: {{ ("Passing range" if session.get("language", "hu") == "en" else "Passzterjedelem") | tojson }},
+        category: "technical"
+    },
+    {
+        code: "passing_quality",
+        label: {{ ("Passing quality" if session.get("language", "hu") == "en" else "Passzminőség") | tojson }},
+        category: "technical"
+    },
+    {
+        code: "attacking_heading",
+        label: {{ ("Attacking headers" if session.get("language", "hu") == "en" else "Fejjáték támadásban") | tojson }},
+        category: "technical"
+    },
+    {
+        code: "crossing",
+        label: {{ ("Crossing" if session.get("language", "hu") == "en" else "Beadás") | tojson }},
+        category: "technical"
+    },
+    {
+        code: "finishing",
+        label: {{ ("Finishing" if session.get("language", "hu") == "en" else "Befejezés") | tojson }},
+        category: "technical"
+    },
+    {
+        code: "hard_to_beat",
+        label: {{ ("Defensive resilience" if session.get("language", "hu") == "en" else "Nehezen átjátszható") | tojson }},
+        category: "technical"
+    },
+    {
+        code: "defensive_heading",
+        label: {{ ("Defensive headers" if session.get("language", "hu") == "en" else "Fejjáték védekezésben") | tojson }},
+        category: "technical"
+    },
+    {
+        code: "tackling",
+        label: {{ ("Tackling" if session.get("language", "hu") == "en" else "Szerelés") | tojson }},
+        category: "technical"
+    },
+    {
+        code: "interceptions",
+        label: {{ ("Interceptions" if session.get("language", "hu") == "en" else "Labdaszerzés") | tojson }},
+        category: "technical"
+    },
 
-    // VISELKEDÉSES – 6
-    { code: "competitive_edge", label: "Versenyszellem", category: "behavioral" },
-    { code: "bravery_on_ball", label: "Bátorság labdával", category: "behavioral" },
-    { code: "bravery_without_ball", label: "Bátorság labda nélkül", category: "behavioral" },
-    { code: "control", label: "Kontroll", category: "behavioral" },
-    { code: "concentration", label: "Koncentráció", category: "behavioral" },
-    { code: "communication", label: "Kommunikáció", category: "behavioral" }
+    // BEHAVIOURAL – 6
+    {
+        code: "competitive_edge",
+        label: {{ ("Competitive edge" if session.get("language", "hu") == "en" else "Versenyszellem") | tojson }},
+        category: "behavioral"
+    },
+    {
+        code: "bravery_on_ball",
+        label: {{ ("Bravery on the ball" if session.get("language", "hu") == "en" else "Bátorság labdával") | tojson }},
+        category: "behavioral"
+    },
+    {
+        code: "bravery_without_ball",
+        label: {{ ("Bravery off the ball" if session.get("language", "hu") == "en" else "Bátorság labda nélkül") | tojson }},
+        category: "behavioral"
+    },
+    {
+        code: "control",
+        label: {{ ("Composure" if session.get("language", "hu") == "en" else "Kontroll") | tojson }},
+        category: "behavioral"
+    },
+    {
+        code: "concentration",
+        label: {{ ("Concentration" if session.get("language", "hu") == "en" else "Koncentráció") | tojson }},
+        category: "behavioral"
+    },
+    {
+        code: "communication",
+        label: {{ ("Communication" if session.get("language", "hu") == "en" else "Kommunikáció") | tojson }},
+        category: "behavioral"
+    }
 ];
 
 const categoryColors = {
@@ -2118,7 +2226,7 @@ function createRadialProfileChart() {
             font-weight="bold"
             fill="#172033"
         >
-            Teljesítményprofil
+
         </text>
     `;
 
@@ -2374,7 +2482,7 @@ function createRadialProfileChart() {
             font-weight="bold"
             fill="#172033"
         >
-            Összesített
+            {{ (t("overall")) }}
         </text>
 
         <text
@@ -2385,7 +2493,7 @@ function createRadialProfileChart() {
             font-weight="bold"
             fill="#172033"
         >
-            profil
+            {{ (t("profile")) }}
         </text>
 
         <line
@@ -2459,7 +2567,7 @@ function createRadialProfileChart() {
             font-weight="bold"
             fill="#526174"
         >
-            Összehasonlítás
+            {{ t("comparison") }}
         </text>
 
         <line
@@ -2478,7 +2586,7 @@ function createRadialProfileChart() {
             font-size="13"
             fill="#526174"
         >
-            Korosztályátlag
+            {{ (t("age_group_average")) }}
         </text>
 
         <line
@@ -2496,7 +2604,7 @@ function createRadialProfileChart() {
             font-size="13"
             fill="#526174"
         >
-            Játékos
+            {{ (t("player")) }}
         </text>
     `;
 
@@ -2505,17 +2613,17 @@ function createRadialProfileChart() {
     svg += `
         <circle cx="735" cy="810" r="9" fill="#65A9E8"/>
         <text x="755" y="815" font-size="14" fill="#526174">
-            Taktikai jellemzők (6)
+            {{ (t("tactical_attributes") ~ " (6)") }}
         </text>
 
         <circle cx="735" cy="840" r="9" fill="#75C878"/>
         <text x="755" y="845" font-size="14" fill="#526174">
-            Technikai jellemzők (14)
+            {{ (t("technical_attributes") ~ " (14)") }}
         </text>
 
         <circle cx="735" cy="870" r="9" fill="#E88980"/>
         <text x="755" y="875" font-size="14" fill="#526174">
-            Viselkedéses jellemzők (6)
+            {{ (t("behavioral_attributes") ~ " (6)") }}
         </text>
     `;
 

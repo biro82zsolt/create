@@ -529,7 +529,7 @@ def get_player_detail_context(
     major_coach_differences = []
 
     if current_assessments:
-        for label_hu, attribute_key, _label_en in PERFORMANCE_ATTRIBUTES:
+        for label_hu, attribute_key, label_en in PERFORMANCE_ATTRIBUTES:
             performance_values = []
             potential_values = []
             coach_values = []
@@ -567,6 +567,7 @@ def get_player_detail_context(
 
             item = {
                 "label": label_hu,
+                "label_en": label_en,
                 "key": attribute_key,
                 "coaches": coach_values,
                 "performance_average": (

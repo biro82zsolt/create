@@ -1,6 +1,7 @@
 # apps/performance/app.py
 
 import os
+from urllib.parse import urlparse
 
 from flask import Flask, jsonify, render_template, request, redirect, url_for, session, flash
 
@@ -8,6 +9,8 @@ from .routes import performance_bp
 from .models import (
     db,
 )
+
+from .translations import t
 
 from .services import (
     analyze_assessment,
@@ -21,6 +24,8 @@ BASE_DIR = os.path.dirname(__file__)
 
 app = Flask(__name__)
 
+app.jinja_env.globals["t"] = t
+
 app.secret_key = os.environ.get(
     "FLASK_SECRET_KEY"
 )
@@ -29,7 +34,6 @@ if not app.secret_key:
     raise RuntimeError(
         "FLASK_SECRET_KEY nincs beállítva."
     )
-
 
 # ---------------------------------------------------------
 # DATABASE
@@ -81,7 +85,9 @@ def login():
         password = request.form.get("password", "")
 
         if login_coach(username, password):
+            selected_language = session.get("language", "hu")
             session.clear()
+            session["language"] = selected_language
             session["auth_role"] = "coach"
             session["auth_username"] = username
             return redirect ("/performance/")
@@ -98,7 +104,9 @@ def admin_login():
         password = request.form.get("password", "")
 
         if login_admin(username, password):
+            selected_language = session.get("language", "hu")
             session.clear()
+            session["language"] = selected_language
             session["auth_role"] = "admin"
             session["auth_username"] = username
             return redirect ("/performance/admin/")
@@ -110,14 +118,41 @@ def admin_login():
 
 @app.get("/logout")
 def logout():
+    selected_language = session.get("language", "hu")
     session.clear()
+    session["language"] = selected_language
     return redirect(url_for("login"))
 
 
 @app.get("/admin/logout")
 def admin_logout():
+    selected_language = session.get("language", "hu")
     session.clear()
+    session["language"] = selected_language
     return redirect(url_for("admin_login"))
+
+
+@app.post("/language")
+def set_language():
+    """Store the selected UI language in the current session."""
+    language = request.form.get("language", "hu").lower()
+    if language not in {"hu", "en"}:
+        language = "hu"
+
+    session["language"] = language
+
+    target = request.form.get("next", "")
+    parsed_target = urlparse(target)
+    if target.startswith("/") and not target.startswith("//") and not parsed_target.netloc:
+        return redirect(target)
+
+    referrer = request.referrer
+    if referrer:
+        parsed_referrer = urlparse(referrer)
+        if parsed_referrer.netloc == request.host:
+            return redirect(referrer)
+
+    return redirect(url_for("performance.dashboard"))
 
 
 @app.before_request
@@ -125,7 +160,7 @@ def protect_non_admin_routes():
     endpoint = request.endpoint or ""
     path = request.path
 
-    public = {"login", "admin_login", "logout", "admin_logout", "static"}
+    public = {"login", "admin_login", "logout", "admin_logout", "set_language", "static"}
     if endpoint in public:
         return None
 

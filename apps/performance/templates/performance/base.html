@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="hu">
+<html lang="{{ session.get('language', 'hu') }}">
 <head>
     <meta charset="utf-8">
 
@@ -327,36 +327,107 @@
     color: #6b7280;
     font-size: 0.9rem;
 }
+
+        .header-inner {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .brand-link {
+            white-space: nowrap;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .language-switch {
+            display: inline-flex;
+            align-items: center;
+            gap: 2px;
+            padding: 3px;
+            border: 1px solid rgba(255, 255, 255, 0.35);
+            border-radius: 8px;
+        }
+
+        .language-button {
+            padding: 6px 9px;
+            border: 0;
+            border-radius: 5px;
+            background: transparent;
+            color: white;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .language-button.active {
+            background: white;
+            color: #111827;
+        }
+
+        .role-label {
+            font-size: 14px;
+        }
+
+        @media (max-width: 560px) {
+            header {
+                padding: 16px;
+            }
+
+            main {
+                padding: 20px 16px;
+            }
+
+            .header-inner,
+            .header-actions {
+                align-items: flex-start;
+            }
+        }
+
     </style>
 </head>
 
 <body>
 
 <header>
-    <div style="display: flex; justify-content: space-between; align-items: center;">
+    <div class="header-inner">
 
-        <a href="{{ url_for('performance.dashboard') }}">
+        <a href="{{ url_for('performance.dashboard') }}" class="brand-link">
             Performance & Potential
         </a>
 
-        {% if session.get("auth_role") %}
-            <div style="display: flex; align-items: center; gap: 16px;">
+        <div class="header-actions">
+            <form method="POST" action="{{ url_for('set_language') }}" class="language-switch" aria-label="Language selector">
+                <input type="hidden" name="next" value="{{ request.script_root }}{{ request.full_path if request.query_string else request.path }}">
+                <button type="submit" name="language" value="hu"
+                        class="language-button {% if session.get('language', 'hu') == 'hu' %}active{% endif %}"
+                        aria-pressed="{{ 'true' if session.get('language', 'hu') == 'hu' else 'false' }}">HU</button>
+                <button type="submit" name="language" value="en"
+                        class="language-button {% if session.get('language', 'hu') == 'en' %}active{% endif %}"
+                        aria-pressed="{{ 'true' if session.get('language', 'hu') == 'en' else 'false' }}">EN</button>
+            </form>
 
-                <span style="font-size: 14px;">
+            {% if session.get("auth_role") %}
+                <span class="role-label">
                     {% if session.get("auth_role") == "admin" %}
-                        Admin
+                        {{ t("admin") }}
                     {% else %}
-                        Edző
+                        {{ t("coach") }}
                     {% endif %}
                 </span>
 
-                <a href="{{ url_for('logout') }}"
-                   class="btn btn-danger">
-                    Kijelentkezés
+                <a href="{{ url_for('logout') }}" class="btn btn-danger">
+                    {{ t("logout") }}
                 </a>
-
-            </div>
-        {% endif %}
+            {% endif %}
+        </div>
 
     </div>
 </header>

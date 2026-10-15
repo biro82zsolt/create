@@ -4,7 +4,7 @@ PERFORMANCE_ATTRIBUTES = [
     ("Döntéshozatal", "decision_making", "Decision making"),
     ("Támogatójáték", "support_play", "Support play"),
     ("Játék olvasása", "reading_play", "Reading play"),
-    ("Labdavesztés utáni reakció", "reaction_to_losing_ball", "Reaction"),
+    ("Labdavesztés utáni reakció", "reaction_to_losing_ball", "Reaction to losing ball"),
 
     ("Labdakontroll", "ball_control", "Ball control"),
     ("Nyomás alatti átvétel", "receiving_under_pressure", "Receiving"),
@@ -25,7 +25,7 @@ PERFORMANCE_ATTRIBUTES = [
     ("Versenyszellem", "competitive_edge", "Competitive edge"),
     ("Bátorság labdával", "bravery_on_ball", "Bravery on ball"),
     ("Bátorság labda nélkül", "bravery_without_ball", "Bravery without ball"),
-    ("Érzelemkontroll", "control", "Control"),
+    ("Érzelemkontroll", "control", "Emotional control"),
     ("Koncentráció", "concentration", "Concentration"),
     ("Kommunikáció", "communication", "Communication"),
 ]

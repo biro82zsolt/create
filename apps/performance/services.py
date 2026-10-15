@@ -637,7 +637,7 @@ def calculate_player_insights(
 
     differences = []
 
-    for label, code, _ in attributes:
+    for label, code, label_en in attributes:
         player_value = player_attributes.get(code)
         team_value = team_attributes.get(code)
 
@@ -651,6 +651,7 @@ def calculate_player_insights(
 
         differences.append({
             "label": label,
+            "label_en": label_en,
             "code": code,
             "player_value": round(player_value, 2),
             "team_value": round(team_value, 2),
