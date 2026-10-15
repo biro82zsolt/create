@@ -520,6 +520,82 @@ def get_player_detail_context(
         })
 
     # -----------------------------------------------------
+    # COACH CONSENSUS / DIFFERENCES BY ATTRIBUTE
+    # -----------------------------------------------------
+    # A 2.0 pontos vagy nagyobb tartományt emeljük ki a fő adatlapon.
+    # A részletes ablak minden attribútumot megmutat, akkor is, ha
+    # egy régebbi értékelésben még nincs attribútumszintű Potential adat.
+    coach_consensus = []
+    major_coach_differences = []
+
+    if current_assessments:
+        for label_hu, attribute_key, _label_en in PERFORMANCE_ATTRIBUTES:
+            performance_values = []
+            potential_values = []
+            coach_values = []
+
+            for assessment in current_assessments:
+                performance_value = getattr(assessment, attribute_key, None)
+                potential_value = getattr(assessment, f"potential_{attribute_key}", None)
+                coach_name = assessment.coach.name if assessment.coach else "Ismeretlen edző"
+
+                if performance_value is not None:
+                    performance_values.append(float(performance_value))
+                if potential_value is not None:
+                    potential_values.append(float(potential_value))
+
+                coach_values.append({
+                    "coach_name": coach_name,
+                    "performance": (
+                        float(performance_value)
+                        if performance_value is not None else None
+                    ),
+                    "potential": (
+                        float(potential_value)
+                        if potential_value is not None else None
+                    ),
+                })
+
+            performance_range = (
+                max(performance_values) - min(performance_values)
+                if len(performance_values) >= 2 else None
+            )
+            potential_range = (
+                max(potential_values) - min(potential_values)
+                if len(potential_values) >= 2 else None
+            )
+
+            item = {
+                "label": label_hu,
+                "key": attribute_key,
+                "coaches": coach_values,
+                "performance_average": (
+                    sum(performance_values) / len(performance_values)
+                    if performance_values else None
+                ),
+                "performance_range": performance_range,
+                "performance_count": len(performance_values),
+                "potential_average": (
+                    sum(potential_values) / len(potential_values)
+                    if potential_values else None
+                ),
+                "potential_range": potential_range,
+                "potential_count": len(potential_values),
+            }
+            coach_consensus.append(item)
+
+            ranges = [value for value in (performance_range, potential_range) if value is not None]
+            max_range = max(ranges) if ranges else 0
+            if max_range >= 2.0:
+                item["max_range"] = max_range
+                major_coach_differences.append(item)
+
+        major_coach_differences.sort(
+            key=lambda item: item["max_range"],
+            reverse=True,
+        )
+
+    # -----------------------------------------------------
     # TREND PERIODS
     # -----------------------------------------------------
 
@@ -594,6 +670,9 @@ def get_player_detail_context(
         "available_periods": period_results,
 
         "assessments": assessment_results,
+
+        "coach_consensus": coach_consensus,
+        "major_coach_differences": major_coach_differences,
 
         # Az aktuális adatlap továbbra is ezt használja
         "aggregated": aggregated_result,
@@ -1274,23 +1353,9 @@ def assessment_save():
             scores["communication"]
         ),
 
-        # Legacy Potential mezők: kompatibilitás a régi adatbázissal.
-        tactical_potential=sum(
-            float(scores[f"potential_{q['code']}"])
-            for q in get_questions_by_category("tactical")
-        ) / len(get_questions_by_category("tactical")),
-
-        technical_potential=sum(
-            float(scores[f"potential_{q['code']}"])
-            for q in get_questions_by_category("technical")
-        ) / len(get_questions_by_category("technical")),
-
-        behavioural_potential=sum(
-            float(scores[f"potential_{q['code']}"])
-            for q in get_questions_by_category("behaviour")
-        ) / len(get_questions_by_category("behaviour")),
-
-        # Potential: mind a 26 attribútum értékének mentése.
+        # Potential: persist all 26 attribute-level ratings.
+        # The question codes already match the Assessment model columns,
+        # e.g. "potential_finding_space".
         **{
             question["code"]: float(scores[question["code"]])
             for question in get_questions_by_category("potential")
@@ -1664,7 +1729,6 @@ def merge_duplicate_players():
         )
     )
 
-
 @performance_bp.get("/players/<int:player_id>/pdf")
 def player_pdf(player_id):
     player = db.session.get(Player, player_id)
@@ -1672,13 +1736,7 @@ def player_pdf(player_id):
     if not player:
         return "Player not found", 404
 
-    period_id = request.args.get("period_id", type=int)
-
-    context = get_player_detail_context(
-        player,
-        view="current",
-        period_id=period_id,
-    )
+    context = get_player_detail_context(player)
 
     if not context["assessments"]:
         flash(
@@ -1688,8 +1746,7 @@ def player_pdf(player_id):
         return redirect(
             url_for(
                 "performance.player_detail",
-                player_id=player_id,
-                period_id=period_id,
+                player_id=player_id
             )
         )
 
@@ -1712,7 +1769,6 @@ def player_pdf(player_id):
         as_attachment=True,
         download_name=filename,
     )
-
 
 # ---------------------------------------------------------
 # EXCEL EXPORTS

@@ -62,7 +62,6 @@ db.init_app(app)
 
 with app.app_context():
     print("APP FILE:", os.path.abspath(__file__))
-    print("DATABASE URI:", app.config["SQLALCHEMY_DATABASE_URI"])
 
     db.create_all()
     migrate_assessment_potential_columns()

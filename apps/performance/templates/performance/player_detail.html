@@ -343,6 +343,124 @@
         font-size: 24px;
     }
 
+    .coach-difference-list {
+        display: grid;
+        gap: 10px;
+        margin: 16px 0;
+    }
+
+    .coach-difference-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 14px;
+        padding: 12px 14px;
+        border: 1px solid #f2d5a0;
+        border-radius: 10px;
+        background: #fffbeb;
+    }
+
+    .coach-difference-value {
+        font-weight: 700;
+        white-space: nowrap;
+    }
+
+    .consensus-actions {
+        display: flex;
+        justify-content: flex-end;
+        margin-top: 16px;
+    }
+
+    .consensus-button {
+        border: 1px solid #2F6FED;
+        border-radius: 9px;
+        padding: 10px 15px;
+        background: #2F6FED;
+        color: white;
+        font-weight: 600;
+        cursor: pointer;
+    }
+
+    .consensus-modal {
+        position: fixed;
+        inset: 0;
+        z-index: 2000;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        background: rgba(15, 23, 42, 0.62);
+    }
+
+    .consensus-modal.is-open { display: flex; }
+
+    .consensus-modal-panel {
+        width: min(1200px, 100%);
+        max-height: 88vh;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        background: white;
+        color: #172033;
+        border-radius: 14px;
+        box-shadow: 0 20px 60px rgba(0,0,0,.25);
+    }
+
+    .consensus-modal-header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 20px 22px;
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+    .consensus-modal-header h2 { margin: 0 0 5px; }
+
+    .consensus-modal-close {
+        border: 0;
+        background: transparent;
+        font-size: 28px;
+        line-height: 1;
+        cursor: pointer;
+        color: #475467;
+    }
+
+    .consensus-modal-body { overflow: auto; padding: 16px 22px 22px; }
+
+    .consensus-table-wrap { overflow-x: auto; }
+
+    .consensus-table {
+        width: 100%;
+        min-width: 760px;
+        border-collapse: collapse;
+        font-size: 13px;
+    }
+
+    .consensus-table th, .consensus-table td {
+        padding: 10px 12px;
+        border-bottom: 1px solid #e5e7eb;
+        text-align: right;
+        white-space: nowrap;
+    }
+
+    .consensus-table th:first-child, .consensus-table td:first-child {
+        text-align: left;
+        position: sticky;
+        left: 0;
+        background: white;
+    }
+
+    .consensus-table thead th { background: #f3f6f8; }
+    .consensus-table .consensus-highlight { background: #fffbeb; font-weight: 700; }
+    .consensus-muted { color: #98a2b3; }
+
+    @media (max-width: 640px) {
+        .consensus-modal { padding: 8px; }
+        .consensus-modal-header, .consensus-modal-body { padding: 14px; }
+        .coach-difference-row { align-items: flex-start; flex-direction: column; }
+    }
+
     .back-link {
         margin-top: 20px;
     }
@@ -788,11 +906,7 @@
 
             <div>
                 <span class="mapping-badge">
-                    {% if aggregated.mapping %}
-                        {{ aggregated.mapping.name_hu }}
-                    {% else %}
-                        Nincs elegendő Potential-adat
-                    {% endif %}
+                    {{ aggregated.mapping.name_hu }}
                 </span>
             </div>
 
@@ -829,11 +943,7 @@
                 <small>Potential</small>
 
                 <div class="score-value">
-                    {% if aggregated.scores.potential is not none %}
-                        {{ "%.2f"|format(aggregated.scores.potential) }}
-                    {% else %}
-                        —
-                    {% endif %}
+                    {{ "%.2f"|format(aggregated.scores.potential) }}
                 </div>
 
             </div>
@@ -873,7 +983,7 @@
                             {% for cell in row %}
 
                                 <div class="mapping-cell
-                                    {% if aggregated.mapping and aggregated.mapping.code == cell.code %}
+                                    {% if aggregated.mapping.code == cell.code %}
                                         mapping-cell-active
                                     {% endif %}
                                     mapping-{{ cell.code }}">
@@ -882,7 +992,7 @@
                                         {{ cell.name_hu }}
                                     </div>
 
-                                    {% if aggregated.mapping and aggregated.mapping.code == cell.code %}
+                                    {% if aggregated.mapping.code == cell.code %}
 
                                         <div class="mapping-current">
                                             ● Jelenlegi kategória
@@ -1034,7 +1144,6 @@
         {% endfor %}
 
     </div>
-
 <!-- ========================================================= -->
 <!-- JÁTÉKOSPROFIL -->
 <!-- ========================================================= -->
@@ -1056,11 +1165,7 @@
             </div>
 
             <div class="profile-value">
-                {% if aggregated.mapping %}
-                    {{ aggregated.mapping.name_hu }}
-                {% else %}
-                    Nincs elegendő Potential-adat
-                {% endif %}
+                {{ aggregated.mapping.name_hu }}
             </div>
 
         </div>
@@ -1239,6 +1344,97 @@
 
     <div class="dashboard-card">
 
+        <h2>Edzői értékelések közötti eltérések</h2>
+        <p class="card-subtitle">A legalább 2 pontos különbségek jelennek meg a jelenlegi mérési időszakban.</p>
+
+        {% if major_coach_differences %}
+            <div class="coach-difference-list">
+                {% for item in major_coach_differences %}
+                    <div class="coach-difference-row">
+                        <div>
+                            <strong>{{ item.label }}</strong>
+                            <div class="card-subtitle" style="margin:4px 0 0 0;">
+                                {% if item.performance_range is not none and item.performance_range >= 2.0 %}
+                                    Performance eltérés: {{ "%.1f"|format(item.performance_range) }} pont
+                                {% endif %}
+                                {% if item.performance_range is not none and item.performance_range >= 2.0 and item.potential_range is not none and item.potential_range >= 2.0 %} · {% endif %}
+                                {% if item.potential_range is not none and item.potential_range >= 2.0 %}
+                                    Potential eltérés: {{ "%.1f"|format(item.potential_range) }} pont
+                                {% endif %}
+                            </div>
+                        </div>
+                        <span class="coach-difference-value">Max. {{ "%.1f"|format(item.max_range) }} pont</span>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p class="insight-empty">Nincs legalább 2 pontos eltérés a rendelkezésre álló edzői értékelések között, vagy még nincs összehasonlítható adat.</p>
+        {% endif %}
+
+        <div class="consensus-actions">
+            <button type="button" class="consensus-button" onclick="openCoachConsensus()">
+                Összes attribútum és edzői konszenzus
+            </button>
+        </div>
+
+    </div>
+
+    <div class="consensus-modal" id="coachConsensusModal" aria-hidden="true" onclick="closeCoachConsensusOnBackdrop(event)">
+        <section class="consensus-modal-panel" role="dialog" aria-modal="true" aria-labelledby="coachConsensusTitle">
+            <header class="consensus-modal-header">
+                <div>
+                    <h2 id="coachConsensusTitle">Attribútumok és edzői konszenzus</h2>
+                    <p class="card-subtitle">Az átlag a rendelkezésre álló értékelésekből készül; a hiányzó Potential értékek nem számítanak bele.</p>
+                </div>
+                <button type="button" class="consensus-modal-close" aria-label="Bezárás" onclick="closeCoachConsensus()">&times;</button>
+            </header>
+            <div class="consensus-modal-body">
+                {% if coach_consensus %}
+                    <div class="consensus-table-wrap">
+                        <table class="consensus-table">
+                            <thead>
+                                <tr>
+                                    <th rowspan="2">Attribútum</th>
+                                    {% for item in assessments %}
+                                        <th colspan="2">{{ item.assessment.coach.name if item.assessment.coach else "Ismeretlen edző" }}</th>
+                                    {% endfor %}
+                                    <th colspan="2">Konszenzusátlag</th>
+                                    <th colspan="2">Eltérés (min–max)</th>
+                                </tr>
+                                <tr>
+                                    {% for item in assessments %}
+                                        <th>Perf.</th><th>Pot.</th>
+                                    {% endfor %}
+                                    <th>Perf.</th><th>Pot.</th>
+                                    <th>Perf.</th><th>Pot.</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in coach_consensus %}
+                                    <tr>
+                                        <td>{{ item.label }}</td>
+                                        {% for coach in item.coaches %}
+                                            <td>{{ "%.1f"|format(coach.performance) if coach.performance is not none else "—" }}</td>
+                                            <td>{{ "%.1f"|format(coach.potential) if coach.potential is not none else "—" }}</td>
+                                        {% endfor %}
+                                        <td class="consensus-highlight">{{ "%.2f"|format(item.performance_average) if item.performance_average is not none else "—" }}</td>
+                                        <td class="consensus-highlight">{{ "%.2f"|format(item.potential_average) if item.potential_average is not none else "—" }}</td>
+                                        <td class="{% if item.performance_range is not none and item.performance_range >= 2.0 %}consensus-highlight{% endif %}">{{ "%.1f"|format(item.performance_range) if item.performance_range is not none else "—" }}</td>
+                                        <td class="{% if item.potential_range is not none and item.potential_range >= 2.0 %}consensus-highlight{% endif %}">{{ "%.1f"|format(item.potential_range) if item.potential_range is not none else "—" }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <p>Még nincs megjeleníthető edzői értékelés.</p>
+                {% endif %}
+            </div>
+        </section>
+    </div>
+
+    <div class="dashboard-card">
+
         <h2>Edzői értékelések</h2>
 
         <div class="card-subtitle">
@@ -1279,11 +1475,7 @@
                     <div>
 
                         <strong>
-                            {% if result.mapping %}
-                                {{ result.mapping.name_hu }}
-                            {% else %}
-                                Nincs elegendő Potential-adat
-                            {% endif %}
+                            {{ result.mapping.name_hu }}
                         </strong>
 
                     </div>
@@ -1315,11 +1507,9 @@
                         <br>
 
                         <strong>
-                            {% if result.scores.potential is not none %}
-                                {{ "%.2f"|format(result.scores.potential) }}
-                            {% else %}
-                                —
-                            {% endif %}
+                            {{ "%.2f"|format(
+                                result.scores.potential
+                            ) }}
                         </strong>
 
                     </div>
@@ -1361,38 +1551,6 @@
                             result.scores.behaviour
                         ) }}
 
-                    </div>
-
-                    <div class="assessment-score">
-                        <small>Taktika – támadás</small>
-                        <br>
-                        <strong>
-                            {{ "%.2f"|format(result.scores.tactical_attacking) }}
-                        </strong>
-                    </div>
-
-                    <div class="assessment-score">
-                        <small>Taktika – védekezés</small>
-                        <br>
-                        <strong>
-                            {{ "%.2f"|format(result.scores.tactical_defending) }}
-                        </strong>
-                    </div>
-
-                    <div class="assessment-score">
-                        <small>Technika – támadás</small>
-                        <br>
-                        <strong>
-                            {{ "%.2f"|format(result.scores.technical_attacking) }}
-                        </strong>
-                    </div>
-
-                    <div class="assessment-score">
-                        <small>Technika – védekezés</small>
-                        <br>
-                        <strong>
-                            {{ "%.2f"|format(result.scores.technical_defending) }}
-                        </strong>
                     </div>
 
                 </div>
@@ -1441,12 +1599,10 @@
         + Új értékelés
     </a>
 
-
     <a href="{{ url_for(
-            'performance.player_pdf',
-            player_id=player.id,
-            period_id=current_period.id if current_period else none
-        ) }}"
+        'performance.player_pdf',
+        player_id=player.id
+    ) }}"
        class="btn btn-secondary">
         ↓ PDF letöltése
     </a>
@@ -1511,13 +1667,7 @@
                     <tr>
                         <td class="trend-period">{{ item.period.name }}</td>
                         <td class="trend-score">{{ "%.2f"|format(item.result.scores.performance) }}</td>
-                        <td class="trend-score">
-                            {% if item.result.scores.potential is not none %}
-                                {{ "%.2f"|format(item.result.scores.potential) }}
-                            {% else %}
-                                —
-                            {% endif %}
-                        </td>
+                        <td class="trend-score">{{ "%.2f"|format(item.result.scores.potential) }}</td>
                         <td>{% if item.result.mapping %}<span class="trend-category" style="color: {{ item.result.mapping.color }};">{{ item.result.mapping.name_hu }}</span>{% else %}—{% endif %}</td>
                         <td>{{ "%.2f"|format(item.result.scores.tactical) }}</td>
                         <td>{{ "%.2f"|format(item.result.scores.technical) }}</td>
@@ -1595,7 +1745,7 @@
                     {% for item in trend_results %}
                     {
                         x: {{ item.result.scores.performance|tojson }},
-                        y: {{ (item.result.scores.potential if item.result.scores.potential is not none else none)|tojson }},
+                        y: {{ item.result.scores.potential|tojson }},
                         period: {{ item.period.name|tojson }},
                         category: {{ (item.result.mapping.name_hu if item.result.mapping else 'Nincs kategória')|tojson }}
                     }{% if not loop.last %},{% endif %}
@@ -2382,6 +2532,32 @@ document.addEventListener("DOMContentLoaded", function () {
 </script>
 
 <script>
+function openCoachConsensus() {
+    const modal = document.getElementById("coachConsensusModal");
+    if (!modal) return;
+    modal.classList.add("is-open");
+    modal.setAttribute("aria-hidden", "false");
+    document.body.style.overflow = "hidden";
+}
+
+function closeCoachConsensus() {
+    const modal = document.getElementById("coachConsensusModal");
+    if (!modal) return;
+    modal.classList.remove("is-open");
+    modal.setAttribute("aria-hidden", "true");
+    document.body.style.overflow = "";
+}
+
+function closeCoachConsensusOnBackdrop(event) {
+    if (event.target && event.target.id === "coachConsensusModal") {
+        closeCoachConsensus();
+    }
+}
+
+document.addEventListener("keydown", function(event) {
+    if (event.key === "Escape") closeCoachConsensus();
+});
+
 function changePeriod(periodId) {
 
     const url = new URL(
