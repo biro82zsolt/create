@@ -40,6 +40,17 @@ from .scoring import (
 
 from .mapping import get_mapping_grid
 from .constants import PERFORMANCE_ATTRIBUTES
+from .position_profiles import (
+    POSITION_LABELS,
+    POSITION_LABELS_HU,
+    rank_positions,
+    score_position_fit,
+)
+
+from .translations import t
+
+
+
 from io import BytesIO
 from datetime import datetime
 from .auth import is_admin
@@ -127,7 +138,6 @@ def create_team():
         url_for("performance.teams")
     )
 
-
 # ---------------------------------------------------------
 # TEAM PLAYERS
 # ---------------------------------------------------------
@@ -139,22 +149,37 @@ def team_detail(team_id):
     if not team:
         return "Team not found", 404
 
+    # -----------------------------------------------------
+    # JÁTÉKOS HOZZÁADÁSA
+    # -----------------------------------------------------
+
     if request.method == "POST":
 
         player_id = request.form.get("player_id", type=int)
-
         player = db.session.get(Player, player_id)
 
         if player and player not in team.roster_players:
             team.roster_players.append(player)
             db.session.commit()
 
+        # A nézet beállításainak megőrzése hozzáadás után.
         return redirect(
             url_for(
                 "performance.team_detail",
                 team_id=team.id,
+                period_id=request.form.get("period_id", type=int),
+                max_positions=request.form.get(
+                    "max_positions",
+                    default=3,
+                    type=int,
+                ),
+                category=request.form.get("category", ""),
             )
         )
+
+    # -----------------------------------------------------
+    # CSAPATTAGOK ÉS HOZZÁADHATÓ JÁTÉKOSOK
+    # -----------------------------------------------------
 
     roster_player_ids = {
         player.id
@@ -185,13 +210,275 @@ def team_detail(team_id):
         ),
     )
 
+    # -----------------------------------------------------
+    # KÖZÖS MÉRÉSI IDŐSZAK
+    # A team_matrix() függvényben használt lekérdezés alapján.
+    # -----------------------------------------------------
+
+    period_id = request.args.get("period_id", type=int)
+    category_code = request.args.get("category", "").strip()
+
+    periods = (
+        AssessmentPeriod.query
+        .join(
+            Assessment,
+            Assessment.period_id == AssessmentPeriod.id,
+        )
+        .join(
+            Player,
+            Assessment.player_id == Player.id,
+        )
+        .filter(
+            Player.roster_teams.any(Team.id == team.id)
+        )
+        .distinct()
+        .order_by(
+            AssessmentPeriod.start_date.desc(),
+            AssessmentPeriod.id.desc(),
+        )
+        .all()
+    )
+
+    available_period_ids = {
+        period.id
+        for period in periods
+    }
+
+    # Ha nincs kiválasztva időszak, vagy a kiválasztott időszak
+    # már nem érhető el ehhez a csapathoz, a legfrissebbet használjuk.
+    if period_id not in available_period_ids:
+        period_id = periods[0].id if periods else None
+
+    # -----------------------------------------------------
+    # PERFORMANCE × POTENTIAL MÁTRIX
+    # A team_matrix() meglévő adatlogikájával egyezően.
+    # -----------------------------------------------------
+
+    mapping_grid = get_mapping_grid()
+
+    category_lookup = {
+        cell["code"]: cell
+        for row in mapping_grid
+        for cell in row
+    }
+
+    # Először minden csapattaghoz elkészítjük az adott időszak
+    # összesített eredményét. Ebből számoljuk a kategóriaszámokat
+    # és a kategóriára kattintás után megjelenő játékoslistát.
+    all_matrix_player_rows = []
+
+    for player in roster_players:
+
+        assessments_query = Assessment.query.filter_by(
+            player_id=player.id
+        )
+
+        if period_id is not None:
+            assessments_query = assessments_query.filter_by(
+                period_id=period_id
+            )
+        else:
+            # Időszak nélkül nem jelenítünk meg más időszakból
+            # származó eredményt.
+            assessments_query = assessments_query.filter(
+                Assessment.id == -1
+            )
+
+        assessments = (
+            assessments_query
+            .order_by(Assessment.completed_at.desc())
+            .all()
+        )
+
+        result = (
+            aggregate_assessments(assessments)
+            if assessments
+            else None
+        )
+
+        mapping = result.get("mapping") if result else None
+
+        all_matrix_player_rows.append({
+            "player": player,
+            "result": result,
+            "mapping": mapping,
+        })
+
+    # A kategóriaszámok mindig a teljes csapat kiválasztott
+    # időszakra vonatkozó eredményeit mutatják, nem a szűrt listát.
+    category_counts = {
+        code: 0
+        for code in category_lookup
+    }
+
+    for row in all_matrix_player_rows:
+
+        mapping = row["mapping"]
+
+        if not mapping:
+            continue
+
+        code = mapping.get("code")
+
+        if code in category_counts:
+            category_counts[code] += 1
+
+    # A sablon ezt a változót használja a mátrix melletti listában.
+    # Kategóriaválasztás nélkül minden csapattag megjelenik;
+    # kategóriaválasztáskor csak a megfelelő játékosok.
+    if category_code:
+        matrix_player_rows = [
+            row
+            for row in all_matrix_player_rows
+            if (
+                row["mapping"]
+                and row["mapping"].get("code") == category_code
+            )
+        ]
+    else:
+        matrix_player_rows = all_matrix_player_rows
+
+    # -----------------------------------------------------
+    # POZÍCIÓILLESZKEDÉS
+    # Ugyanazt a period_id-t használjuk, mint a mátrixnál.
+    # -----------------------------------------------------
+
+    try:
+        max_positions = int(
+            request.args.get("max_positions", 3)
+        )
+    except (TypeError, ValueError):
+        max_positions = 3
+
+    if max_positions not in (1, 2, 3):
+        max_positions = 3
+
+    position_columns = [
+        {
+            "code": position_code,
+            "label": POSITION_LABELS[position_code],
+            "players": [],
+        }
+        for position_code in POSITION_LABELS
+    ]
+
+    for player in roster_players:
+
+        # A pozícióilleszkedés csak a közösen kiválasztott
+        # mérési időszak értékeléseiből készül.
+        if period_id is None:
+            continue
+
+        player_assessments = (
+            Assessment.query
+            .filter_by(
+                player_id=player.id,
+                period_id=period_id,
+            )
+            .order_by(Assessment.completed_at.desc())
+            .all()
+        )
+
+        if not player_assessments:
+            continue
+
+        selected_result = aggregate_assessments(
+            player_assessments
+        )
+
+        if not selected_result:
+            continue
+
+        attribute_scores = selected_result.get(
+            "attributes",
+            {},
+        )
+
+        if not attribute_scores:
+            continue
+
+        rankings = rank_positions(attribute_scores)
+
+        valid_rankings = [
+            item
+            for item in rankings
+            if item.get("overall_score") is not None
+        ][:max_positions]
+
+        for ranking in valid_rankings:
+
+            position_code = ranking.get("position")
+
+            column = next(
+                (
+                    col
+                    for col in position_columns
+                    if col["code"] == position_code
+                ),
+                None,
+            )
+
+            if column is not None:
+                column["players"].append({
+                    "player": player,
+                    "score": ranking["overall_score"],
+                })
+
+    # A legmagasabb illeszkedési pontszám kerüljön felülre.
+    for column in position_columns:
+        column["players"].sort(
+            key=lambda item: item["score"],
+            reverse=True,
+        )
+
+    position_row_count = max(
+        (
+            len(column["players"])
+            for column in position_columns
+        ),
+        default=0,
+    )
+
+    position_fit_text = {
+        "title": t("team_position_fit_title"),
+        "description": t("team_position_fit_description"),
+        "limit": t("team_position_fit_limit"),
+        "no_data": t("team_position_fit_no_data"),
+        "score": t("team_position_fit_score"),
+        "one": t("team_position_fit_one"),
+        "two": t("team_position_fit_two"),
+        "three": t("team_position_fit_three"),
+    }
+
+    # -----------------------------------------------------
+    # SABLON
+    # -----------------------------------------------------
+
     return render_template(
         "performance/team_detail.html",
+
+        # Csapatkezelés
         team=team,
         players=players,
         roster_players=roster_players,
-    )
 
+        # Közös mérési időszak
+        periods=periods,
+        selected_period_id=period_id,
+
+        # Performance × Potential mátrix
+        mapping_grid=mapping_grid,
+        selected_category=category_code,
+        category_counts=category_counts,
+        category_lookup=category_lookup,
+        matrix_player_rows=matrix_player_rows,
+
+        # Pozícióilleszkedés
+        position_columns=position_columns,
+        position_row_count=position_row_count,
+        max_positions=max_positions,
+        position_fit_text=position_fit_text,
+    )
 @performance_bp.post("/teams/<int:team_id>/remove-player/<int:player_id>")
 def remove_player_from_team(team_id, player_id):
 
@@ -529,7 +816,7 @@ def get_player_detail_context(
     major_coach_differences = []
 
     if current_assessments:
-        for label_hu, attribute_key, label_en in PERFORMANCE_ATTRIBUTES:
+        for label_hu, attribute_key, _label_en in PERFORMANCE_ATTRIBUTES:
             performance_values = []
             potential_values = []
             coach_values = []
@@ -567,7 +854,6 @@ def get_player_detail_context(
 
             item = {
                 "label": label_hu,
-                "label_en": label_en,
                 "key": attribute_key,
                 "coaches": coach_values,
                 "performance_average": (
@@ -658,6 +944,58 @@ def get_player_detail_context(
         )
 
     # -----------------------------------------------------
+    # POSITION FIT (first integration phase: game attributes only)
+    # -----------------------------------------------------
+    # Physical measurements are not yet stored/normalized, so we deliberately
+    # pass no physical scores. The UI labels these results as preliminary.
+    position_rankings = []
+    position_fit = None
+    selected_position = request.args.get("position", "").strip()
+
+    if aggregated_result and aggregated_result.get("attributes"):
+        attribute_scores = aggregated_result["attributes"]
+        position_rankings = rank_positions(attribute_scores)
+
+        valid_rankings = [
+            item for item in position_rankings
+            if item.get("overall_score") is not None
+        ]
+        if selected_position not in POSITION_LABELS:
+            selected_position = (
+                valid_rankings[0]["position"] if valid_rankings else ""
+            )
+
+        if selected_position in POSITION_LABELS:
+            position_fit = score_position_fit(
+                attribute_scores=attribute_scores,
+                position=selected_position,
+            )
+            position_fit["position_label"] = POSITION_LABELS_HU.get(
+                selected_position, position_fit["position_label"]
+            )
+            attribute_labels_hu = {
+                key: label_hu
+                for label_hu, key, _label_en in PERFORMANCE_ATTRIBUTES
+            }
+            attribute_labels_en = {
+                key: label_en
+                for _label_hu, key, label_en in PERFORMANCE_ATTRIBUTES
+            }
+
+            for item in position_fit["top_strengths"]:
+                item["label"] = attribute_labels_hu.get(item["code"], item["code"])
+                item["label_en"] = attribute_labels_en.get(item["code"], item["code"])
+
+            for item in position_fit["development_areas"]:
+                item["label"] = attribute_labels_hu.get(item["code"], item["code"])
+                item["label_en"] = attribute_labels_en.get(item["code"], item["code"])
+
+        for item in position_rankings:
+            item["label_hu"] = POSITION_LABELS_HU.get(
+                item["position"], POSITION_LABELS.get(item["position"], item["position"])
+            )
+
+    # -----------------------------------------------------
     # CONTEXT
     # -----------------------------------------------------
 
@@ -665,6 +1003,11 @@ def get_player_detail_context(
         "player": player,
 
         "view": view,
+        "position_labels": POSITION_LABELS,
+        "position_labels_hu": POSITION_LABELS_HU,
+        "selected_position": selected_position,
+        "position_fit": position_fit,
+        "position_rankings": position_rankings,
 
         "current_period": current_period,
 

@@ -177,6 +177,41 @@ TRANSLATIONS = {
         "behaviour_mental": "Viselkedés / mentális",
         "team_score": "csapat",
 
+        # Posztspecifikus illeszkedés
+        "position_fit_title": "Posztspecifikus illeszkedés",
+        "position_fit_description": "Előzetes eredmény a jelenlegi Performance-attribútumok alapján.",
+        "position_fit_physical_excluded": "A fizikai mérések még nincsenek beszámítva.",
+        "position_fit_select_role": "Vizsgált posztszerepkör",
+        "position_fit_view_profile": "Profil megtekintése",
+        "position_fit_score": "Játékprofil-illeszkedés / 10",
+        "position_fit_coverage": "Adatlefedettség",
+        "position_fit_evaluated_role": "Értékelt szerepkör",
+        "position_fit_strengths": "Erősségek a szerepkörhöz",
+        "position_fit_development": "Fejlesztési lehetőségek",
+        "position_fit_no_attribute_data": "Nincs elegendő attribútumadat.",
+        "position_fit_no_period": "A posztilleszkedés kiszámításához először rögzíteni kell legalább egy értékelési időszakot.",
+        "position_fit_comparison": "Posztprofilok összehasonlítása",
+        "position_fit_rank": "Hely",
+        "position_fit_role": "Posztszerepkör",
+        "position_fit_score_short": "Játékprofil-illeszkedés",
+        "position_fit_weight": "súly: {weight}",
+
+        # Csapatoldal – pozícióilleszkedési táblázat
+        "team_position_fit_title": "Játékos-illeszkedés posztonként",
+        "team_position_fit_description": (
+            "A játékosok posztonként, illeszkedési pontszám szerint "
+            "csökkenő sorrendben szerepelnek."
+        ),
+        "team_position_fit_limit": (
+            "Egy játékos legfeljebb ennyi poszton jelenjen meg"
+        ),
+        "team_position_fit_no_data": (
+            "Nincs elegendő értékelési adat az illeszkedési pontszám kiszámításához."
+        ),
+        "team_position_fit_score": "Illeszkedés",
+        "team_position_fit_one": "1 poszt",
+        "team_position_fit_two": "2 poszt",
+        "team_position_fit_three": "3 poszt",
     },
 
     "en": {
@@ -352,6 +387,38 @@ TRANSLATIONS = {
         "behaviour_mental": "Behaviour / mental",
         "team_score": "Team",
 
+        # Position-specific fit
+        "position_fit_title": "Position-Specific Fit",
+        "position_fit_description": "Preliminary result based on the current Performance attributes.",
+        "position_fit_physical_excluded": "Physical measurements are not yet included.",
+        "position_fit_select_role": "Position role to assess",
+        "position_fit_view_profile": "View profile",
+        "position_fit_score": "Playing profile fit / 10",
+        "position_fit_coverage": "Data coverage",
+        "position_fit_evaluated_role": "Assessed role",
+        "position_fit_strengths": "Strengths for this role",
+        "position_fit_development": "Development opportunities",
+        "position_fit_no_attribute_data": "Insufficient attribute data.",
+        "position_fit_no_period": "At least one assessment period must be recorded before position fit can be calculated.",
+        "position_fit_comparison": "Position Profile Comparison",
+        "position_fit_rank": "Rank",
+        "position_fit_role": "Position role",
+        "position_fit_score_short": "Playing profile fit",
+        "position_fit_weight": "weight: {weight}",
+
+        # Team page – position fit table
+        "team_position_fit_title": "Player fit by position",
+        "team_position_fit_description": (
+            "Players are ranked by fit score in each position."
+        ),
+        "team_position_fit_limit": "Maximum positions per player",
+        "team_position_fit_no_data": (
+            "Not enough assessment data to calculate a fit score."
+        ),
+        "team_position_fit_score": "Fit",
+        "team_position_fit_one": "1 position",
+        "team_position_fit_two": "2 positions",
+        "team_position_fit_three": "3 positions",
     },
 }
 

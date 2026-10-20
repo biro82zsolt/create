@@ -1,188 +1,554 @@
+
 {% extends "performance/base.html" %}
 
-{% block title %}
-    {{ team.name }}
-{% endblock %}
+{% block title %}{{ team.name }} – Performance & Potential{% endblock %}
 
 {% block content %}
+<style>
+    .team-section {
+        background: #fff;
+        border: 1px solid #e2e8f0;
+        border-radius: 14px;
+        padding: 22px;
+        margin-bottom: 24px;
+        box-shadow: 0 2px 8px #0f172a08;
+    }
 
-<h1>{{ team.name }}</h1>
+    .team-section h2 {
+        font-size: 1.25rem;
+        font-weight: 700;
+        margin-bottom: 8px;
+    }
 
-<div style="margin: 16px 0 24px;">
-    <a class="btn btn-primary" href="{{ url_for('performance.team_matrix', team_id=team.id) }}">Performance × Potential mátrix →</a>
-</div>
+    .team-muted {
+        color: #64748b;
+    }
 
-<div class="card">
+    .team-filter {
+        display: flex;
+        align-items: end;
+        gap: 16px;
+        flex-wrap: wrap;
+        padding: 16px;
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        margin: 20px 0 24px;
+    }
 
-    <h2>Játékosok importálása Excelből</h2>
+    .team-filter select {
+        min-width: 240px;
+    }
 
-    <p>
-        Az Excel fájl első sora tartalmazza az oszlopneveket.
+    .matrix-layout {
+        display: grid;
+        grid-template-columns: minmax(0, 1.1fr) minmax(280px, .9fr);
+        gap: 24px;
+        align-items: start;
+    }
+
+    .matrix-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 8px;
+    }
+
+    .matrix-cell {
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        min-height: 120px;
+        padding: 12px;
+        border: 2px solid transparent;
+        border-radius: 10px;
+        text-decoration: none;
+        color: #111827;
+        transition: transform .15s ease;
+    }
+
+    .matrix-cell:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px #00000012;
+    }
+
+    .matrix-cell.selected {
+        border-color: #111827;
+        box-shadow: 0 0 0 2px #fff, 0 0 0 4px #111827;
+    }
+
+    .matrix-cell strong {
+        font-size: .85rem;
+        line-height: 1.3;
+    }
+
+    .matrix-count {
+        font-size: 1.8rem;
+        font-weight: 700;
+        margin-top: 8px;
+    }
+
+    .matrix-player {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 0;
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+    .matrix-player:last-child {
+        border-bottom: 0;
+    }
+
+    .matrix-badge {
+        display: inline-block;
+        padding: 5px 9px;
+        border-radius: 999px;
+        font-size: .75rem;
+        font-weight: 700;
+    }
+
+    .position-fit-table-wrapper {
+        overflow-x: auto;
+        width: 100%;
+    }
+
+    .position-fit-table {
+        width: 100%;
+        min-width: 1000px;
+        table-layout: fixed;
+        border-collapse: collapse;
+        font-size: .9rem;
+    }
+
+    .position-fit-table th,
+    .position-fit-table td {
+        border: 1px solid #d5dce5;
+        padding: 11px;
+        vertical-align: top;
+        overflow-wrap: anywhere;
+    }
+
+    .position-fit-table th {
+        background: #edf2f7;
+        color: #243247;
+        text-align: center;
+        vertical-align: middle;
+        line-height: 1.35;
+    }
+
+    .position-fit-table tbody tr:nth-child(even) td {
+        background: #f8fafc;
+    }
+
+    .position-fit-player {
+        font-weight: 600;
+        text-decoration: none;
+    }
+
+    .position-fit-score {
+        display: block;
+        color: #475569;
+        margin-top: 5px;
+        font-size: .85rem;
+    }
+
+    .position-fit-empty {
+        color: #a0a8b3;
+        text-align: center;
+    }
+
+    @media (max-width: 900px) {
+        .matrix-layout {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @media (max-width: 560px) {
+        .team-section {
+            padding: 14px;
+        }
+
+        .matrix-grid {
+            gap: 5px;
+        }
+
+        .matrix-cell {
+            min-height: 100px;
+            padding: 8px;
+        }
+
+        .matrix-cell strong {
+            font-size: .75rem;
+        }
+
+        .matrix-count {
+            font-size: 1.4rem;
+        }
+    }
+</style>
+
+<h1 class="mb-1">{{ team.name }}</h1>
+<p class="team-muted">Csapatáttekintő – teljesítmény, potenciál és posztilleszkedés</p>
+
+{# KÖZÖS MÉRÉSI IDŐSZAKVÁLASZTÓ #}
+<form method="get"
+      action="{{ url_for('performance.team_detail', team_id=team.id) }}"
+      class="team-filter">
+
+    <div>
+        <label for="period_id" class="form-label fw-semibold">
+            Mérési időszak
+        </label>
+
+        <select id="period_id"
+                name="period_id"
+                class="form-select"
+                onchange="this.form.submit()">
+
+            {% for period in periods %}
+                <option value="{{ period.id }}"
+                    {% if period.id == selected_period_id %}selected{% endif %}>
+                    {{ period.name }}
+                </option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <input type="hidden"
+           name="max_positions"
+           value="{{ max_positions }}">
+
+    {% if selected_category %}
+        <input type="hidden"
+               name="category"
+               value="{{ selected_category }}">
+    {% endif %}
+</form>
+
+{# PERFORMANCE × POTENTIAL MÁTRIX #}
+<section class="team-section">
+    <h2>Performance × Potential mátrix</h2>
+    <p class="team-muted mb-4">
+        A kategóriák a kiválasztott mérési időszak eredményeit mutatják.
+        Kattints egy kategóriára a játékoslista szűréséhez.
     </p>
 
+    <div class="matrix-layout">
+        <div>
+            <div class="matrix-grid">
+                {% for row in mapping_grid %}
+                    {% for cell in row %}
+                        <a class="matrix-cell {% if selected_category == cell.code %}selected{% endif %}"
+                           href="{{ url_for(
+                               'performance.team_detail',
+                               team_id=team.id,
+                               period_id=selected_period_id,
+                               max_positions=max_positions,
+                               category='' if selected_category == cell.code else cell.code
+                           ) }}"
+                           style="background:{{ cell.color }};color:{% if cell.code in ['future_star', 'development_risk', 'underperforming', 'grafter'] %}#fff{% else %}#111827{% endif %}">
+
+                            <strong>{{ cell.name_hu }}</strong>
+                            <span class="matrix-count">
+                                {{ category_counts[cell.code] }}
+                            </span>
+                            <small>játékos</small>
+                        </a>
+                    {% endfor %}
+                {% endfor %}
+            </div>
+
+            {% if selected_category %}
+                <p class="mt-3 mb-0">
+                    <a href="{{ url_for(
+                        'performance.team_detail',
+                        team_id=team.id,
+                        period_id=selected_period_id,
+                        max_positions=max_positions
+                    ) }}">Kategóriaszűrés törlése</a>
+                </p>
+            {% endif %}
+        </div>
+
+        <div>
+            <h3 class="h5">
+                {% if selected_category and category_lookup.get(selected_category) %}
+                    {{ category_lookup[selected_category].name_hu }}
+                {% else %}
+                    Játékosok
+                {% endif %}
+            </h3>
+
+            <p class="team-muted">
+                {{ matrix_player_rows|length }} játékos a kiválasztott nézetben
+            </p>
+
+            {% if matrix_player_rows %}
+                {% for row in matrix_player_rows %}
+                    <div class="matrix-player">
+                        <div>
+                            <a href="{{ url_for('performance.player_detail', player_id=row.player.id) }}">
+                                <strong>{{ row.player.full_name }}</strong>
+                            </a>
+                            <br>
+                            <small class="team-muted">
+                                {{ row.player.player_code or ('ID: ' ~ row.player.id) }}
+                            </small>
+                        </div>
+
+                        <div class="text-end">
+                            {% if row.result and row.mapping %}
+                                <span class="matrix-badge"
+                                      style="background:{{ row.mapping.color }};color:{% if row.mapping.code in ['future_star', 'development_risk', 'underperforming', 'grafter'] %}#fff{% else %}#111827{% endif %}">
+                                    {{ row.mapping.name_hu }}
+                                </span>
+                                <br>
+                                <small class="team-muted">
+                                    Perf. {{ '%.2f'|format(row.result.scores.performance) }}
+                                    · Pot. {{ '%.2f'|format(row.result.scores.potential) }}
+                                </small>
+                            {% else %}
+                                <small class="team-muted">Nincs értékelés</small>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <p class="team-muted">Nincs játékos ebben a nézetben.</p>
+            {% endif %}
+        </div>
+    </div>
+</section>
+
+{# POZÍCIÓILLESZKEDÉS #}
+<section class="team-section">
+    <div class="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-3">
+
+        <div>
+            <h2>{{ position_fit_text.title }}</h2>
+            <p class="team-muted mb-0">
+                {{ position_fit_text.description }}
+            </p>
+        </div>
+
+        <form method="get"
+              action="{{ url_for('performance.team_detail', team_id=team.id) }}"
+              class="d-flex align-items-center gap-2 flex-wrap">
+
+            <input type="hidden"
+                   name="period_id"
+                   value="{{ selected_period_id or '' }}">
+
+            {% if selected_category %}
+                <input type="hidden"
+                       name="category"
+                       value="{{ selected_category }}">
+            {% endif %}
+
+            <label for="max_positions" class="form-label mb-0">
+                {{ position_fit_text.limit }}
+            </label>
+
+            <select id="max_positions"
+                    name="max_positions"
+                    class="form-select"
+                    onchange="this.form.submit()"
+                    style="width: auto; min-width: 150px;">
+
+                <option value="1"
+                    {% if max_positions == 1 %}selected{% endif %}>
+                    {{ position_fit_text.one }}
+                </option>
+
+                <option value="2"
+                    {% if max_positions == 2 %}selected{% endif %}>
+                    {{ position_fit_text.two }}
+                </option>
+
+                <option value="3"
+                    {% if max_positions == 3 %}selected{% endif %}>
+                    {{ position_fit_text.three }}
+                </option>
+            </select>
+        </form>
+
+    </div>
+
+    <div class="position-fit-table-wrapper">
+        <table class="table position-fit-table mb-0">
+            <thead>
+                <tr>
+                    {% for column in position_columns %}
+                        <th scope="col">{{ column.label }}</th>
+                    {% endfor %}
+                </tr>
+            </thead>
+
+            <tbody>
+                {% if position_row_count %}
+                    {% for row_index in range(position_row_count) %}
+                        <tr>
+                            {% for column in position_columns %}
+                                <td>
+                                    {% if row_index < column.players|length %}
+                                        {% set entry = column.players[row_index] %}
+
+                                        <a href="{{ url_for(
+                                            'performance.player_detail',
+                                            player_id=entry.player.id
+                                        ) }}"
+                                           class="position-fit-player">
+                                            {{ entry.player.last_name }}
+                                            {{ entry.player.first_name }}
+                                        </a>
+
+                                        <span class="position-fit-score">
+                                            {{ '%.2f'|format(entry.score) }}/10
+                                        </span>
+                                    {% else %}
+                                        <div class="position-fit-empty">—</div>
+                                    {% endif %}
+                                </td>
+                            {% endfor %}
+                        </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="{{ position_columns|length }}"
+                            class="text-center text-muted py-4">
+                            {{ position_fit_text.no_data }}
+                        </td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+</section>
+
+{# JÁTÉKOSOK IMPORTÁLÁSA #}
+<section class="team-section">
+    <h2>Játékosok importálása Excelből</h2>
+    <p>Az Excel fájl első sora tartalmazza az oszlopneveket.</p>
     <p>
         Elvárt oszlopok:
-        <strong>Last Name</strong>,
-        <strong>First Name</strong>
+        <strong>Last Name</strong>, <strong>First Name</strong>
     </p>
-
     <p>
         Opcionális:
-        <strong>Player ID</strong>,
-        <strong>Birth Date</strong>
+        <strong>Player ID</strong>, <strong>Birth Date</strong>
     </p>
 
-    <form
-        method="post"
-        enctype="multipart/form-data"
-        action="{{ url_for(
-        'performance.import_players_preview',
-        team_id=team.id
-        ) }}"
-    >
+    <form method="post"
+          enctype="multipart/form-data"
+          action="{{ url_for('performance.import_players_preview', team_id=team.id) }}"
+          class="d-flex flex-wrap gap-2 align-items-center">
+        <input type="hidden"
+       name="period_id"
+       value="{{ selected_period_id or '' }}">
 
-        <input
-            type="file"
-            name="file"
-            accept=".xlsx,.xls"
-            required
-        >
+<input type="hidden"
+       name="max_positions"
+       value="{{ max_positions }}">
 
-        <button type="submit">
+{% if selected_category %}
+    <input type="hidden"
+           name="category"
+           value="{{ selected_category }}">
+{% endif %}
+
+        <input type="file"
+               name="file"
+               accept=".xlsx,.xls"
+               class="form-control"
+               style="max-width:420px"
+               required>
+
+        <button type="submit" class="btn btn-primary">
             Excel feltöltése
         </button>
-
     </form>
+</section>
 
-</div>
-
-<div class="card">
-
+{# JÁTÉKOS HOZZÁADÁSA #}
+<section class="team-section">
     <h2>Játékos hozzáadása</h2>
 
     {% if players %}
+        <form method="post"
+              action="{{ url_for('performance.team_detail', team_id=team.id) }}"
+              class="d-flex flex-wrap gap-2">
 
-        <form
-            method="post"
-            action="{{ url_for(
-                'performance.team_detail',
-                team_id=team.id
-            ) }}"
-        >
-
-            <select name="player_id" required>
-
-                <option value="">
-                    — Válassz játékost —
-                </option>
+            <select name="player_id" class="form-select" style="max-width:420px" required>
+                <option value="">— Válassz játékost —</option>
 
                 {% for player in players %}
-
                     <option value="{{ player.id }}">
                         {{ player.full_name }}
-                        {% if player.birth_date %}
-                            ({{ player.birth_date.year }})
-                        {% endif %}
+                        {% if player.birth_date %}({{ player.birth_date.year }}){% endif %}
                         — ID: {{ player.id }}
                     </option>
-
                 {% endfor %}
-
             </select>
 
-            <button type="submit">
+            <button type="submit" class="btn btn-primary">
                 Játékos hozzáadása
             </button>
-
         </form>
-
     {% else %}
-
-        <p>
+        <p class="team-muted mb-0">
             Minden aktív játékos már szerepel ebben a csapatban,
             vagy még nincs játékos az adatbázisban.
         </p>
-
     {% endif %}
+</section>
 
-</div>
-
-<div class="card">
-
-    <h2>
-        Játékosok
-        ({{ roster_players|length }})
-    </h2>
+{# CSAPAT JÁTÉKOSAI #}
+<section class="team-section">
+    <h2>Játékosok ({{ roster_players|length }})</h2>
 
     {% if roster_players %}
-
-        <ul class="team-list">
-
+        <ul class="list-group list-group-flush">
             {% for player in roster_players %}
+                <li class="list-group-item px-0 d-flex justify-content-between align-items-center flex-wrap gap-2">
+                    <div>
+                        <a href="{{ url_for('performance.player_detail', player_id=player.id) }}">
+                            <strong>{{ player.full_name }}</strong>
+                        </a>
 
-                <li>
+                        {% if player.player_code %}
+                            <span class="team-muted"> — {{ player.player_code }}</span>
+                        {% endif %}
 
-                    <a href="{{ url_for(
-                        'performance.player_detail',
-                        player_id=player.id
-                    ) }}">
-                        <strong>
-                            {{ player.full_name }}
-                        </strong>
-                    </a>
+                        {% if player.birth_date %}
+                            <span class="team-muted"> — {{ player.birth_date }}</span>
+                        {% endif %}
 
-                    {% if player.player_code %}
-                        <span>
-                            — {{ player.player_code }}
-                        </span>
-                    {% endif %}
+                        <span class="team-muted"> — ID: {{ player.id }}</span>
+                    </div>
 
-                    {% if player.birth_date %}
-                        <span>
-                            — {{ player.birth_date }}
-                        </span>
-                    {% endif %}
-                        <span>
-                            — ID: {{ player.id }}
-                        </span>
-
-                    <form
-                        method="post"
-                        action="{{ url_for(
-                            'performance.remove_player_from_team',
-                            team_id=team.id,
-                            player_id=player.id
-                        ) }}"
-                        style="display: inline;"
-                    >
-
-                        <button type="submit">
+                    <form method="post"
+                          action="{{ url_for(
+                              'performance.remove_player_from_team',
+                              team_id=team.id,
+                              player_id=player.id
+                          ) }}">
+                        <button type="submit" class="btn btn-outline-danger btn-sm">
                             Eltávolítás
                         </button>
-
                     </form>
-
                 </li>
-
             {% endfor %}
-
         </ul>
-
     {% else %}
-
-        <p class="empty">
+        <p class="team-muted mb-0">
             Ehhez a csapathoz még nincs hozzárendelt játékos.
         </p>
-
     {% endif %}
-
-</div>
-
+</section>
 
 <p>
-    <a href="{{ url_for('performance.teams') }}">
-        ← Vissza a csapatokhoz
-    </a>
+    <a href="{{ url_for('performance.teams') }}"class="btn btn-secondary">← Vissza a csapatokhoz</a>
 </p>
 
 {% endblock %}

@@ -817,6 +817,46 @@
         }
     }
 
+
+    .position-fit-card {
+        margin: 0 0 24px;
+        padding: 22px;
+        border: 1px solid #D8DEE6;
+        border-radius: 14px;
+        background: #fff;
+    }
+    .position-fit-header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 16px;
+        flex-wrap: wrap;
+        margin-bottom: 14px;
+    }
+    .position-fit-header h2 { margin: 0 0 5px; }
+    .position-fit-note { color: #667085; font-size: 13px; margin: 0; }
+    .position-fit-form { display: flex; align-items: end; gap: 8px; flex-wrap: wrap; }
+    .position-fit-form label { display: block; font-size: 12px; font-weight: 700; margin-bottom: 5px; }
+    .position-fit-form select { min-width: 260px; max-width: 100%; padding: 9px 11px; border: 1px solid #D5DCE5; border-radius: 8px; background: #fff; }
+    .position-fit-form button { padding: 10px 14px; border: 0; border-radius: 8px; background: #2F6FED; color: #fff; font-weight: 700; cursor: pointer; }
+    .position-fit-summary { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin: 16px 0; }
+    .position-fit-metric { padding: 13px; background: #F5F7FA; border-radius: 10px; }
+    .position-fit-metric small { display: block; color: #667085; margin-bottom: 5px; }
+    .position-fit-metric strong { font-size: 24px; color: #172033; }
+    .position-fit-columns { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 18px; }
+    .position-fit-columns h3 { font-size: 15px; margin: 0 0 8px; }
+    .position-fit-list { margin: 0; padding-left: 20px; }
+    .position-fit-list li { margin: 5px 0; }
+    .position-ranking { width: 100%; border-collapse: collapse; margin-top: 18px; font-size: 13px; }
+    .position-ranking th, .position-ranking td { padding: 8px 10px; text-align: left; border-bottom: 1px solid #E6EAF0; }
+    .position-ranking th { color: #667085; font-weight: 700; }
+    .position-ranking tr.selected { background: #EEF4FF; font-weight: 700; }
+    @media (max-width: 650px) {
+        .position-fit-summary { grid-template-columns: 1fr; }
+        .position-fit-columns { grid-template-columns: 1fr; }
+        .position-fit-form { width: 100%; }
+        .position-fit-form select { min-width: 0; width: 100%; }
+    }
 </style>
 
 <div class="player-navigation">
@@ -1234,6 +1274,145 @@
     </div>
 
 </div>
+
+
+
+
+    <!-- ========================================================= -->
+    <!-- POSITION FIT -->
+    <!-- ========================================================= -->
+    <section id="position-fit" class="position-fit-card">
+        <div class="position-fit-header">
+            <div>
+                <h2>{{ t("position_fit_title") }}</h2>
+                <p class="position-fit-note">
+                    {{ t("position_fit_description") }}
+                    {{ t("position_fit_physical_excluded") }}
+                </p>
+            </div>
+
+            {% if position_labels_hu %}
+            <form class="position-fit-form" method="get" action="#position-fit">
+                <input type="hidden" name="view" value="current">
+                {% if current_period %}
+                <input type="hidden" name="period_id" value="{{ current_period.id }}">
+                {% endif %}
+
+                <div>
+                    <label for="position-fit-select">
+                        {{ t("position_fit_select_role") }}
+                    </label>
+                    <select id="position-fit-select" name="position">
+                        {% set role_labels = position_labels if session.get("language", "hu") == "en" else position_labels_hu %}
+                        {% for code, label in role_labels.items() %}
+                            <option value="{{ code }}" {% if selected_position == code %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <button type="submit">{{ t("position_fit_view_profile") }}</button>
+            </form>
+            {% endif %}
+        </div>
+
+        {% if position_fit %}
+            <div class="position-fit-summary">
+                <div class="position-fit-metric">
+                    <small>{{ t("position_fit_score") }}</small>
+                    <strong>{{ "%.2f"|format(position_fit.overall_score) if position_fit.overall_score is not none else "—" }}</strong>
+                </div>
+                <div class="position-fit-metric">
+                    <small>{{ t("position_fit_coverage") }}</small>
+                    <strong>{{ "%.0f"|format(position_fit.coverage_percent) }}%</strong>
+                </div>
+                <div class="position-fit-metric">
+                    <small>{{ t("position_fit_evaluated_role") }}</small>
+                    <strong style="font-size:16px">
+                        {{ (position_labels if session.get("language", "hu") == "en" else position_labels_hu).get(selected_position, position_fit.position_label) }}
+                    </strong>
+                </div>
+            </div>
+
+            {% if position_fit.notes %}
+                {% for note in position_fit.notes %}
+                    <p class="position-fit-note">{{ note }}</p>
+                {% endfor %}
+            {% endif %}
+
+            <div class="position-fit-columns">
+                <div>
+                    <h3>{{ t("position_fit_strengths") }}</h3>
+                    {% if position_fit.top_strengths %}
+                    <ol class="position-fit-list">
+                        {% for item in position_fit.top_strengths[:5] %}
+                        <li>
+                            {{ item.label_en if session.get('language', 'hu') == 'en' and item.label_en is defined else item.label }} —
+                            <strong>{{ "%.1f"|format(item.score) }}</strong>
+                            <span class="position-fit-note">
+                                ({{ t("position_fit_weight", weight=item.weight|int) }})
+                            </span>
+                        </li>
+                        {% endfor %}
+                    </ol>
+                    {% else %}
+                    <p class="position-fit-note">{{ t("position_fit_no_attribute_data") }}</p>
+                    {% endif %}
+                </div>
+
+                <div>
+                    <h3>{{ t("position_fit_development") }}</h3>
+                    {% if position_fit.development_areas %}
+                    <ol class="position-fit-list">
+                        {% for item in position_fit.development_areas[:5] %}
+                        <li>
+                            {{ item.label_en if session.get('language', 'hu') == 'en' and item.label_en is defined else item.label }} —
+                            <strong>{{ "%.1f"|format(item.score) }}</strong>
+                            <span class="position-fit-note">
+                                ({{ t("position_fit_weight", weight=item.weight|int) }})
+                            </span>
+                        </li>
+                        {% endfor %}
+                    </ol>
+                    {% else %}
+                    <p class="position-fit-note">{{ t("position_fit_no_attribute_data") }}</p>
+                    {% endif %}
+                </div>
+            </div>
+        {% else %}
+            <p class="position-fit-note">{{ t("position_fit_no_period") }}</p>
+        {% endif %}
+
+        {% if position_rankings %}
+        <h3 style="margin-top:22px">{{ t("position_fit_comparison") }}</h3>
+        <div style="overflow-x:auto">
+            <table class="position-ranking">
+                <thead>
+                    <tr>
+                        <th>{{ t("position_fit_rank") }}</th>
+                        <th>{{ t("position_fit_role") }}</th>
+                        <th>{{ t("position_fit_score_short") }}</th>
+                        <th>{{ t("position_fit_coverage") }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% set rank_number = namespace(value=0) %}
+                {% for item in position_rankings %}
+                    {% if item.overall_score is not none %}
+                        {% set rank_number.value = rank_number.value + 1 %}
+                        <tr class="{% if item.position == selected_position %}selected{% endif %}">
+                            <td>{{ rank_number.value }}.</td>
+                            <td>{{ (position_labels if session.get("language", "hu") == "en" else position_labels_hu).get(item.position, item.label_hu) }}</td>
+                            <td>{{ "%.2f"|format(item.overall_score) }}/10</td>
+                            <td>{{ "%.0f"|format(item.coverage_percent) }}%</td>
+                        </tr>
+                    {% endif %}
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% endif %}
+    </section>
+
 
     <!-- ========================================================= -->
     <!-- INSIGHTS -->
