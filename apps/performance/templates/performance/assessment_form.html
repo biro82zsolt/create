@@ -18,6 +18,18 @@
 .rating-option{display:inline-flex;align-items:center;justify-content:center;gap:4px;min-width:38px;height:38px;border:1px solid #d1d5db;border-radius:8px;cursor:pointer;background:white}
 .rating-option:has(input:checked){background:#dbeafe;border-color:#2563eb}
 .rating-option input{margin:0}
+.perfect-ten-modal{position:fixed;inset:0;z-index:9999;display:none;align-items:center;justify-content:center;padding:18px;background:rgba(15,23,42,.72)}
+.perfect-ten-modal.is-open{display:flex}
+.perfect-ten-card{position:relative;width:min(440px,100%);max-height:92vh;overflow:auto;background:#fff;border-radius:18px;padding:22px;text-align:center;box-shadow:0 24px 80px rgba(0,0,0,.35);animation:ten-pop .18s ease-out}
+.perfect-ten-card img{display:block;width:min(260px,100%);height:270px;object-fit:cover;object-position:center top;border-radius:12px;margin:0 auto 14px;background:#f3f4f6}
+.perfect-ten-card h2{margin:4px 0 6px;font-size:1.45rem}
+.perfect-ten-card p{margin:0 0 18px;color:#4b5563}
+.perfect-ten-actions{display:flex;justify-content:center;gap:10px;flex-wrap:wrap}
+.perfect-ten-actions button{border:0;border-radius:9px;padding:10px 15px;font:inherit;font-weight:700;cursor:pointer}
+#perfect-ten-back{background:#e5e7eb;color:#111827}#perfect-ten-confirm{background:#111827;color:#fff}
+.perfect-ten-close{position:absolute;right:10px;top:8px;border:0;background:rgba(255,255,255,.9);border-radius:50%;width:34px;height:34px;font-size:22px;cursor:pointer}
+@keyframes ten-pop{from{opacity:0;transform:translateY(8px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}
+@media(prefers-reduced-motion:reduce){.perfect-ten-card{animation:none}}
 </style>
 <div class="card">
   <h1>Játékosértékelés</h1>
@@ -72,7 +84,65 @@
 {% endfor %}
 <div class="card"><div style="display:flex;justify-content:space-between;gap:12px"><button type="button" id="prev-button" style="display:none">← Vissza</button><button type="button" id="next-button">Következő →</button><button type="submit" id="save-button" style="display:none">Értékelés mentése</button></div></div>
 </form>
+<div class="perfect-ten-modal" id="perfect-ten-modal" role="dialog" aria-modal="true" aria-labelledby="perfect-ten-title">
+  <div class="perfect-ten-card">
+    <button type="button" class="perfect-ten-close" id="perfect-ten-close" aria-label="Bezárás">×</button>
+    <img id="perfect-ten-image" src="" alt="">
+    <h2 id="perfect-ten-title">Biztos?</h2>
+    <p id="perfect-ten-message">Tényleg 10 pontot adsz erre a tulajdonságra?</p>
+    <div class="perfect-ten-actions">
+      <button type="button" id="perfect-ten-back">Vissza a pontszámhoz</button>
+      <button type="button" id="perfect-ten-confirm">Igen, 10-es</button>
+    </div>
+  </div>
+</div>
 <script>
+// BŐVÍTÉS: új tulajdonsághoz csak egy új sort kell felvenni ebbe a konfigurációba.
+// A key a scoring.py question.code értéke.
+const perfectTenConfig = {
+  decision_making: { player: 'Sándor Tamás', image: "{{ url_for('static', filename='performance/player_caricatures/sandor_tamas.png') }}", reaction: 'Biztos?' },
+  receiving_under_pressure: { player: 'Zidane', image: "{{ url_for('static', filename='performance/player_caricatures/zidane.png') }}", reaction: 'Are you sure?' },
+  one_v_one_dominance: { player: 'Ronaldinho', image: "{{ url_for('static', filename='performance/player_caricatures/ronaldinho.png') }}", reaction: 'Come on!' },
+  dribbling: { player: 'Messi', image: "{{ url_for('static', filename='performance/player_caricatures/messi.png') }}", reaction: 'Tényleg?' },
+  passing_quality: { player: 'Kroos', image: "{{ url_for('static', filename='performance/player_caricatures/kroos.png') }}", reaction: 'What?' },
+  attacking_heading: { player: 'Varga Barnabás', image: "{{ url_for('static', filename='performance/player_caricatures/varga_barnabas.png') }}", reaction: 'Na ne már!' },
+  finishing: { player: 'Ronaldo', image: "{{ url_for('static', filename='performance/player_caricatures/ronaldo.png') }}", reaction: 'Biztos?' },
+  hard_to_beat: { player: 'Ramos', image: "{{ url_for('static', filename='performance/player_caricatures/ramos.png') }}", reaction: 'Tényleg 10-es?' },
+  tackling: { player: 'Puyol', image: "{{ url_for('static', filename='performance/player_caricatures/puyol.png') }}", reaction: 'Are you sure?' },
+  interceptions: { player: 'Maldini', image: "{{ url_for('static', filename='performance/player_caricatures/maldini.png') }}", reaction: 'Na ne már!' }
+};
+const tenModal = document.getElementById('perfect-ten-modal');
+const tenImage = document.getElementById('perfect-ten-image');
+const tenTitle = document.getElementById('perfect-ten-title');
+const tenMessage = document.getElementById('perfect-ten-message');
+let tenCurrentInput = null;
+function closeTenModal(){tenModal.classList.remove('is-open');document.body.style.overflow='';}
+function openTenModal(input, config){
+  tenCurrentInput=input;
+  tenImage.src=config.image;
+  tenImage.alt=config.player+' karikatúrája';
+  tenTitle.textContent=config.reaction;
+  tenMessage.textContent='Valóban 10 pontot érdemel '+config.player+' szuperereje?';
+  tenModal.classList.add('is-open');
+  document.body.style.overflow='hidden';
+  document.getElementById('perfect-ten-confirm').focus();
+}
+document.getElementById('assessment-form').addEventListener('change', function(event){
+  const input=event.target;
+  if(!input.matches('input[type="radio"]') || input.value !== '10') return;
+  const code=input.name.startsWith('potential_') ? input.name.slice('potential_'.length) : input.name;
+  const config=perfectTenConfig[code];
+  if(config) openTenModal(input, config);
+});
+document.getElementById('perfect-ten-confirm').addEventListener('click', closeTenModal);
+document.getElementById('perfect-ten-close').addEventListener('click', closeTenModal);
+tenModal.addEventListener('click', event=>{if(event.target===tenModal) closeTenModal();});
+document.addEventListener('keydown', event=>{if(event.key==='Escape' && tenModal.classList.contains('is-open')) closeTenModal();});
+document.getElementById('perfect-ten-back').addEventListener('click', function(){
+  const input=tenCurrentInput;
+  closeTenModal();
+  if(input){input.checked=false;input.focus();}
+});
 let currentStep=1;
 const steps=document.querySelectorAll('.assessment-step');
 const prevButton=document.getElementById('prev-button');

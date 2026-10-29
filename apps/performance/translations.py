@@ -212,6 +212,44 @@ TRANSLATIONS = {
         "team_position_fit_one": "1 poszt",
         "team_position_fit_two": "2 poszt",
         "team_position_fit_three": "3 poszt",
+
+# Csapatoldal – áttekintés
+"team_overview_subtitle": "Csapatáttekintő – teljesítmény, potenciál és posztilleszkedés",
+
+# Performance × Potential mátrix
+"team_matrix_title": "Performance × Potential mátrix",
+"team_matrix_description": (
+    "A kategóriák a kiválasztott mérési időszak eredményeit mutatják. "
+    "Kattints egy kategóriára a játékoslista szűréséhez."
+),
+"team_matrix_player_unit": "játékos",
+"team_matrix_clear_filter": "Kategóriaszűrés törlése",
+"team_matrix_players": "Játékosok",
+"team_matrix_players_in_view": "{count} játékos a kiválasztott nézetben",
+"team_matrix_no_assessment": "Nincs értékelés",
+"team_matrix_empty": "Nincs játékos ebben a nézetben.",
+
+# Excel-import
+"team_import_title": "Játékosok importálása Excelből",
+"team_import_first_row": "Az Excel fájl első sora tartalmazza az oszlopneveket.",
+"team_import_required_columns": "Elvárt oszlopok:",
+"team_import_optional_columns": "Opcionális:",
+"team_import_upload": "Excel feltöltése",
+
+# Játékos hozzáadása
+"team_add_player_title": "Játékos hozzáadása",
+"team_add_player_select": "— Válassz játékost —",
+"team_add_player_button": "Játékos hozzáadása",
+"team_add_player_empty": (
+    "Minden aktív játékos már szerepel ebben a csapatban, "
+    "vagy még nincs játékos az adatbázisban."
+),
+
+# Csapattagok
+"team_roster_title": "Játékosok ({count})",
+"team_remove_player": "Eltávolítás",
+"team_roster_empty": "Ehhez a csapathoz még nincs hozzárendelt játékos.",
+"team_back_to_teams": "← Vissza a csapatokhoz",
     },
 
     "en": {
@@ -419,6 +457,44 @@ TRANSLATIONS = {
         "team_position_fit_one": "1 position",
         "team_position_fit_two": "2 positions",
         "team_position_fit_three": "3 positions",
+
+# Team page – overview
+"team_overview_subtitle": "Team overview – performance, potential and position fit",
+
+# Performance × Potential matrix
+"team_matrix_title": "Performance × Potential Matrix",
+"team_matrix_description": (
+    "The categories show results for the selected assessment period. "
+    "Click a category to filter the player list."
+),
+"team_matrix_player_unit": "players",
+"team_matrix_clear_filter": "Clear category filter",
+"team_matrix_players": "Players",
+"team_matrix_players_in_view": "{count} players in the selected view",
+"team_matrix_no_assessment": "No assessment",
+"team_matrix_empty": "No players in this view.",
+
+# Excel import
+"team_import_title": "Import players from Excel",
+"team_import_first_row": "The first row of the Excel file must contain the column headers.",
+"team_import_required_columns": "Required columns:",
+"team_import_optional_columns": "Optional:",
+"team_import_upload": "Upload Excel file",
+
+# Add player
+"team_add_player_title": "Add player",
+"team_add_player_select": "— Select a player —",
+"team_add_player_button": "Add player",
+"team_add_player_empty": (
+    "All active players are already assigned to this team, "
+    "or there are no players in the database yet."
+),
+
+# Team roster
+"team_roster_title": "Players ({count})",
+"team_remove_player": "Remove",
+"team_roster_empty": "No players have been assigned to this team yet.",
+"team_back_to_teams": "← Back to teams",
     },
 }
 
