@@ -10,7 +10,7 @@ from .models import (
     db,
 )
 
-from .translations import t
+from .translations import t, tq
 
 from .services import (
     analyze_assessment,
@@ -25,6 +25,7 @@ BASE_DIR = os.path.dirname(__file__)
 app = Flask(__name__)
 
 app.jinja_env.globals["t"] = t
+app.jinja_env.globals["tq"] = tq
 
 app.secret_key = os.environ.get(
     "FLASK_SECRET_KEY"

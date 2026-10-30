@@ -1,158 +1,855 @@
+
 {% extends "performance/base.html" %}
-{% block title %}Játékosértékelés{% endblock %}
+
+{% block title %}{{ t("player_assessment_title") }}{% endblock %}
+
 {% block content %}
+
 <style>
-.dual-question{position:relative;padding:20px 0 20px 52px;border-bottom:1px solid #e5e7eb}
-.dual-question:last-child{border-bottom:0}
-.phase-label{position:absolute;left:9px;top:50%;writing-mode:vertical-rl;transform:translateY(-50%) rotate(180deg);font-size:12px;font-weight:800;letter-spacing:.9px;white-space:nowrap;pointer-events:none}
-.dual-question[data-phase="attacking"]::before,.dual-question[data-phase="defending"]::before,.dual-question[data-phase="mentality"]::before{content:"";position:absolute;left:0;top:20px;bottom:20px;width:5px;border-radius:5px}
-.dual-question[data-phase="attacking"]::before{background:#22c55e}
-.dual-question[data-phase="defending"]::before{background:#ef4444}
-.dual-question[data-phase="mentality"]::before{background:#eab308}
-.dual-question[data-phase="attacking"] .phase-label{color:#16a34a}
-.dual-question[data-phase="defending"] .phase-label{color:#dc2626}
-.dual-question[data-phase="mentality"] .phase-label{color:#ca8a04}
-.dimension{margin-top:14px;padding:12px;background:#f9fafb;border-radius:10px}
-.dimension-title{font-weight:700;margin-bottom:8px}
-.rating-row{display:flex;gap:6px;flex-wrap:wrap}
-.rating-option{display:inline-flex;align-items:center;justify-content:center;gap:4px;min-width:38px;height:38px;border:1px solid #d1d5db;border-radius:8px;cursor:pointer;background:white}
-.rating-option:has(input:checked){background:#dbeafe;border-color:#2563eb}
-.rating-option input{margin:0}
-.perfect-ten-modal{position:fixed;inset:0;z-index:9999;display:none;align-items:center;justify-content:center;padding:18px;background:rgba(15,23,42,.72)}
-.perfect-ten-modal.is-open{display:flex}
-.perfect-ten-card{position:relative;width:min(440px,100%);max-height:92vh;overflow:auto;background:#fff;border-radius:18px;padding:22px;text-align:center;box-shadow:0 24px 80px rgba(0,0,0,.35);animation:ten-pop .18s ease-out}
-.perfect-ten-card img{display:block;width:min(260px,100%);height:270px;object-fit:cover;object-position:center top;border-radius:12px;margin:0 auto 14px;background:#f3f4f6}
-.perfect-ten-card h2{margin:4px 0 6px;font-size:1.45rem}
-.perfect-ten-card p{margin:0 0 18px;color:#4b5563}
-.perfect-ten-actions{display:flex;justify-content:center;gap:10px;flex-wrap:wrap}
-.perfect-ten-actions button{border:0;border-radius:9px;padding:10px 15px;font:inherit;font-weight:700;cursor:pointer}
-#perfect-ten-back{background:#e5e7eb;color:#111827}#perfect-ten-confirm{background:#111827;color:#fff}
-.perfect-ten-close{position:absolute;right:10px;top:8px;border:0;background:rgba(255,255,255,.9);border-radius:50%;width:34px;height:34px;font-size:22px;cursor:pointer}
-@keyframes ten-pop{from{opacity:0;transform:translateY(8px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}
-@media(prefers-reduced-motion:reduce){.perfect-ten-card{animation:none}}
+.dual-question {
+    position: relative;
+    padding: 20px 0 20px 52px;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.dual-question:last-child {
+    border-bottom: 0;
+}
+
+.phase-label {
+    position: absolute;
+    left: 9px;
+    top: 50%;
+    writing-mode: vertical-rl;
+    transform: translateY(-50%) rotate(180deg);
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: .9px;
+    white-space: nowrap;
+    pointer-events: none;
+}
+
+.dual-question[data-phase="attacking"]::before,
+.dual-question[data-phase="defending"]::before,
+.dual-question[data-phase="mentality"]::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 20px;
+    bottom: 20px;
+    width: 5px;
+    border-radius: 5px;
+}
+
+.dual-question[data-phase="attacking"]::before {
+    background: #22c55e;
+}
+
+.dual-question[data-phase="defending"]::before {
+    background: #ef4444;
+}
+
+.dual-question[data-phase="mentality"]::before {
+    background: #eab308;
+}
+
+.dual-question[data-phase="attacking"] .phase-label {
+    color: #16a34a;
+}
+
+.dual-question[data-phase="defending"] .phase-label {
+    color: #dc2626;
+}
+
+.dual-question[data-phase="mentality"] .phase-label {
+    color: #ca8a04;
+}
+
+.dimension {
+    margin-top: 14px;
+    padding: 12px;
+    background: #f9fafb;
+    border-radius: 10px;
+}
+
+.dimension-title {
+    font-weight: 700;
+    margin-bottom: 8px;
+}
+
+.rating-row {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.rating-option {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    min-width: 38px;
+    height: 38px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    cursor: pointer;
+    background: white;
+}
+
+.rating-option:has(input:checked) {
+    background: #dbeafe;
+    border-color: #2563eb;
+}
+
+.rating-option input {
+    margin: 0;
+}
+
+.perfect-ten-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 18px;
+    background: rgba(15, 23, 42, .72);
+}
+
+.perfect-ten-modal.is-open {
+    display: flex;
+}
+
+.perfect-ten-card {
+    position: relative;
+    width: min(440px, 100%);
+    max-height: 92vh;
+    overflow: auto;
+    background: #fff;
+    border-radius: 18px;
+    padding: 22px;
+    text-align: center;
+    box-shadow: 0 24px 80px rgba(0, 0, 0, .35);
+    animation: ten-pop .18s ease-out;
+}
+
+.perfect-ten-card img {
+    display: block;
+    width: min(260px, 100%);
+    height: 270px;
+    object-fit: cover;
+    object-position: center top;
+    border-radius: 12px;
+    margin: 0 auto 14px;
+    background: #f3f4f6;
+}
+
+.perfect-ten-card h2 {
+    margin: 4px 0 6px;
+    font-size: 1.45rem;
+}
+
+.perfect-ten-card p {
+    margin: 0 0 18px;
+    color: #4b5563;
+}
+
+.perfect-ten-actions {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.perfect-ten-actions button {
+    border: 0;
+    border-radius: 9px;
+    padding: 10px 15px;
+    font: inherit;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+#perfect-ten-back {
+    background: #e5e7eb;
+    color: #111827;
+}
+
+#perfect-ten-confirm {
+    background: #111827;
+    color: #fff;
+}
+
+.perfect-ten-close {
+    position: absolute;
+    right: 10px;
+    top: 8px;
+    border: 0;
+    background: rgba(255, 255, 255, .9);
+    border-radius: 50%;
+    width: 34px;
+    height: 34px;
+    font-size: 22px;
+    cursor: pointer;
+}
+
+@keyframes ten-pop {
+    from {
+        opacity: 0;
+        transform: translateY(8px) scale(.98);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+@media(prefers-reduced-motion: reduce) {
+    .perfect-ten-card {
+        animation: none;
+    }
+}
 </style>
+
+
+<!-- Assessment header -->
+
 <div class="card">
-  <h1>Játékosértékelés</h1>
-  <p><strong>{{ player.full_name }}</strong>{% if team %} · {{ team.name }}{% endif %} · {{ period.name }}</p>
-  <p>Értékelő: <strong>{{ coach.name }}</strong></p>
-  <p>Mindkét értékelés ugyanarra az időszakra vonatkozik. A Potential az edzéseken, a Performance a mérkőzéseken mutatott teljesítményt jelenti.</p>
+
+    <h1>{{ t("player_assessment_title") }}</h1>
+
+    <p>
+        <strong>{{ player.full_name }}</strong>
+        {% if team %} · {{ team.name }}{% endif %}
+        · {{ period.name }}
+    </p>
+
+    <p>
+        {{ t("assessment_evaluator") }}:
+        <strong>{{ coach.name }}</strong>
+    </p>
+
+    <p>
+        {{ t("assessment_period_explanation") }}
+    </p>
+
 </div>
-<form method="post" action="{{ url_for('performance.assessment_save') }}" id="assessment-form">
-<input type="hidden" name="team_id" value="{{ team.id if team else '' }}">
-<input type="hidden" name="player_id" value="{{ player.id }}">
-<input type="hidden" name="coach_id" value="{{ coach.id }}">
-<input type="hidden" name="period_id" value="{{ period.id }}">
-<div class="card">
-  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px"><strong id="step-title">1. Taktikai</strong><span id="step-counter">1 / 3</span></div>
-  <div style="height:8px;background:#e5e7eb;border-radius:10px;overflow:hidden"><div id="progress-bar" style="height:100%;width:33.33%;background:#111827;transition:width .2s ease"></div></div>
-</div>
-{% set groups = [(1, 'Taktikai teljesítmény', tactical), (2, 'Technikai teljesítmény', technical), (3, 'Viselkedés / mentalitás', behaviour)] %}
-{% for step, title, questions in groups %}
-<div class="assessment-step" data-step="{{ step }}" {% if step != 1 %}style="display:none"{% endif %}>
- <div class="card">
-  <h2>{{ step }}. {{ title }}</h2>
-  <p>Mindkét dimenziót értékeld 1–10 között.</p>
-  {% for question in questions %}
-  <div class="dual-question" data-phase="{{ question.phase }}">
-   <span class="phase-label">
-    {% if question.phase == "attacking" %}TÁMADÁS
-    {% elif question.phase == "defending" %}VÉDEKEZÉS
-    {% elif question.phase == "mentality" %}MENTALITÁS
-    {% endif %}
-   </span>
-   <h3>{{ loop.index }}. {{ question.name }}</h3>
-   <p style="color:#6b7280">{{ question.statement }}</p>
-   <div class="dimension">
-    <div class="dimension-title">Potential – edzésen mutatott teljesítmény</div>
-    <div class="rating-row">
-     {% for score in range(1, 11) %}<label class="rating-option"><input type="radio" name="potential_{{ question.code }}" value="{{ score }}" required><span>{{ score }}</span></label>{% endfor %}
+
+
+<!-- Assessment form -->
+
+<form method="post"
+      action="{{ url_for('performance.assessment_save') }}"
+      id="assessment-form">
+
+    <input type="hidden"
+           name="team_id"
+           value="{{ team.id if team else '' }}">
+
+    <input type="hidden"
+           name="player_id"
+           value="{{ player.id }}">
+
+    <input type="hidden"
+           name="coach_id"
+           value="{{ coach.id }}">
+
+    <input type="hidden"
+           name="period_id"
+           value="{{ period.id }}">
+
+
+    <!-- Progress indicator -->
+
+    <div class="card">
+
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+
+            <strong id="step-title">
+                1. {{ t("step_tactical") }}
+            </strong>
+
+            <span id="step-counter">1 / 3</span>
+
+        </div>
+
+        <div style="height:8px;background:#e5e7eb;border-radius:10px;overflow:hidden">
+
+            <div id="progress-bar"
+                 style="height:100%;width:33.33%;background:#111827;transition:width .2s ease">
+            </div>
+
+        </div>
+
     </div>
-   </div>
-   <div class="dimension">
-    <div class="dimension-title">Performance – mérkőzésen mutatott teljesítmény</div>
-    <div class="rating-row">
-     {% for score in range(1, 11) %}<label class="rating-option"><input type="radio" name="{{ question.code }}" value="{{ score }}" required><span>{{ score }}</span></label>{% endfor %}
+
+
+    {% set groups = [
+        (1, "category_tactical", tactical),
+        (2, "category_technical", technical),
+        (3, "category_behaviour", behaviour)
+    ] %}
+
+
+    <!-- Assessment steps -->
+
+    {% for step, title, questions in groups %}
+
+    <div class="assessment-step"
+         data-step="{{ step }}"
+         {% if step != 1 %}style="display:none"{% endif %}>
+
+        <div class="card">
+
+            <h2>{{ step }}. {{ t(title) }}</h2>
+
+            <p>{{ t("assessment_rate_both") }}</p>
+
+
+            {% for question in questions %}
+
+            <div class="dual-question"
+                 data-phase="{{ question.phase }}">
+
+                <span class="phase-label">
+
+                    {% if question.phase == "attacking" %}
+                        {{ t("phase_attacking") }}
+
+                    {% elif question.phase == "defending" %}
+                        {{ t("phase_defending") }}
+
+                    {% elif question.phase == "mentality" %}
+                        {{ t("phase_mentality") }}
+
+                    {% endif %}
+
+                </span>
+
+
+                <h3>{{ loop.index }}. {{ tq(question, "name") }}</h3>
+
+                    <p style="color:#6b7280">
+                        {{ tq(question, "statement") }}
+                    </p>
+
+
+                <!-- Potential dimension -->
+
+                <div class="dimension">
+
+                    <div class="dimension-title">
+                        {{ t("potential_training") }}
+                    </div>
+
+                    <div class="rating-row">
+
+                        {% for score in range(1, 11) %}
+
+                        <label class="rating-option">
+
+                            <input
+                                type="radio"
+                                name="potential_{{ question.code }}"
+                                value="{{ score }}"
+                                required
+                            >
+
+                            <span>{{ score }}</span>
+
+                        </label>
+
+                        {% endfor %}
+
+                    </div>
+
+                </div>
+
+
+                <!-- Performance dimension -->
+
+                <div class="dimension">
+
+                    <div class="dimension-title">
+                        {{ t("performance_match") }}
+                    </div>
+
+                    <div class="rating-row">
+
+                        {% for score in range(1, 11) %}
+
+                        <label class="rating-option">
+
+                            <input
+                                type="radio"
+                                name="{{ question.code }}"
+                                value="{{ score }}"
+                                required
+                            >
+
+                            <span>{{ score }}</span>
+
+                        </label>
+
+                        {% endfor %}
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            {% endfor %}
+
+
+            <!-- Coach note -->
+
+            {% if step == 3 %}
+
+            <div style="margin-top:28px">
+
+                <h2>{{ t("coach_note_title") }}</h2>
+
+                <textarea
+                    name="coach_note"
+                    rows="5"
+                    style="width:100%;padding:12px;border:1px solid #d1d5db;border-radius:8px;font:inherit;resize:vertical"
+                    placeholder="{{ t('coach_note_placeholder') }}"
+                ></textarea>
+
+            </div>
+
+            {% endif %}
+
+        </div>
+
     </div>
-   </div>
-  </div>
-  {% endfor %}
-  {% if step == 3 %}
-  <div style="margin-top:28px"><h2>Edzői megjegyzés</h2><textarea name="coach_note" rows="5" style="width:100%;padding:12px;border:1px solid #d1d5db;border-radius:8px;font:inherit;resize:vertical" placeholder="Opcionális megjegyzés, fejlesztési fókusz..."></textarea></div>
-  {% endif %}
- </div>
-</div>
-{% endfor %}
-<div class="card"><div style="display:flex;justify-content:space-between;gap:12px"><button type="button" id="prev-button" style="display:none">← Vissza</button><button type="button" id="next-button">Következő →</button><button type="submit" id="save-button" style="display:none">Értékelés mentése</button></div></div>
+
+    {% endfor %}
+
+
+    <!-- Navigation buttons -->
+
+    <div class="card">
+
+        <div style="display:flex;justify-content:space-between;gap:12px">
+
+            <button type="button"
+                    id="prev-button"
+                    style="display:none">
+
+                {{ t("button_back") }}
+
+            </button>
+
+
+            <button type="button"
+                    id="next-button">
+
+                {{ t("button_next") }}
+
+            </button>
+
+
+            <button type="submit"
+                    id="save-button"
+                    style="display:none">
+
+                {{ t("button_save_assessment") }}
+
+            </button>
+
+        </div>
+
+    </div>
+
 </form>
-<div class="perfect-ten-modal" id="perfect-ten-modal" role="dialog" aria-modal="true" aria-labelledby="perfect-ten-title">
-  <div class="perfect-ten-card">
-    <button type="button" class="perfect-ten-close" id="perfect-ten-close" aria-label="Bezárás">×</button>
-    <img id="perfect-ten-image" src="" alt="">
-    <h2 id="perfect-ten-title">Biztos?</h2>
-    <p id="perfect-ten-message">Tényleg 10 pontot adsz erre a tulajdonságra?</p>
-    <div class="perfect-ten-actions">
-      <button type="button" id="perfect-ten-back">Vissza a pontszámhoz</button>
-      <button type="button" id="perfect-ten-confirm">Igen, 10-es</button>
+
+
+<!-- Perfect 10 modal / Easter egg -->
+
+<div class="perfect-ten-modal"
+     id="perfect-ten-modal"
+     role="dialog"
+     aria-modal="true"
+     aria-labelledby="perfect-ten-title">
+
+    <div class="perfect-ten-card">
+
+        <button type="button"
+                class="perfect-ten-close"
+                id="perfect-ten-close"
+                aria-label="{{ t('button_close') }}">
+
+            ×
+
+        </button>
+
+
+        <img id="perfect-ten-image"
+             src=""
+             alt="">
+
+
+        <h2 id="perfect-ten-title">
+            {{ t("perfect_ten_title") }}
+        </h2>
+
+
+        <p id="perfect-ten-message">
+            {{ t("perfect_ten_message") }}
+        </p>
+
+
+        <div class="perfect-ten-actions">
+
+            <button type="button"
+                    id="perfect-ten-back">
+
+                {{ t("perfect_ten_back") }}
+
+            </button>
+
+
+            <button type="button"
+                    id="perfect-ten-confirm">
+
+                {{ t("perfect_ten_confirm") }}
+
+            </button>
+
+        </div>
+
     </div>
-  </div>
+
 </div>
+
+
 <script>
-// BŐVÍTÉS: új tulajdonsághoz csak egy új sort kell felvenni ebbe a konfigurációba.
-// A key a scoring.py question.code értéke.
+
+// =====================================================
+// PERFECT 10 EASTER EGG CONFIGURATION
+// Add a new line here to introduce a new player.
+// The key must match question.code in scoring.py.
+// =====================================================
+
 const perfectTenConfig = {
-  decision_making: { player: 'Sándor Tamás', image: "{{ url_for('static', filename='performance/player_caricatures/sandor_tamas.png') }}", reaction: 'Biztos?' },
-  receiving_under_pressure: { player: 'Zidane', image: "{{ url_for('static', filename='performance/player_caricatures/zidane.png') }}", reaction: 'Are you sure?' },
-  one_v_one_dominance: { player: 'Ronaldinho', image: "{{ url_for('static', filename='performance/player_caricatures/ronaldinho.png') }}", reaction: 'Come on!' },
-  dribbling: { player: 'Messi', image: "{{ url_for('static', filename='performance/player_caricatures/messi.png') }}", reaction: 'Tényleg?' },
-  passing_quality: { player: 'Kroos', image: "{{ url_for('static', filename='performance/player_caricatures/kroos.png') }}", reaction: 'What?' },
-  attacking_heading: { player: 'Varga Barnabás', image: "{{ url_for('static', filename='performance/player_caricatures/varga_barnabas.png') }}", reaction: 'Na ne már!' },
-  finishing: { player: 'Ronaldo', image: "{{ url_for('static', filename='performance/player_caricatures/ronaldo.png') }}", reaction: 'Biztos?' },
-  hard_to_beat: { player: 'Ramos', image: "{{ url_for('static', filename='performance/player_caricatures/ramos.png') }}", reaction: 'Tényleg 10-es?' },
-  tackling: { player: 'Puyol', image: "{{ url_for('static', filename='performance/player_caricatures/puyol.png') }}", reaction: 'Are you sure?' },
-  interceptions: { player: 'Maldini', image: "{{ url_for('static', filename='performance/player_caricatures/maldini.png') }}", reaction: 'Na ne már!' }
+
+    decision_making: {
+        player: 'Sándor Tamás',
+        image: "{{ url_for('static', filename='performance/player_caricatures/sandor_tamas.png') }}",
+        reaction: 'Biztos?'
+    },
+
+    receiving_under_pressure: {
+        player: 'Zidane',
+        image: "{{ url_for('static', filename='performance/player_caricatures/zidane.png') }}",
+        reaction: 'Are you sure?'
+    },
+
+    one_v_one_dominance: {
+        player: 'Ronaldinho',
+        image: "{{ url_for('static', filename='performance/player_caricatures/ronaldinho.png') }}",
+        reaction: 'Come on!'
+    },
+
+    dribbling: {
+        player: 'Messi',
+        image: "{{ url_for('static', filename='performance/player_caricatures/messi.png') }}",
+        reaction: 'Tényleg?'
+    },
+
+    passing_quality: {
+        player: 'Kroos',
+        image: "{{ url_for('static', filename='performance/player_caricatures/kroos.png') }}",
+        reaction: 'What?'
+    },
+
+    attacking_heading: {
+        player: 'Varga Barnabás',
+        image: "{{ url_for('static', filename='performance/player_caricatures/varga_barnabas.png') }}",
+        reaction: 'Na ne már!'
+    },
+
+    finishing: {
+        player: 'Ronaldo',
+        image: "{{ url_for('static', filename='performance/player_caricatures/ronaldo.png') }}",
+        reaction: 'Biztos?'
+    },
+
+    hard_to_beat: {
+        player: 'Ramos',
+        image: "{{ url_for('static', filename='performance/player_caricatures/ramos.png') }}",
+        reaction: 'Tényleg 10-es?'
+    },
+
+    tackling: {
+        player: 'Puyol',
+        image: "{{ url_for('static', filename='performance/player_caricatures/puyol.png') }}",
+        reaction: 'Are you sure?'
+    },
+
+    interceptions: {
+        player: 'Maldini',
+        image: "{{ url_for('static', filename='performance/player_caricatures/maldini.png') }}",
+        reaction: 'Na ne már!'
+    }
+
 };
+
+
+// =====================================================
+// PERFECT 10 MODAL
+// =====================================================
+
 const tenModal = document.getElementById('perfect-ten-modal');
 const tenImage = document.getElementById('perfect-ten-image');
 const tenTitle = document.getElementById('perfect-ten-title');
 const tenMessage = document.getElementById('perfect-ten-message');
+
 let tenCurrentInput = null;
-function closeTenModal(){tenModal.classList.remove('is-open');document.body.style.overflow='';}
-function openTenModal(input, config){
-  tenCurrentInput=input;
-  tenImage.src=config.image;
-  tenImage.alt=config.player+' karikatúrája';
-  tenTitle.textContent=config.reaction;
-  tenMessage.textContent='Valóban 10 pontot érdemel '+config.player+' szuperereje?';
-  tenModal.classList.add('is-open');
-  document.body.style.overflow='hidden';
-  document.getElementById('perfect-ten-confirm').focus();
+
+const perfectTenMessageTemplate =
+    {{ t("perfect_ten_superpower") | tojson }};
+
+
+function closeTenModal() {
+
+    tenModal.classList.remove('is-open');
+    document.body.style.overflow = '';
+
 }
-document.getElementById('assessment-form').addEventListener('change', function(event){
-  const input=event.target;
-  if(!input.matches('input[type="radio"]') || input.value !== '10') return;
-  const code=input.name.startsWith('potential_') ? input.name.slice('potential_'.length) : input.name;
-  const config=perfectTenConfig[code];
-  if(config) openTenModal(input, config);
+
+
+function openTenModal(input, config) {
+
+    tenCurrentInput = input;
+
+    tenImage.src = config.image;
+
+    tenImage.alt = config.player + ' caricature';
+
+    tenTitle.textContent = config.reaction;
+
+    tenMessage.textContent =
+        perfectTenMessageTemplate.replace(
+            '{player}',
+            config.player
+        );
+
+    tenModal.classList.add('is-open');
+
+    document.body.style.overflow = 'hidden';
+
+    document.getElementById('perfect-ten-confirm').focus();
+
+}
+
+
+// Listen for 10-point selections
+
+document.getElementById('assessment-form').addEventListener(
+    'change',
+    function(event) {
+
+        const input = event.target;
+
+        if (
+            !input.matches('input[type="radio"]') ||
+            input.value !== '10'
+        ) {
+            return;
+        }
+
+        const code = input.name.startsWith('potential_')
+            ? input.name.slice('potential_'.length)
+            : input.name;
+
+        const config = perfectTenConfig[code];
+
+        if (config) {
+            openTenModal(input, config);
+        }
+
+    }
+);
+
+
+document.getElementById('perfect-ten-confirm')
+    .addEventListener('click', closeTenModal);
+
+
+document.getElementById('perfect-ten-close')
+    .addEventListener('click', closeTenModal);
+
+
+tenModal.addEventListener('click', event => {
+
+    if (event.target === tenModal) {
+        closeTenModal();
+    }
+
 });
-document.getElementById('perfect-ten-confirm').addEventListener('click', closeTenModal);
-document.getElementById('perfect-ten-close').addEventListener('click', closeTenModal);
-tenModal.addEventListener('click', event=>{if(event.target===tenModal) closeTenModal();});
-document.addEventListener('keydown', event=>{if(event.key==='Escape' && tenModal.classList.contains('is-open')) closeTenModal();});
-document.getElementById('perfect-ten-back').addEventListener('click', function(){
-  const input=tenCurrentInput;
-  closeTenModal();
-  if(input){input.checked=false;input.focus();}
+
+
+document.addEventListener('keydown', event => {
+
+    if (
+        event.key === 'Escape' &&
+        tenModal.classList.contains('is-open')
+    ) {
+        closeTenModal();
+    }
+
 });
-let currentStep=1;
-const steps=document.querySelectorAll('.assessment-step');
-const prevButton=document.getElementById('prev-button');
-const nextButton=document.getElementById('next-button');
-const saveButton=document.getElementById('save-button');
-const titles={1:'1. Taktikai',2:'2. Technikai',3:'3. Viselkedés / mentalitás'};
-function showStep(step){currentStep=step;steps.forEach(el=>el.style.display=Number(el.dataset.step)===step?'block':'none');document.getElementById('step-title').textContent=titles[step];document.getElementById('step-counter').textContent=step+' / 3';document.getElementById('progress-bar').style.width=(step/3*100)+'%';prevButton.style.display=step>1?'inline-block':'none';nextButton.style.display=step<3?'inline-block':'none';saveButton.style.display=step===3?'inline-block':'none';window.scrollTo({top:0,behavior:'smooth'});}
-function validateCurrentStep(){const current=document.querySelector('.assessment-step[data-step="'+currentStep+'"]');const inputs=current.querySelectorAll('input[type="radio"][required]');const groups={};inputs.forEach(input=>{if(!(input.name in groups))groups[input.name]=false;if(input.checked)groups[input.name]=true;});for(const name in groups){if(!groups[name]){alert('Kérlek, válaszolj minden kérdésre ezen az oldalon.');return false;}}return true;}
-nextButton.addEventListener('click',()=>{if(validateCurrentStep())showStep(currentStep+1);});
-prevButton.addEventListener('click',()=>showStep(currentStep-1));
+
+
+document.getElementById('perfect-ten-back')
+    .addEventListener('click', function() {
+
+        const input = tenCurrentInput;
+
+        closeTenModal();
+
+        if (input) {
+            input.checked = false;
+            input.focus();
+        }
+
+    });
+
+
+// =====================================================
+// MULTI-STEP ASSESSMENT NAVIGATION
+// =====================================================
+
+let currentStep = 1;
+
+const steps = document.querySelectorAll('.assessment-step');
+
+const prevButton = document.getElementById('prev-button');
+const nextButton = document.getElementById('next-button');
+const saveButton = document.getElementById('save-button');
+
+
+const titles = {
+
+    1: {{ ("1. " ~ t("step_tactical")) | tojson }},
+
+    2: {{ ("2. " ~ t("step_technical")) | tojson }},
+
+    3: {{ ("3. " ~ t("step_behaviour")) | tojson }}
+
+};
+
+
+function showStep(step) {
+
+    currentStep = step;
+
+    steps.forEach(el => {
+
+        el.style.display =
+            Number(el.dataset.step) === step
+                ? 'block'
+                : 'none';
+
+    });
+
+    document.getElementById('step-title').textContent =
+        titles[step];
+
+    document.getElementById('step-counter').textContent =
+        step + ' / 3';
+
+    document.getElementById('progress-bar').style.width =
+        (step / 3 * 100) + '%';
+
+    prevButton.style.display =
+        step > 1 ? 'inline-block' : 'none';
+
+    nextButton.style.display =
+        step < 3 ? 'inline-block' : 'none';
+
+    saveButton.style.display =
+        step === 3 ? 'inline-block' : 'none';
+
+    window.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+    });
+
+}
+
+
+// Validate all questions on the current step
+
+function validateCurrentStep() {
+
+    const current = document.querySelector(
+        '.assessment-step[data-step="' + currentStep + '"]'
+    );
+
+    const inputs = current.querySelectorAll(
+        'input[type="radio"][required]'
+    );
+
+    const groups = {};
+
+    inputs.forEach(input => {
+
+        if (!(input.name in groups)) {
+            groups[input.name] = false;
+        }
+
+        if (input.checked) {
+            groups[input.name] = true;
+        }
+
+    });
+
+
+    for (const name in groups) {
+
+        if (!groups[name]) {
+
+            alert(
+                {{ t("validation_answer_all") | tojson }}
+            );
+
+            return false;
+
+        }
+
+    }
+
+    return true;
+
+}
+
+
+// Navigation events
+
+nextButton.addEventListener('click', () => {
+
+    if (validateCurrentStep()) {
+        showStep(currentStep + 1);
+    }
+
+});
+
+
+prevButton.addEventListener('click', () => {
+
+    showStep(currentStep - 1);
+
+});
+
+
+// Initialize
+
 showStep(1);
+
 </script>
+
 {% endblock %}

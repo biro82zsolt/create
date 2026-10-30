@@ -1,15 +1,16 @@
+
 {% extends "performance/base.html" %}
 
-{% block title %}Új értékelés{% endblock %}
+{% block title %}{{ t("assessment_start_title") }}{% endblock %}
 
 {% block content %}
 
 <div class="card">
 
-    <h1>Új értékelés</h1>
+    <h1>{{ t("assessment_start_title") }}</h1>
 
     <p>
-        Válaszd ki az értékeléshez szükséges adatokat.
+        {{ t("assessment_start_description") }}
     </p>
 
     <form method="post"
@@ -17,7 +18,7 @@
 
         <div style="margin-bottom: 20px;">
             <label for="coach">
-                <strong>Értékelő edző</strong>
+                <strong>{{ t("assessment_coach_label") }}</strong>
             </label>
 
             <select
@@ -27,7 +28,7 @@
                 style="width:100%; padding:11px; margin-top:6px;"
             >
                 <option value="">
-                    -- Válassz edzőt --
+                    {{ t("assessment_select_coach") }}
                 </option>
 
                 {% for coach in coaches %}
@@ -38,10 +39,9 @@
             </select>
         </div>
 
-
         <div style="margin-bottom: 20px;">
             <label for="team">
-                <strong>Csapat</strong>
+                <strong>{{ t("team") }}</strong>
             </label>
 
             <select
@@ -50,7 +50,7 @@
                 style="width:100%; padding:11px; margin-top:6px;"
             >
                 <option value="" selected disabled>
-                    -- Válassz csapatot --
+                    {{ t("assessment_select_team") }}
                 </option>
 
                 {% for team in teams %}
@@ -61,10 +61,9 @@
             </select>
         </div>
 
-
         <div style="margin-bottom: 20px;">
             <label for="period">
-                <strong>Értékelési időszak</strong>
+                <strong>{{ t("assessment_period") }}</strong>
             </label>
 
             <select
@@ -74,7 +73,7 @@
                 style="width:100%; padding:11px; margin-top:6px;"
             >
                 <option value="">
-                    -- Válassz időszakot --
+                    {{ t("assessment_select_period") }}
                 </option>
 
                 {% for period in periods %}
@@ -85,43 +84,41 @@
             </select>
         </div>
 
-
         <div style="margin-bottom: 24px;">
-    <label for="player">
-        <strong>Játékos</strong>
-    </label>
+            <label for="player">
+                <strong>{{ t("player") }}</strong>
+            </label>
 
-    <select
-    id="player"
-    name="player_id"
-    required
-    disabled
-    style="width:100%; padding:11px; margin-top:6px;">
-
-    <option value="">
-        -- Előbb válassz csapatot --
-    </option>
-
-    {% for player in players %}
-        {% if player.active %}
-            <option
-                value="{{ player.id }}"
-                data-team="{{ player.team_id or '' }}"
+            <select
+                id="player"
+                name="player_id"
+                required
+                disabled
+                style="width:100%; padding:11px; margin-top:6px;"
             >
-                {{ player.full_name }}
+                <option value="">
+                    {{ t("assessment_select_team_first") }}
+                </option>
 
-                {% if player.team %}
-                    — {{ player.team.name }}
-                {% endif %}
-            </option>
-        {% endif %}
-    {% endfor %}
-</select>
-</div>
+                {% for player in players %}
+                    {% if player.active %}
+                        <option
+                            value="{{ player.id }}"
+                            data-team="{{ player.team_id or '' }}"
+                        >
+                            {{ player.full_name }}
 
+                            {% if player.team %}
+                                — {{ player.team.name }}
+                            {% endif %}
+                        </option>
+                    {% endif %}
+                {% endfor %}
+            </select>
+        </div>
 
         <button type="submit">
-            Értékelés indítása →
+            {{ t("assessment_start_button") }}
         </button>
 
     </form>
@@ -147,11 +144,11 @@ document.addEventListener("DOMContentLoaded", function () {
         if (!selectedTeamId) {
             playerSelect.disabled = true;
             playerSelect.options[0].textContent =
-                "-- Előbb válassz csapatot --";
+                {{ t("assessment_select_team_first") | tojson }};
         } else {
             playerSelect.disabled = false;
             playerSelect.options[0].textContent =
-                "-- Válassz játékost --";
+                {{ t("assessment_select_player") | tojson }};
         }
 
         playerOptions.forEach(function (option) {

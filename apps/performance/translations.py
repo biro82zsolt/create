@@ -250,6 +250,45 @@ TRANSLATIONS = {
 "team_remove_player": "Eltávolítás",
 "team_roster_empty": "Ehhez a csapathoz még nincs hozzárendelt játékos.",
 "team_back_to_teams": "← Vissza a csapatokhoz",
+
+"assessment_start_title": "Új értékelés",
+"assessment_start_description": "Válaszd ki az értékeléshez szükséges adatokat.",
+"assessment_coach_label": "Értékelő edző",
+"assessment_select_coach": "-- Válassz edzőt --",
+"assessment_select_team": "-- Válassz csapatot --",
+"assessment_select_period": "-- Válassz időszakot --",
+"assessment_select_team_first": "-- Előbb válassz csapatot --",
+"assessment_select_player": "-- Válassz játékost --",
+"assessment_start_button": "Értékelés indítása →",
+
+# Játékosértékelés
+"player_assessment_title": "Játékosértékelés",
+"assessment_evaluator": "Értékelő",
+"assessment_period_explanation": "Mindkét értékelés ugyanarra az időszakra vonatkozik. A Potential az edzéseken, a Performance a mérkőzéseken mutatott teljesítményt jelenti.",
+"step_tactical": "Taktikai",
+"step_technical": "Technikai",
+"step_behaviour": "Viselkedés / mentalitás",
+"category_tactical": "Taktikai teljesítmény",
+"category_technical": "Technikai teljesítmény",
+"category_behaviour": "Viselkedés / mentalitás",
+"assessment_rate_both": "Mindkét dimenziót értékeld 1–10 között.",
+"phase_attacking": "TÁMADÁS",
+"phase_defending": "VÉDEKEZÉS",
+"phase_mentality": "MENTALITÁS",
+"potential_training": "Potential – edzésen mutatott teljesítmény",
+"performance_match": "Performance – mérkőzésen mutatott teljesítmény",
+"coach_note_title": "Edzői megjegyzés",
+"coach_note_placeholder": "Opcionális megjegyzés, fejlesztési fókusz...",
+"button_back": "← Vissza",
+"button_next": "Következő →",
+"button_save_assessment": "Értékelés mentése",
+"button_close": "Bezárás",
+"perfect_ten_title": "Biztos?",
+"perfect_ten_message": "Tényleg 10 pontot adsz erre a tulajdonságra?",
+"perfect_ten_back": "Vissza a pontszámhoz",
+"perfect_ten_confirm": "Igen, 10-es",
+"perfect_ten_superpower": "Valóban 10 pontot érdemel {player} szuperereje?",
+"validation_answer_all": "Kérlek, válaszolj minden kérdésre ezen az oldalon.",
     },
 
     "en": {
@@ -495,9 +534,241 @@ TRANSLATIONS = {
 "team_remove_player": "Remove",
 "team_roster_empty": "No players have been assigned to this team yet.",
 "team_back_to_teams": "← Back to teams",
+
+"assessment_start_title": "New Assessment",
+"assessment_start_description": "Select the details required for the assessment.",
+"assessment_coach_label": "Assessing Coach",
+"assessment_select_coach": "-- Select a coach --",
+"assessment_select_team": "-- Select a team --",
+"assessment_select_period": "-- Select an assessment period --",
+"assessment_select_team_first": "-- Select a team first --",
+"assessment_select_player": "-- Select a player --",
+"assessment_start_button": "Start Assessment →",
+
+# Player assessment
+"player_assessment_title": "Player Assessment",
+"assessment_evaluator": "Assessed by",
+"assessment_period_explanation": "Both assessments refer to the same evaluation period. Potential refers to performance in training, while Performance refers to performance in matches.",
+"step_tactical": "Tactical",
+"step_technical": "Technical",
+"step_behaviour": "Behaviour / Mentality",
+"category_tactical": "Tactical Performance",
+"category_technical": "Technical Performance",
+"category_behaviour": "Behaviour / Mentality",
+"assessment_rate_both": "Rate both dimensions on a scale of 1–10.",
+"phase_attacking": "ATTACKING",
+"phase_defending": "DEFENDING",
+"phase_mentality": "MENTALITY",
+"potential_training": "Potential – Performance in Training",
+"performance_match": "Performance – Performance in Matches",
+"coach_note_title": "Coach's Notes",
+"coach_note_placeholder": "Optional comment, development focus...",
+"button_back": "← Back",
+"button_next": "Next →",
+"button_save_assessment": "Save Assessment",
+"button_close": "Close",
+"perfect_ten_title": "Are you sure?",
+"perfect_ten_message": "Are you sure you want to give this attribute a score of 10?",
+"perfect_ten_back": "Back to Score",
+"perfect_ten_confirm": "Yes, give it a 10",
+"perfect_ten_superpower": "Does {player}'s superpower really deserve a score of 10?",
+"validation_answer_all": "Please answer all questions on this page.",
     },
 }
 
+QUESTION_TRANSLATIONS = {
+    "en": {
+
+        # TACTICAL
+        "finding_space": {
+            "name": "Positioning / Finding Space",
+            "statement": (
+                "Recognises and occupies available space to become "
+                "an option, create opportunities or support the play."
+            ),
+        },
+        "vision": {
+            "name": "Game Vision",
+            "statement": (
+                "Recognises the positions of teammates and opponents "
+                "and identifies opportunities to develop the play."
+            ),
+        },
+        "decision_making": {
+            "name": "Decision Making",
+            "statement": (
+                "Makes effective decisions both before receiving "
+                "the ball and while in possession."
+            ),
+        },
+        "support_play": {
+            "name": "Supporting Play",
+            "statement": (
+                "Recognises when and where to move in order "
+                "to support the player in possession."
+            ),
+        },
+        "reading_play": {
+            "name": "Reading the Game",
+            "statement": (
+                "Anticipates what will happen in the next phase of play "
+                "based on the movement of the ball, teammates and opponents."
+            ),
+        },
+        "reaction_to_losing_ball": {
+            "name": "Reaction After Losing Possession",
+            "statement": (
+                "Reacts appropriately after losing possession by "
+                "immediately applying pressure or recovering into position."
+            ),
+        },
+
+        # TECHNICAL
+        "ball_control": {
+            "name": "First Touch / Ball Control",
+            "statement": (
+                "Uses a quality first touch and controls the ball "
+                "in a way that prepares the next action."
+            ),
+        },
+        "receiving_under_pressure": {
+            "name": "Receiving Under Pressure",
+            "statement": (
+                "Can receive and control the ball effectively under "
+                "pressure, using appropriate body positioning and first touch."
+            ),
+        },
+        "twisting_turning": {
+            "name": "Turning and Ball Retention",
+            "statement": (
+                "Can protect the ball, manipulate opponents and "
+                "maintain possession under pressure."
+            ),
+        },
+        "one_v_one_dominance": {
+            "name": "1v1 Dominance",
+            "statement": (
+                "Uses changes of speed, movement and rhythm to beat "
+                "an opponent and create an advantage in 1v1 situations."
+            ),
+        },
+        "dribbling": {
+            "name": "Dribbling",
+            "statement": (
+                "Maintains close control of the ball at different "
+                "speeds and when changing direction."
+            ),
+        },
+        "passing_range": {
+            "name": "Passing Range",
+            "statement": (
+                "Can pass effectively over short, medium and long distances. "
+                "(A high score requires proficiency at all three ranges.)"
+            ),
+        },
+        "passing_quality": {
+            "name": "Passing Quality",
+            "statement": (
+                "Selects and executes passes with appropriate accuracy, "
+                "weight, timing and direction."
+            ),
+        },
+        "attacking_heading": {
+            "name": "Attacking Heading",
+            "statement": (
+                "Attacks the ball towards goal with appropriate timing, "
+                "accuracy and power."
+            ),
+        },
+        "crossing": {
+            "name": "Crossing",
+            "statement": (
+                "Can deliver accurate and dangerous crosses "
+                "from wide positions."
+            ),
+        },
+        "finishing": {
+            "name": "Finishing",
+            "statement": (
+                "Finishes accurately and effectively from different "
+                "situations, distances and angles."
+            ),
+        },
+        "hard_to_beat": {
+            "name": "1v1 Defending",
+            "statement": (
+                "Uses patience, aggression and discipline to prevent "
+                "opponents from progressing in 1v1 situations."
+            ),
+        },
+        "defensive_heading": {
+            "name": "Defensive Heading",
+            "statement": (
+                "Executes defensive headers with appropriate accuracy, "
+                "power and direction to clear danger, in accordance "
+                "with the demands of the position."
+            ),
+        },
+        "tackling": {
+            "name": "Tackling",
+            "statement": (
+                "Recognises the right moment to make a tackle "
+                "and wins possession safely and effectively."
+            ),
+        },
+        "interceptions": {
+            "name": "Interceptions",
+            "statement": (
+                "Anticipates passes and movements in order "
+                "to intercept the ball and regain possession."
+            ),
+        },
+
+        # BEHAVIOUR / MENTALITY
+        "competitive_edge": {
+            "name": "Competitive Spirit",
+            "statement": (
+                "Enjoys competing, winning duels and having a positive "
+                "impact on the game, regardless of the score."
+            ),
+        },
+        "bravery_on_ball": {
+            "name": "Bravery on the Ball",
+            "statement": (
+                "Asks for, receives and takes responsibility for the ball "
+                "under pressure, showing confidence in their decisions."
+            ),
+        },
+        "bravery_without_ball": {
+            "name": "Bravery Without the Ball",
+            "statement": (
+                "Is willing to defend, press and tackle without the ball, "
+                "putting the team's interests ahead of individual concerns."
+            ),
+        },
+        "control": {
+            "name": "Emotional Control",
+            "statement": (
+                "Maintains composure, manages emotions and makes clear "
+                "decisions even under pressure."
+            ),
+        },
+        "concentration": {
+            "name": "Concentration",
+            "statement": (
+                "Remains focused, alert and active throughout the match, "
+                "even when not directly involved in play."
+            ),
+        },
+        "communication": {
+            "name": "Communication",
+            "statement": (
+                "Supports teammates through clear, purposeful and timely "
+                "verbal and non-verbal communication."
+            ),
+        },
+    }
+}
 
 def t(key, **kwargs):
     """Return a translation for the current session language."""
@@ -521,3 +792,27 @@ def t(key, **kwargs):
             pass
 
     return value
+
+def tq(question, field):
+    """
+    Translate a question field based on the current session language.
+
+    Hungarian uses the original question bank.
+    Other languages use QUESTION_TRANSLATIONS.
+    """
+
+    language = session.get("language", "hu")
+
+    if language == "hu":
+        return question.get(field, "")
+
+    translation = QUESTION_TRANSLATIONS.get(
+        language, {}
+    ).get(
+        question.get("code"), {}
+    )
+
+    return translation.get(
+        field,
+        question.get(field, "")
+    )
