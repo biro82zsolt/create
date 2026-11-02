@@ -13,6 +13,10 @@ TRANSLATIONS = {
         "language": "Nyelv",
         "hungarian": "Magyar",
         "english": "Angol",
+        "coach_login": "Edzői bejelentkezés",
+        "username": "Felhasználónév",
+        "password": "Jelszó",
+        "admin_login": "Admin bejelentkezés",
 
         # Navigáció és főoldal
         "dashboard": "Vezérlőpult",
@@ -289,6 +293,61 @@ TRANSLATIONS = {
 "perfect_ten_confirm": "Igen, 10-es",
 "perfect_ten_superpower": "Valóban 10 pontot érdemel {player} szuperereje?",
 "validation_answer_all": "Kérlek, válaszolj minden kérdésre ezen az oldalon.",
+
+# Fejlődési trend – specifikus feliratok
+"trend_matrix_movement": "Mátrixbeli elmozdulás",
+"trend_matrix_description": (
+    "A pontok a játékos Performance- és Potential-értékét mutatják "
+    "mérési időszakonként. A vonal az időbeli változást köti össze."
+),
+"trend_category_results": "Kategóriaeredmények",
+"trend_category_description": (
+    "A taktikai, technikai és viselkedéses eredmények alakulása."
+),
+"trend_no_data": "Nincs elegendő adat a fejlődési trend megjelenítéséhez.",
+
+"guide_title": "A Performance & Potential rendszer",
+"guide_intro": "A rendszer célja, hogy strukturált értékelésen keresztül segítsen megérteni a játékosok jelenlegi teljesítményét, fejlődési potenciálját és domináns játékosprofilját.",
+"guide_section_1": "1. Hogyan működik az értékelés?",
+"guide_evaluation_intro": "Az edző a játékost 1–10 közötti skálán értékeli taktikai, technikai és viselkedési / mentális szempontok alapján. Ezen kívül három potenciálérték is rögzítésre kerül.",
+"guide_tactical_desc": "Játékolvasás, helyezkedés, döntéshozatal, üres területek felismerése és a játékhelyzetek értelmezése.",
+"guide_technical_desc": "Labdakezelés, passzolás, cselezés, 1v1 képesség, befejezés és védekező technikai elemek.",
+"guide_behaviour_desc": "Versengés, bátorság, koncentráció, kommunikáció, kontroll és labda nélküli aktivitás.",
+"guide_potential_desc": "A játékos taktikai, technikai és viselkedési fejlődési lehetőségének edzői becslése.",
+"guide_important": "Fontos:",
+"guide_snapshot": "Az értékelés pillanatfelvétel. A pontszámokat érdemes a mérkőzéshelyzetekkel, edzésviselkedéssel és hosszabb távú fejlődési trendekkel együtt értelmezni.",
+"guide_section_2": "2. A Performance és Potential számítása",
+"guide_performance_desc": "A rendszer külön átlagot számol a taktikai, technikai és viselkedési / mentális kategóriákra. Az összesített Performance érték e három kategória egyszerű átlaga, azonos súlyozással.",
+"guide_potential_calc_desc": "A Potential érték a három potenciálpontszám egyszerű átlaga.",
+"guide_level": "Szint",
+"guide_score_range": "Ponttartomány",
+"guide_low": "Alacsony",
+"guide_medium": "Közepes",
+"guide_high": "Magas",
+"guide_section_3": "3. A játékosprofilok és a radar chart",
+"guide_profiles_intro": "A profilmotor hat domináns játékostípust vizsgál. A profilpontszámok súlyozott számítással készülnek, és azt mutatják meg, hogy az adott játékos mely képességmintázatokhoz áll közelebb.",
+"guide_profile_athlete": "Intenzív és aktív játékos, aki mozgásával, aktivitásával és labda nélküli munkájával gyakorol hatást a játékra.",
+"guide_profile_warrior": "Párharcerős, versengő és bátor játékos, aki nehéz, intenzív játékhelyzetekben is vállalja a küzdelmet.",
+"guide_profile_builder": "A játék felépítésében, összekapcsolásában és a csapat struktúrájának támogatásában erős játékos.",
+"guide_profile_dribbler": "Labdával képes egyéni előnyt kialakítani, különösen 1v1 helyzetekben és szűk területeken.",
+"guide_profile_playmaker": "Játéklátásban, döntéshozatalban, passzolásban és a megfelelő megoldások felismerésében erős.",
+"guide_profile_finisher": "A támadások végső szakaszában veszélyes, képes helyzetbe kerülni és hatékonyan befejezni az akciókat.",
+"guide_profile_scores": "Profilpontszámok értelmezése",
+"guide_profile_scores_desc": "A radar chart a hat profil relatív erősségét szemlélteti. A legmagasabb pontszámú profil az elsődleges profil, a következő pedig másodlagos profilként jelenhet meg. A profilok nem merev kategóriák: egy játékos lehet hibrid vagy több területen is erős.",
+"guide_section_4": "4. Performance × Potential mapping",
+"guide_mapping_intro": "A mapping a jelenlegi teljesítményt és a fejlődési potenciált egy közös 3×3-as mátrixban jeleníti meg. A vízszintes tengely a Performance, a függőleges tengely a Potential értékét mutatja.",
+"guide_mapping_principle": "Értelmezési alapelv:",
+"guide_mapping_principle_desc": "A mapping nem végleges címke, hanem beszélgetést és fejlesztési döntéseket támogató eszköz. Az eredményeket mindig a játékos életkorával, szerepével, környezetével és fejlődési előzményeivel együtt kell értelmezni.",
+"guide_section_5": "5. Hogyan használjuk az eredményeket?",
+"guide_step_1": "Vizsgáljuk meg a Performance és Potential értékeket.",
+"guide_step_2": "Nézzük meg a taktikai, technikai és viselkedési részpontszámokat.",
+"guide_step_3": "Értelmezzük a radar chart profilját.",
+"guide_step_4": "Tekintsük át a mapping kategóriát.",
+"guide_step_5": "Az eredmények alapján jelöljünk ki konkrét fejlesztési fókuszt.",
+"guide_step_6": "A következő értékelésnél hasonlítsuk össze a változásokat.",
+"guide_conclusion": "A rendszer legfontosabb értéke nem önmagában a pontszám, hanem az, hogy közös szakmai nyelvet ad az edzői stáb, a játékos és a fejlesztési folyamat számára.",
+"guide_alt_profiles": "A hat játékosprofil áttekintése",
+"guide_alt_mapping": "Performance és Potential mapping mátrix",
     },
 
     "en": {
@@ -300,6 +359,10 @@ TRANSLATIONS = {
         "language": "Language",
         "hungarian": "Hungarian",
         "english": "English",
+        "coach_login": "Coach Login",
+        "username": "Username",
+        "password": "Password",
+        "admin_login": "Admin Login",
 
         # Navigation and dashboard
         "dashboard": "Dashboard",
@@ -573,6 +636,62 @@ TRANSLATIONS = {
 "perfect_ten_confirm": "Yes, give it a 10",
 "perfect_ten_superpower": "Does {player}'s superpower really deserve a score of 10?",
 "validation_answer_all": "Please answer all questions on this page.",
+
+# Development trend – specific labels
+"trend_matrix_movement": "Movement in the Performance × Potential Matrix",
+"trend_matrix_description": (
+    "The points show the player's Performance and Potential scores "
+    "for each assessment period. The line connects the results over time."
+),
+"trend_category_results": "Category Results",
+"trend_category_description": (
+    "Development of tactical, technical and behavioural scores."
+),
+"trend_no_data": "There is not enough data to display the development trend.",
+
+"guide_title": "The Performance & Potential System",
+"guide_intro": "The system uses structured assessments to help understand players' current performance, development potential and dominant player profile.",
+"guide_section_1": "1. How does the assessment work?",
+"guide_evaluation_intro": "The coach evaluates the player on a scale of 1–10 across tactical, technical and behavioural / mental dimensions. In addition, three potential scores are recorded.",
+"guide_tactical_desc": "Game understanding, positioning, decision-making, recognition of open spaces and interpretation of game situations.",
+"guide_technical_desc": "Ball control, passing, dribbling, 1v1 ability, finishing and defensive technical skills.",
+"guide_behaviour_desc": "Competitiveness, courage, concentration, communication, self-control and off-the-ball activity.",
+"guide_potential_desc": "The coach's assessment of the player's development potential in tactical, technical and behavioural areas.",
+"guide_important": "Important:",
+"guide_snapshot": "An assessment is a snapshot in time. Scores should be interpreted alongside match situations, training behaviour and longer-term development trends.",
+"guide_section_2": "2. Calculating Performance and Potential",
+"guide_performance_desc": "The system calculates separate averages for the tactical, technical and behavioural / mental categories. The overall Performance score is the simple average of these three categories, with equal weighting.",
+"guide_potential_calc_desc": "The Potential score is the simple average of the three potential scores.",
+"guide_level": "Level",
+"guide_score_range": "Score range",
+"guide_low": "Low",
+"guide_medium": "Medium",
+"guide_high": "High",
+"guide_section_3": "3. Player profiles and the radar chart",
+"guide_profiles_intro": "The profile engine examines six dominant player types. Profile scores are calculated using a weighted model and indicate which skill patterns a player most closely resembles.",
+"guide_profile_athlete": "An intense and active player who influences the game through movement, activity and off-the-ball work.",
+"guide_profile_warrior": "A competitive, courageous player who excels in duels and embraces challenging, high-intensity situations.",
+"guide_profile_builder": "A player who excels at building and connecting play and supporting the team's structure.",
+"guide_profile_dribbler": "A player who can create individual advantages with the ball, especially in 1v1 situations and tight spaces.",
+"guide_profile_playmaker": "A player who excels in game vision, decision-making, passing and recognising the right solutions.",
+"guide_profile_finisher": "A player who is dangerous in the final phase of attacks, can get into scoring positions and finish chances effectively.",
+"guide_profile_scores": "Interpreting profile scores",
+"guide_profile_scores_desc": "The radar chart illustrates the relative strengths of the six profiles. The highest-scoring profile is the primary profile, while the next highest may appear as the secondary profile. Profiles are not rigid categories: a player can be a hybrid or demonstrate strengths in several areas.",
+"guide_section_4": "4. Performance × Potential mapping",
+"guide_mapping_intro": "The mapping displays current performance and development potential in a shared 3×3 matrix. The horizontal axis represents Performance, while the vertical axis represents Potential.",
+"guide_mapping_principle": "Principle of interpretation:",
+"guide_mapping_principle_desc": "Mapping is not a permanent label, but a tool that supports discussion and development decisions. Results should always be interpreted in the context of the player's age, role, environment and development history.",
+"guide_section_5": "5. How should we use the results?",
+"guide_step_1": "Review the Performance and Potential scores.",
+"guide_step_2": "Examine the tactical, technical and behavioural sub-scores.",
+"guide_step_3": "Interpret the radar chart profile.",
+"guide_step_4": "Review the mapping category.",
+"guide_step_5": "Identify specific development priorities based on the results.",
+"guide_step_6": "Compare the changes at the next assessment.",
+"guide_conclusion": "The system's greatest value lies not in the scores themselves, but in providing a shared professional language for the coaching staff, the player and the development process.",
+"guide_alt_profiles": "Overview of the six player profiles",
+"guide_alt_mapping": "Performance and Potential mapping matrix",
+
     },
 }
 

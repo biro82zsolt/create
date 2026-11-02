@@ -1,7 +1,8 @@
+
 {% extends "performance/base.html" %}
 
 {% block title %}
-    A Performance & Potential rendszer
+    {{ t("guide_title") }}
 {% endblock %}
 
 {% block content %}
@@ -82,81 +83,61 @@
 
 <div class="guide-hero">
     <h1>Performance & Potential</h1>
-    <p>
-        A rendszer célja, hogy strukturált értékelésen keresztül segítsen
-        megérteni a játékosok jelenlegi teljesítményét, fejlődési potenciálját
-        és domináns játékosprofilját.
-    </p>
+    <p>{{ t("guide_intro") }}</p>
 </div>
 
-<div class="guide-section">
-    <h2>1. Hogyan működik az értékelés?</h2>
+<!-- 1. Assessment -->
 
-    <p>
-        Az edző a játékost 1–10 közötti skálán értékeli taktikai,
-        technikai és viselkedési / mentális szempontok alapján.
-        Ezen kívül három potenciálérték is rögzítésre kerül.
-    </p>
+<div class="guide-section">
+    <h2>{{ t("guide_section_1") }}</h2>
+
+    <p>{{ t("guide_evaluation_intro") }}</p>
 
     <div class="guide-grid">
+
         <div class="guide-card">
-            <h3>Taktikai</h3>
-            <p>
-                Játékolvasás, helyezkedés, döntéshozatal, üres területek
-                felismerése és a játékhelyzetek értelmezése.
-            </p>
+            <h3>{{ t("tactical") }}</h3>
+            <p>{{ t("guide_tactical_desc") }}</p>
         </div>
 
         <div class="guide-card">
-            <h3>Technikai</h3>
-            <p>
-                Labdakezelés, passzolás, cselezés, 1v1 képesség,
-                befejezés és védekező technikai elemek.
-            </p>
+            <h3>{{ t("technical") }}</h3>
+            <p>{{ t("guide_technical_desc") }}</p>
         </div>
 
         <div class="guide-card">
-            <h3>Viselkedés / mentális</h3>
-            <p>
-                Versengés, bátorság, koncentráció, kommunikáció,
-                kontroll és labda nélküli aktivitás.
-            </p>
+            <h3>{{ t("behaviour") }}</h3>
+            <p>{{ t("guide_behaviour_desc") }}</p>
         </div>
 
         <div class="guide-card">
-            <h3>Potenciál</h3>
-            <p>
-                A játékos taktikai, technikai és viselkedési fejlődési
-                lehetőségének edzői becslése.
-            </p>
+            <h3>{{ t("potential") }}</h3>
+            <p>{{ t("guide_potential_desc") }}</p>
         </div>
+
     </div>
 
     <div class="guide-note">
-        <strong>Fontos:</strong> az értékelés pillanatfelvétel.
-        A pontszámokat érdemes a mérkőzéshelyzetekkel, edzésviselkedéssel
-        és hosszabb távú fejlődési trendekkel együtt értelmezni.
+        <strong>{{ t("guide_important") }}</strong>
+        {{ t("guide_snapshot") }}
     </div>
 </div>
 
-<div class="guide-section">
-    <h2>2. A Performance és Potential számítása</h2>
 
-    <h3>Performance</h3>
-    <p>
-        A rendszer külön átlagot számol a taktikai, technikai és
-        viselkedési / mentális kategóriákra. Az összesített Performance
-        érték e három kategória egyszerű átlaga, azonos súlyozással.
-    </p>
+<!-- 2. Performance and Potential calculation -->
+
+<div class="guide-section">
+    <h2>{{ t("guide_section_2") }}</h2>
+
+    <h3>{{ t("performance") }}</h3>
+    <p>{{ t("guide_performance_desc") }}</p>
 
     <pre>
 Performance = (Tactical + Technical + Behaviour) / 3
     </pre>
 
-    <h3>Potential</h3>
-    <p>
-        A Potential érték a három potenciálpontszám egyszerű átlaga.
-    </p>
+    <h3>{{ t("potential") }}</h3>
+    <p>{{ t("guide_potential_calc_desc") }}</p>
 
     <pre>
 Potential = (Tactical Potential + Technical Potential
@@ -166,218 +147,295 @@ Potential = (Tactical Potential + Technical Potential
     <table class="guide-table">
         <thead>
             <tr>
-                <th>Szint</th>
-                <th>Ponttartomány</th>
+                <th>{{ t("guide_level") }}</th>
+                <th>{{ t("guide_score_range") }}</th>
             </tr>
         </thead>
         <tbody>
             <tr>
-                <td>Alacsony</td>
-                <td>1,00–4,99</td>
+                <td>{{ t("guide_low") }}</td>
+                <td>1.00–4.99</td>
             </tr>
             <tr>
-                <td>Közepes</td>
-                <td>5,00–6,99</td>
+                <td>{{ t("guide_medium") }}</td>
+                <td>5.00–6.99</td>
             </tr>
             <tr>
-                <td>Magas</td>
-                <td>7,00–10,00</td>
+                <td>{{ t("guide_high") }}</td>
+                <td>7.00–10.00</td>
             </tr>
         </tbody>
     </table>
 </div>
 
-<div class="guide-section">
-    <h2>3. A játékosprofilok és a radar chart</h2>
 
-    <p>
-        A profilmotor hat domináns játékostípust vizsgál. A profilpontszámok
-        súlyozott számítással készülnek, és azt mutatják meg, hogy az adott
-        játékos mely képességmintázatokhoz áll közelebb.
-    </p>
+<!-- 3. Player profiles -->
+
+<div class="guide-section">
+    <h2>{{ t("guide_section_3") }}</h2>
+
+    <p>{{ t("guide_profiles_intro") }}</p>
 
     <img class="guide-image"
          src="{{ url_for('static', filename='performance_guide/profile_overview.png') }}"
-         alt="A hat játékosprofil áttekintése">
+         alt="{{ t('guide_alt_profiles') }}">
 
     <div class="guide-grid">
+
         <div class="guide-card">
-            <h3>Athlete – Atléta</h3>
-            <p>
-                Intenzív és aktív játékos, aki mozgásával, aktivitásával
-                és labda nélküli munkájával gyakorol hatást a játékra.
-            </p>
+            <h3>
+                {% if session.get("language", "hu") == "en" %}
+                    Athlete
+                {% else %}
+                    Athlete – Atléta
+                {% endif %}
+            </h3>
+            <p>{{ t("guide_profile_athlete") }}</p>
         </div>
 
         <div class="guide-card">
-            <h3>Warrior – Harcos</h3>
-            <p>
-                Párharcerős, versengő és bátor játékos, aki nehéz,
-                intenzív játékhelyzetekben is vállalja a küzdelmet.
-            </p>
+            <h3>
+                {% if session.get("language", "hu") == "en" %}
+                    Warrior
+                {% else %}
+                    Warrior – Harcos
+                {% endif %}
+            </h3>
+            <p>{{ t("guide_profile_warrior") }}</p>
         </div>
 
         <div class="guide-card">
-            <h3>Builder – Játéképítő</h3>
-            <p>
-                A játék felépítésében, összekapcsolásában és a csapat
-                struktúrájának támogatásában erős játékos.
-            </p>
+            <h3>
+                {% if session.get("language", "hu") == "en" %}
+                    Builder
+                {% else %}
+                    Builder – Játéképítő
+                {% endif %}
+            </h3>
+            <p>{{ t("guide_profile_builder") }}</p>
         </div>
 
         <div class="guide-card">
-            <h3>Dribbler – Cselező</h3>
-            <p>
-                Labdával képes egyéni előnyt kialakítani, különösen
-                1v1 helyzetekben és szűk területeken.
-            </p>
+            <h3>
+                {% if session.get("language", "hu") == "en" %}
+                    Dribbler
+                {% else %}
+                    Dribbler – Cselező
+                {% endif %}
+            </h3>
+            <p>{{ t("guide_profile_dribbler") }}</p>
         </div>
 
         <div class="guide-card">
-            <h3>Playmaker – Irányító</h3>
-            <p>
-                Játéklátásban, döntéshozatalban, passzolásban és a
-                megfelelő megoldások felismerésében erős.
-            </p>
+            <h3>
+                {% if session.get("language", "hu") == "en" %}
+                    Playmaker
+                {% else %}
+                    Playmaker – Irányító
+                {% endif %}
+            </h3>
+            <p>{{ t("guide_profile_playmaker") }}</p>
         </div>
 
         <div class="guide-card">
-            <h3>Finisher – Befejező</h3>
-            <p>
-                A támadások végső szakaszában veszélyes, képes helyzetbe
-                kerülni és hatékonyan befejezni az akciókat.
-            </p>
+            <h3>
+                {% if session.get("language", "hu") == "en" %}
+                    Finisher
+                {% else %}
+                    Finisher – Befejező
+                {% endif %}
+            </h3>
+            <p>{{ t("guide_profile_finisher") }}</p>
         </div>
+
     </div>
 
-    <h3>Profilpontszámok értelmezése</h3>
-    <p>
-        A radar chart a hat profil relatív erősségét szemlélteti.
-        A legmagasabb pontszámú profil az elsődleges profil, a következő
-        pedig másodlagos profilként jelenhet meg. A profilok nem merev
-        kategóriák: egy játékos lehet hibrid vagy több területen is erős.
-    </p>
+    <h3>{{ t("guide_profile_scores") }}</h3>
+    <p>{{ t("guide_profile_scores_desc") }}</p>
 
 </div>
 
-<div class="guide-section">
-    <h2>4. Performance × Potential mapping</h2>
 
-    <p>
-        A mapping a jelenlegi teljesítményt és a fejlődési potenciált
-        egy közös 3×3-as mátrixban jeleníti meg. A vízszintes tengely
-        a Performance, a függőleges tengely a Potential értékét mutatja.
-    </p>
+<!-- 4. Performance and Potential mapping -->
+
+<div class="guide-section">
+    <h2>{{ t("guide_section_4") }}</h2>
+
+    <p>{{ t("guide_mapping_intro") }}</p>
 
     <img class="guide-image"
          src="{{ url_for('static', filename='performance_guide/mapping.png') }}"
-         alt="Performance és Potential mapping mátrix">
+         alt="{{ t('guide_alt_mapping') }}">
 
     <div class="guide-grid">
+
         <div class="guide-card">
-            <h3>Rough Diamond – Csiszolatlan gyémánt</h3>
+            <h3>
+                {{ mapping_grid[0][0].name
+                   if session.get("language", "hu") == "en"
+                   else mapping_grid[0][0].name_hu }}
+            </h3>
             <p>
-                Magas potenciál, amely jelenleg még nem jelenik meg
-                megfelelően a teljesítményben.
+                {% if session.get("language", "hu") == "en" %}
+                    High potential that is not yet fully reflected in current performance.
+                {% else %}
+                    Magas potenciál, amely jelenleg még nem jelenik meg megfelelően a teljesítményben.
+                {% endif %}
             </p>
         </div>
 
         <div class="guide-card">
-            <h3>Rising Talent – Feltörekvő tehetség</h3>
+            <h3>
+                {{ mapping_grid[0][1].name
+                   if session.get("language", "hu") == "en"
+                   else mapping_grid[0][1].name_hu }}
+            </h3>
             <p>
-                Jelentős potenciál mellett a jelenlegi teljesítmény
-                is fejlődő irányt mutat.
+                {% if session.get("language", "hu") == "en" %}
+                    Significant potential alongside a current performance level that is also showing signs of development.
+                {% else %}
+                    Jelentős potenciál mellett a jelenlegi teljesítmény is fejlődő irányt mutat.
+                {% endif %}
             </p>
         </div>
 
         <div class="guide-card">
-            <h3>Future Star – Jövő sztárja</h3>
+            <h3>
+                {{ mapping_grid[0][2].name
+                   if session.get("language", "hu") == "en"
+                   else mapping_grid[0][2].name_hu }}
+            </h3>
             <p>
-                Magas jelenlegi teljesítmény és magas fejlődési potenciál.
+                {% if session.get("language", "hu") == "en" %}
+                    High current performance combined with high development potential.
+                {% else %}
+                    Magas jelenlegi teljesítmény és magas fejlődési potenciál.
+                {% endif %}
             </p>
         </div>
 
         <div class="guide-card">
-            <h3>Core Player – Stabil csapattag</h3>
+            <h3>
+                {{ mapping_grid[1][0].name
+                   if session.get("language", "hu") == "en"
+                   else mapping_grid[1][0].name_hu }}
+            </h3>
             <p>
-                Kiegyensúlyozott, megbízható játékos közepes értékekkel.
+                {% if session.get("language", "hu") == "en" %}
+                    The player's abilities suggest that a higher level of performance could be expected. It is worth exploring the reasons behind the gap.
+                {% else %}
+                    A játékos képességei alapján magasabb teljesítmény lenne várható; érdemes feltárni a háttérben álló okokat.
+                {% endif %}
             </p>
         </div>
 
         <div class="guide-card">
-            <h3>Key Player – Kulcsjátékos</h3>
+            <h3>
+                {{ mapping_grid[1][1].name
+                   if session.get("language", "hu") == "en"
+                   else mapping_grid[1][1].name_hu }}
+            </h3>
             <p>
-                Magas jelenlegi teljesítmény és megfelelő fejlődési potenciál.
+                {% if session.get("language", "hu") == "en" %}
+                    A balanced and reliable player with moderate scores.
+                {% else %}
+                    Kiegyensúlyozott, megbízható játékos közepes értékekkel.
+                {% endif %}
             </p>
         </div>
 
         <div class="guide-card">
-            <h3>Underperforming – Alulteljesítő</h3>
+            <h3>
+                {{ mapping_grid[1][2].name
+                   if session.get("language", "hu") == "en"
+                   else mapping_grid[1][2].name_hu }}
+            </h3>
             <p>
-                A játékos képességei alapján magasabb teljesítmény lenne
-                várható; érdemes feltárni a háttérben álló okokat.
+                {% if session.get("language", "hu") == "en" %}
+                    High current performance combined with good development potential.
+                {% else %}
+                    Magas jelenlegi teljesítmény és megfelelő fejlődési potenciál.
+                {% endif %}
             </p>
         </div>
 
         <div class="guide-card">
-            <h3>Overachiever – Túlteljesítő</h3>
+            <h3>
+                {{ mapping_grid[2][0].name
+                   if session.get("language", "hu") == "en"
+                   else mapping_grid[2][0].name_hu }}
+            </h3>
             <p>
-                A jelenlegi teljesítmény magasabb, mint amit a potenciál
-                alapján várnánk.
+                {% if session.get("language", "hu") == "en" %}
+                    Lower performance and potential may indicate a need for additional support and an individual development focus.
+                {% else %}
+                    Alacsonyabb teljesítmény és potenciál esetén kiemelt támogatásra és egyéni fejlesztési fókuszra lehet szükség.
+                {% endif %}
             </p>
         </div>
 
         <div class="guide-card">
-            <h3>Grafter – Dolgozó / Küzdő</h3>
+            <h3>
+                {{ mapping_grid[2][1].name
+                   if session.get("language", "hu") == "en"
+                   else mapping_grid[2][1].name_hu }}
+            </h3>
             <p>
-                Közepes teljesítmény és alacsonyabb potenciál mellett
-                a kitartó munka és a fejlesztés fontos szerepet kap.
+                {% if session.get("language", "hu") == "en" %}
+                    With moderate performance and lower potential, consistent effort and development play an important role.
+                {% else %}
+                    Közepes teljesítmény és alacsonyabb potenciál mellett a kitartó munka és a fejlesztés fontos szerepet kap.
+                {% endif %}
             </p>
         </div>
 
         <div class="guide-card">
-            <h3>Development Risk – Fejlődési kockázat</h3>
+            <h3>
+                {{ mapping_grid[2][2].name
+                   if session.get("language", "hu") == "en"
+                   else mapping_grid[2][2].name_hu }}
+            </h3>
             <p>
-                Alacsonyabb teljesítmény és potenciál esetén kiemelt
-                támogatásra és egyéni fejlesztési fókuszra lehet szükség.
+                {% if session.get("language", "hu") == "en" %}
+                    Current performance is higher than might be expected based on the player's potential.
+                {% else %}
+                    A jelenlegi teljesítmény magasabb, mint amit a potenciál alapján várnánk.
+                {% endif %}
             </p>
         </div>
+
     </div>
 
     <div class="guide-note">
-        <strong>Értelmezési alapelv:</strong> a mapping nem végleges címke,
-        hanem beszélgetést és fejlesztési döntéseket támogató eszköz.
-        Az eredményeket mindig a játékos életkorával, szerepével,
-        környezetével és fejlődési előzményeivel együtt kell értelmezni.
+        <strong>{{ t("guide_mapping_principle") }}</strong>
+        {{ t("guide_mapping_principle_desc") }}
     </div>
 </div>
 
+
+<!-- 5. Using the results -->
+
 <div class="guide-section">
-    <h2>5. Hogyan használjuk az eredményeket?</h2>
+    <h2>{{ t("guide_section_5") }}</h2>
 
     <ol>
-        <li>Vizsgáljuk meg a Performance és Potential értékeket.</li>
-        <li>Nézzük meg a taktikai, technikai és viselkedési részpontszámokat.</li>
-        <li>Értelmezzük a radar chart profilját.</li>
-        <li>Tekintsük át a mapping kategóriát.</li>
-        <li>Az eredmények alapján jelöljünk ki konkrét fejlesztési fókuszt.</li>
-        <li>A következő értékelésnél hasonlítsuk össze a változásokat.</li>
+        <li>{{ t("guide_step_1") }}</li>
+        <li>{{ t("guide_step_2") }}</li>
+        <li>{{ t("guide_step_3") }}</li>
+        <li>{{ t("guide_step_4") }}</li>
+        <li>{{ t("guide_step_5") }}</li>
+        <li>{{ t("guide_step_6") }}</li>
     </ol>
 
-    <p>
-        A rendszer legfontosabb értéke nem önmagában a pontszám,
-        hanem az, hogy közös szakmai nyelvet ad az edzői stáb,
-        a játékos és a fejlesztési folyamat számára.
-    </p>
+    <p>{{ t("guide_conclusion") }}</p>
 </div>
 
-<div style="margin-top: 20px;">
 
+<div style="margin-top: 20px;">
     <a href="{{ url_for('performance.dashboard') }}"
        class="btn btn-secondary">
-        ← Vissza a dashboardra
+        {{ t("back_to_dashboard") }}
     </a>
-
 </div>
 
 {% endblock %}

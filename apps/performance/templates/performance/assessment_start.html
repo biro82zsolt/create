@@ -102,9 +102,16 @@
 
                 {% for player in players %}
                     {% if player.active %}
+
+                        {% set player_team_ids =
+                            ([player.team_id] if player.team_id else [])
+                            +
+                            (player.roster_teams | map(attribute='id') | list)
+                        %}
+
                         <option
                             value="{{ player.id }}"
-                            data-team="{{ player.team_id or '' }}"
+                            data-teams="{{ player_team_ids | unique | list | tojson }}"
                         >
                             {{ player.full_name }}
 
@@ -112,6 +119,7 @@
                                 — {{ player.team.name }}
                             {% endif %}
                         </option>
+
                     {% endif %}
                 {% endfor %}
             </select>
@@ -132,7 +140,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const playerSelect = document.getElementById("player");
 
     const playerOptions = Array.from(
-        playerSelect.querySelectorAll("option[data-team]")
+        playerSelect.querySelectorAll("option[data-teams]")
     );
 
     function filterPlayers() {
@@ -143,22 +151,28 @@ document.addEventListener("DOMContentLoaded", function () {
 
         if (!selectedTeamId) {
             playerSelect.disabled = true;
+
             playerSelect.options[0].textContent =
                 {{ t("assessment_select_team_first") | tojson }};
+
         } else {
             playerSelect.disabled = false;
+
             playerSelect.options[0].textContent =
                 {{ t("assessment_select_player") | tojson }};
         }
 
         playerOptions.forEach(function (option) {
 
-            const playerTeamId = option.dataset.team;
+            const playerTeamIds = JSON.parse(
+                option.dataset.teams
+            ).map(String);
 
-            option.hidden = (
-                !selectedTeamId ||
-                playerTeamId !== selectedTeamId
+            const belongsToTeam = playerTeamIds.includes(
+                String(selectedTeamId)
             );
+
+            option.hidden = !selectedTeamId || !belongsToTeam;
 
         });
 

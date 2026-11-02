@@ -21,6 +21,7 @@ from .services import (
     aggregate_assessments,
     calculate_team_averages,
     calculate_age_group_averages,
+    calculate_roster_team_averages,
     generate_player_pdf,
     calculate_player_insights,
 )
@@ -79,7 +80,8 @@ def dashboard():
 @performance_bp.get("/guide")
 def guide():
     return render_template(
-        "performance/performance_guide.html"
+        "performance/performance_guide.html",
+        mapping_grid = get_mapping_grid()
     )
 
 # ---------------------------------------------------------
@@ -658,11 +660,17 @@ def player_detail(player_id):
         "",
     )
 
+    selected_team_id = request.args.get(
+        "team_id",
+        type=int,
+    )
+
     context = get_player_detail_context(
         player=player,
         view=view,
         period_id=period_id,
         selected_period_ids=selected_period_ids,
+        team_id=selected_team_id,
     )
 
     return render_template(
@@ -723,6 +731,7 @@ def get_player_detail_context(
     view="current",
     period_id=None,
     selected_period_ids="",
+    team_id=None,
 ):
 
     assessments = (
@@ -918,15 +927,48 @@ def get_player_detail_context(
         trend_results.reverse()
 
     # -----------------------------------------------------
-    # AGE GROUP AVERAGES
+    # SELECTED TEAM AVERAGES
     # -----------------------------------------------------
 
-    age_group_averages = None
+    available_teams = []
 
-    if current_period and player.birth_date:
+    if player.team and player.team not in available_teams:
+        available_teams.append(player.team)
 
-        age_group_averages = calculate_age_group_averages(
-            birth_year=player.birth_date.year,
+    for team in player.roster_teams:
+        if team not in available_teams:
+            available_teams.append(team)
+
+    selected_team = next(
+        (
+            team for team in available_teams
+            if team.id == team_id
+        ),
+        None,
+    )
+
+    # Alapértelmezés: elsődleges csapat
+    if selected_team is None:
+        selected_team = (
+            player.team
+            if player.team in available_teams
+            else available_teams[0] if available_teams else None
+        )
+
+    team_averages = None
+
+    if current_period and selected_team:
+        roster_players = {
+            p.id: p
+            for p in (
+                    list(selected_team.players)
+                    + list(selected_team.roster_players)
+            )
+            if p.active
+        }
+
+        team_averages = calculate_roster_team_averages(
+            player_ids=list(roster_players.keys()),
             period_id=current_period.id,
         )
 
@@ -936,11 +978,10 @@ def get_player_detail_context(
 
     insights = None
 
-    if aggregated_result and age_group_averages:
-
+    if aggregated_result and team_averages:
         insights = calculate_player_insights(
             player_attributes=aggregated_result["attributes"],
-            team_attributes=age_group_averages["attributes"],
+            team_attributes=team_averages["attributes"],
         )
 
     # -----------------------------------------------------
@@ -1021,7 +1062,9 @@ def get_player_detail_context(
         # Az aktuális adatlap továbbra is ezt használja
         "aggregated": aggregated_result,
 
-        "team_averages": age_group_averages,
+        "team_averages": team_averages,
+        "available_teams": available_teams,
+        "selected_team": selected_team,
 
         "mapping_grid": get_mapping_grid(),
 

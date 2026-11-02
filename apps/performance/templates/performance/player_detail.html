@@ -871,6 +871,38 @@
         {{ t("current_profile") }}
     </a>
 
+    {% if available_teams|length > 1 %}
+
+    <div class="period-selector">
+
+        <label for="team-select">
+            {{ "Team" if session.get("language", "hu") == "en" else "Csapat" }}
+        </label>
+
+        <select
+            id="team-select"
+            onchange="changeTeam(this.value)"
+        >
+
+            {% for team in available_teams %}
+
+                <option
+                    value="{{ team.id }}"
+                    {% if selected_team and team.id == selected_team.id %}
+                        selected
+                    {% endif %}
+                >
+                    {{ team.name }}
+                </option>
+
+            {% endfor %}
+
+        </select>
+
+    </div>
+
+    {% endif %}
+
 
     {% if available_periods %}
 
@@ -1657,7 +1689,7 @@
                     <div>
 
                         <strong>
-                            {{ result.mapping.name_hu }}
+                            {{ result.mapping.name if session.get('language', 'hu') == 'en' else result.mapping.name_hu }}
                         </strong>
 
                     </div>
@@ -1807,24 +1839,26 @@
 
     <div class="trend-header">
         <div>
-            <h1 class="trend-title">Fejlődési trend</h1>
-            <p class="trend-subtitle">{{ player.full_name }} · eredmények mérési időszakonként</p>
+            <h1 class="trend-title">{{ t("trend_view") }}</h1>
+            <p class="trend-subtitle">
+                {{ player.full_name }} · {{ t("assessment_results") }}
+            </p>
         </div>
     </div>
 
     {% if trend_results %}
 
         <div class="trend-card" style="margin-bottom: 20px;">
-            <h2>Mátrixbeli elmozdulás</h2>
-            <p class="card-subtitle">A pontok a játékos Performance- és Potential-értékét mutatják mérési időszakonként. A vonal az időbeli változást köti össze.</p>
+            <h2>{{ t("trend_matrix_movement") }}</h2>
+            <p class="card-subtitle">{{ t("trend_matrix_description") }}</p>
             <div class="trend-chart-wrap">
                 <canvas id="matrixMovementChart"></canvas>
             </div>
         </div>
 
         <div class="trend-card" style="margin-bottom: 20px;">
-            <h2>Kategóriaeredmények</h2>
-            <p class="card-subtitle">Taktikai, technikai és mentális/viselkedéses eredmények alakulása</p>
+            <h2>{{ t("trend_category_results") }}</h2>
+            <p class="card-subtitle">{{ t("trend_category_description") }}</p>
             <div class="trend-chart-wrap">
                 <canvas id="developmentTrendChart"></canvas>
             </div>
@@ -1834,14 +1868,14 @@
             <table class="trend-table">
                 <thead>
                     <tr>
-                        <th>Mérési időszak</th>
-                        <th>Performance</th>
-                        <th>Potential</th>
-                        <th>Mátrixkategória</th>
-                        <th><span class="trend-category">Taktikai</span></th>
-                        <th><span class="trend-category">Technikai</span></th>
-                        <th><span class="trend-category">Mentalitás</span></th>
-                        <th>Értékelések</th>
+                        <th>{{ t("assessment_period") }}</th>
+                        <th>{{ t("performance") }}</th>
+                        <th>{{ t("potential") }}</th>
+                        <th>{{ t("mapping") }}</th>
+                        <th>{{ t("tactical") }}</th>
+                        <th>{{ t("technical") }}</th>
+                        <th>{{ t("behaviour") }}</th>
+                        <th>{{ t("assessments") }}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -1850,7 +1884,18 @@
                         <td class="trend-period">{{ item.period.name }}</td>
                         <td class="trend-score">{{ "%.2f"|format(item.result.scores.performance) }}</td>
                         <td class="trend-score">{{ "%.2f"|format(item.result.scores.potential) }}</td>
-                        <td>{% if item.result.mapping %}<span class="trend-category" style="color: {{ item.result.mapping.color }};">{{ item.result.mapping.name_hu }}</span>{% else %}—{% endif %}</td>
+                        <td>
+                            {% if item.result.mapping %}
+                                <span class="trend-category"
+                                      style="color: {{ item.result.mapping.color }};">
+                                    {{ item.result.mapping.name
+                                       if session.get("language", "hu") == "en"
+                                       else item.result.mapping.name_hu }}
+                                </span>
+                            {% else %}
+                                —
+                            {% endif %}
+                        </td>
                         <td>{{ "%.2f"|format(item.result.scores.tactical) }}</td>
                         <td>{{ "%.2f"|format(item.result.scores.technical) }}</td>
                         <td>{{ "%.2f"|format(item.result.scores.behaviour) }}</td>
@@ -1862,16 +1907,18 @@
         </div>
 
     {% else %}
-        <p class="trend-empty">Nincs elegendő adat a fejlődési trend megjelenítéséhez.</p>
+        <p class="trend-empty">{{ t("trend_no_data") }}</p>
     {% endif %}
 
     <div class="trend-actions">
-        <a href="{{ url_for('performance.dashboard') }}" class="btn btn-secondary">
-            ← Vissza a dashboardra
+        <a href="{{ url_for('performance.dashboard') }}"
+           class="btn btn-secondary">
+            {{ t("back_to_dashboard") }}
         </a>
 
-        <a href="{{ url_for('performance.player_pdf', player_id=player.id) }}" class="btn btn-secondary">
-            ↓ PDF nyomtatása
+        <a href="{{ url_for('performance.player_pdf', player_id=player.id) }}"
+           class="btn btn-secondary">
+            {{ t("download_pdf") }}
         </a>
     </div>
 
@@ -1887,16 +1934,52 @@
             const {ctx, scales} = chart;
             if (!chart.chartArea || !scales.x || !scales.y) return;
             const cells = [
-                {x0:1,x1:5,y0:7,y1:10,label:'Csiszolatlan gyémánt',color:'#E9C34F'},
-                {x0:5,x1:7,y0:7,y1:10,label:'Feltörekvő tehetség',color:'#55D6A0'},
-                {x0:7,x1:10,y0:7,y1:10,label:'Jövő sztárja',color:'#35659A'},
-                {x0:1,x1:5,y0:5,y1:7,label:'Alulteljesítő',color:'#E05258'},
-                {x0:5,x1:7,y0:5,y1:7,label:'Stabil csapattag',color:'#E9C34F'},
-                {x0:7,x1:10,y0:5,y1:7,label:'Kulcsjátékos',color:'#55D6A0'},
-                {x0:1,x1:5,y0:1,y1:5,label:'Fejlődési kockázat',color:'#C43D4E'},
-                {x0:5,x1:7,y0:1,y1:5,label:'Dolgozó / Küzdő',color:'#E05258'},
-                {x0:7,x1:10,y0:1,y1:5,label:'Túlteljesítő',color:'#E9C34F'}
-            ];
+    {
+        x0:1, x1:5, y0:7, y1:10,
+        label: {{ (mapping_grid[0][0].name if session.get('language', 'hu') == 'en' else mapping_grid[0][0].name_hu)|tojson }},
+        color:'#E9C34F'
+    },
+    {
+        x0:5, x1:7, y0:7, y1:10,
+        label: {{ (mapping_grid[0][1].name if session.get('language', 'hu') == 'en' else mapping_grid[0][1].name_hu)|tojson }},
+        color:'#55D6A0'
+    },
+    {
+        x0:7, x1:10, y0:7, y1:10,
+        label: {{ (mapping_grid[0][2].name if session.get('language', 'hu') == 'en' else mapping_grid[0][2].name_hu)|tojson }},
+        color:'#35659A'
+    },
+    {
+        x0:1, x1:5, y0:5, y1:7,
+        label: {{ (mapping_grid[1][0].name if session.get('language', 'hu') == 'en' else mapping_grid[1][0].name_hu)|tojson }},
+        color:'#E05258'
+    },
+    {
+        x0:5, x1:7, y0:5, y1:7,
+        label: {{ (mapping_grid[1][1].name if session.get('language', 'hu') == 'en' else mapping_grid[1][1].name_hu)|tojson }},
+        color:'#E9C34F'
+    },
+    {
+        x0:7, x1:10, y0:5, y1:7,
+        label: {{ (mapping_grid[1][2].name if session.get('language', 'hu') == 'en' else mapping_grid[1][2].name_hu)|tojson }},
+        color:'#55D6A0'
+    },
+    {
+        x0:1, x1:5, y0:1, y1:5,
+        label: {{ (mapping_grid[2][0].name if session.get('language', 'hu') == 'en' else mapping_grid[2][0].name_hu)|tojson }},
+        color:'#C43D4E'
+    },
+    {
+        x0:5, x1:7, y0:1, y1:5,
+        label: {{ (mapping_grid[2][1].name if session.get('language', 'hu') == 'en' else mapping_grid[2][1].name_hu)|tojson }},
+        color:'#E05258'
+    },
+    {
+        x0:7, x1:10, y0:1, y1:5,
+        label: {{ (mapping_grid[2][2].name if session.get('language', 'hu') == 'en' else mapping_grid[2][2].name_hu)|tojson }},
+        color:'#E9C34F'
+    }
+];
             ctx.save();
             cells.forEach(cell => {
                 const left = scales.x.getPixelForValue(cell.x0);
@@ -1929,7 +2012,7 @@
                         x: {{ item.result.scores.performance|tojson }},
                         y: {{ item.result.scores.potential|tojson }},
                         period: {{ item.period.name|tojson }},
-                        category: {{ (item.result.mapping.name_hu if item.result.mapping else 'Nincs kategória')|tojson }}
+                        category: {{ ((item.result.mapping.name if session.get("language", "hu") == "en" else item.result.mapping.name_hu) if item.result.mapping else "—") | tojson }}
                     }{% if not loop.last %},{% endif %}
                     {% endfor %}
                 ],
@@ -1949,7 +2032,7 @@
                     type: 'linear',
                     min: 1,
                     max: 10,
-                    title: { display: true, text: 'Performance: alacsony → magas' },
+                    title: { display: true, text: 'Performance → ' },
                     ticks: { stepSize: 1 },
                     grid: {
                         color: context => [5, 7].includes(context.tick.value) ? '#64748b' : '#e5e7eb',
@@ -1959,7 +2042,7 @@
                 y: {
                     min: 1,
                     max: 10,
-                    title: { display: true, text: 'Potential: alacsony → magas' },
+                    title: { display: true, text: 'Potential → ' },
                     ticks: { stepSize: 1 },
                     grid: {
                         color: context => [5, 7].includes(context.tick.value) ? '#64748b' : '#e5e7eb',
@@ -1975,8 +2058,8 @@
                             const point = context.raw;
                             return [
                                 point.period,
-                                'Performance: ' + Number(point.x).toFixed(2),
-                                'Potential: ' + Number(point.y).toFixed(2),
+                                {{ t("performance")|tojson }} + ': ' + Number(point.x).toFixed(2),
+                                {{ t("potential")|tojson }} + ': ' + Number(point.y).toFixed(2),
                                 point.category
                             ];
                         }
@@ -1996,7 +2079,7 @@
             ],
             datasets: [
                 {
-                    label: 'Taktikai',
+                    label: {{ t("tactical")|tojson }},
                     data: [
                         {% for item in trend_results %}
                             {{ item.result.scores.tactical|tojson }}{% if not loop.last %},{% endif %}
@@ -2007,7 +2090,7 @@
                     pointRadius: 4
                 },
                 {
-                    label: 'Technikai',
+                    label: {{ t("technical")|tojson }},
                     data: [
                         {% for item in trend_results %}
                             {{ item.result.scores.technical|tojson }}{% if not loop.last %},{% endif %}
@@ -2018,7 +2101,7 @@
                     pointRadius: 4
                 },
                 {
-                    label: 'Mentalitás',
+                    label: {{ t("behaviour")|tojson }},
                     data: [
                         {% for item in trend_results %}
                             {{ item.result.scores.behaviour|tojson }}{% if not loop.last %},{% endif %}
@@ -2854,6 +2937,25 @@ function changePeriod(periodId) {
     url.searchParams.set(
         "period_id",
         periodId
+    );
+
+    url.searchParams.set(
+        "view",
+        "current"
+    );
+
+    window.location.href = url.toString();
+}
+
+    function changeTeam(teamId) {
+
+    const url = new URL(
+        window.location.href
+    );
+
+    url.searchParams.set(
+        "team_id",
+        teamId
     );
 
     url.searchParams.set(

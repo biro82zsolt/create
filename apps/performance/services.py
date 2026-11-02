@@ -492,6 +492,81 @@ def calculate_team_averages(team_id, period_id):
         "scores": team_scores,
     }
 
+
+def calculate_roster_team_averages(player_ids, period_id):
+    """
+    Csapatátlag számítása a kiválasztott csapat aktív játékosai alapján.
+
+    Először játékosonként átlagolja az edzői értékeléseket,
+    majd a játékosokból számít csapatátlagot.
+    """
+
+    if not player_ids:
+        return None
+
+    assessments = (
+        Assessment.query
+        .filter(
+            Assessment.player_id.in_(player_ids),
+            Assessment.period_id == period_id,
+        )
+        .order_by(Assessment.player_id)
+        .all()
+    )
+
+    if not assessments:
+        return None
+
+    player_assessments = {}
+
+    for assessment in assessments:
+        player_assessments.setdefault(
+            assessment.player_id, []
+        ).append(assessment)
+
+    player_ratings = {}
+
+    for player_id, assessment_list in player_assessments.items():
+        ratings = {}
+
+        for field in RATING_FIELDS:
+            values = [
+                getattr(assessment, field)
+                for assessment in assessment_list
+                if getattr(assessment, field) is not None
+            ]
+
+            ratings[field] = (
+                sum(values) / len(values)
+                if values else None
+            )
+
+        player_ratings[player_id] = ratings
+
+    team_attributes = {}
+
+    for field in RATING_FIELDS:
+        values = [
+            ratings[field]
+            for ratings in player_ratings.values()
+            if ratings[field] is not None
+        ]
+
+        team_attributes[field] = (
+            round(sum(values) / len(values), 2)
+            if values else None
+        )
+
+    team_scores = calculate_scores(team_attributes)
+
+    return {
+        "player_count": len(player_ratings),
+        "assessment_count": len(assessments),
+        "attributes": team_attributes,
+        "scores": team_scores,
+    }
+
+
 def calculate_age_group_averages(birth_year, period_id):
     """
     Korosztályátlag számítása születési év és értékelési időszak alapján.

@@ -1,15 +1,43 @@
+
 {% extends "performance/base.html" %}
-{% block title %}Edzői bejelentkezés{% endblock %}
+
+{% block title %}{{ t("coach_login") }}{% endblock %}
+
 {% block content %}
 <div class="card" style="max-width:480px;margin:40px auto;">
-    <h1>Edzői bejelentkezés</h1>
+
+    <h1>{{ t("coach_login") }}</h1>
+
     <form method="post">
-        <label for="username">Felhasználónév</label>
-        <input id="username" name="username" required style="width:100%;margin:8px 0 16px;">
-        <label for="password">Jelszó</label>
-        <input id="password" type="password" name="password" required style="width:100%;margin:8px 0 16px;">
-        <button type="submit">Belépés</button>
+
+        <label for="username">{{ t("username") }}</label>
+        <input
+            id="username"
+            name="username"
+            required
+            autocomplete="username"
+            style="width:100%;margin:8px 0 16px;"
+        >
+
+        <label for="password">{{ t("password") }}</label>
+        <input
+            id="password"
+            type="password"
+            name="password"
+            required
+            autocomplete="current-password"
+            style="width:100%;margin:8px 0 16px;"
+        >
+
+        <button type="submit">{{ t("login") }}</button>
+
     </form>
-    <p><a href="{{ url_for('admin_login') }}">Admin bejelentkezés</a></p>
+
+    <p>
+        <a href="{{ url_for('admin_login') }}">
+            {{ t("admin_login") }}
+        </a>
+    </p>
+
 </div>
 {% endblock %}
