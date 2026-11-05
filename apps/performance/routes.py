@@ -37,6 +37,7 @@ from .models import (
 from .scoring import (
     get_questions_by_category,
     validate_assessment,
+    calculate_scores,
 )
 
 from .mapping import get_mapping_grid
@@ -1653,6 +1654,7 @@ def assessment_save():
         return redirect(
             url_for("performance.assessment_new")
         )
+    calculated_scores = calculate_scores(scores)
 
     # -----------------------------------------------------
     # CHECK DUPLICATE
@@ -1747,6 +1749,11 @@ def assessment_save():
             question["code"]: float(scores[question["code"]])
             for question in get_questions_by_category("potential")
         },
+
+        # Category-level Potential averages
+        tactical_potential=calculated_scores["tactical_potential"],
+        technical_potential=calculated_scores["technical_potential"],
+        behavioural_potential=calculated_scores["behavioural_potential"],
 
         coach_note=request.form.get(
             "coach_note",

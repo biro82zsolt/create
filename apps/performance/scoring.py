@@ -377,6 +377,13 @@ def calculate_scores(scores):
         if code in scores and scores[code] not in (None, "")
     ]
 
+    # Ha van Potential-adat, mind a 26 értéknek kötelezően meg kell lennie.
+    if present_potential and len(present_potential) != len(potential_codes):
+        missing = sorted(set(potential_codes) - set(present_potential))
+        raise ValueError(
+            f"Hiányzó Potential értékelések: {', '.join(missing)}"
+        )
+
     tactical = _average(scores, TACTICAL_QUESTIONS)
     technical = _average(scores, TECHNICAL_QUESTIONS)
     behaviour = _average(scores, BEHAVIOUR_QUESTIONS)

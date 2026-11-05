@@ -1,6 +1,6 @@
 import pytest
 
-from .scoring import (
+from performance.scoring import (
     ALL_QUESTIONS,
     POTENTIAL_QUESTIONS,
     validate_assessment,
