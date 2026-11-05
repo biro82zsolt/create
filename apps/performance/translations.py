@@ -293,6 +293,18 @@ TRANSLATIONS = {
 "perfect_ten_confirm": "Igen, 10-es",
 "perfect_ten_superpower": "Valóban 10 pontot érdemel {player} szuperereje?",
 "validation_answer_all": "Kérlek, válaszolj minden kérdésre ezen az oldalon.",
+"scoring_guide_title": "Pontozási útmutató",
+"scoring_guide_subtitle": "Az 1–10-es pontszámok értelmezése",
+"scoring_guide_10": "Kiemelkedő generációs tehetség, korosztályában abszolút elit",
+"scoring_guide_9": "Országos elit, kiemelkedő teljesítmény, komoly akadémiai/profi potenciál",
+"scoring_guide_8": "Nagyon magas szintű akadémiai játékos, több elit tulajdonsággal",
+"scoring_guide_7": "Erős utánpótlásjátékos, magas szintű klubban is megállja a helyét",
+"scoring_guide_6": "Jó, megbízható korosztályos játékos",
+"scoring_guide_5": "Átlagos szint az adott korosztályban",
+"scoring_guide_4": "Átlag alatti, de fejleszthető",
+"scoring_guide_3": "Jelentős hiányosságokkal rendelkező játékos",
+"scoring_guide_2": "Jelenleg nagyon alacsony szint",
+"scoring_guide_1": "Kezdő szint / nagyon kevés futballspecifikus képesség",
 
 # Fejlődési trend – specifikus feliratok
 "trend_matrix_movement": "Mátrixbeli elmozdulás",
@@ -348,6 +360,7 @@ TRANSLATIONS = {
 "guide_conclusion": "A rendszer legfontosabb értéke nem önmagában a pontszám, hanem az, hogy közös szakmai nyelvet ad az edzői stáb, a játékos és a fejlesztési folyamat számára.",
 "guide_alt_profiles": "A hat játékosprofil áttekintése",
 "guide_alt_mapping": "Performance és Potential mapping mátrix",
+
     },
 
     "en": {
@@ -636,6 +649,18 @@ TRANSLATIONS = {
 "perfect_ten_confirm": "Yes, give it a 10",
 "perfect_ten_superpower": "Does {player}'s superpower really deserve a score of 10?",
 "validation_answer_all": "Please answer all questions on this page.",
+"scoring_guide_title": "Scoring Guide",
+"scoring_guide_subtitle": "Interpreting the 1–10 rating scale",
+"scoring_guide_10": "Outstanding generational talent, absolute elite within the age group",
+"scoring_guide_9": "National elite, outstanding performance, significant academy/professional potential",
+"scoring_guide_8": "Very high-level academy player with several elite attributes",
+"scoring_guide_7": "Strong youth player capable of performing at a high-level club",
+"scoring_guide_6": "Good, reliable player for the age group",
+"scoring_guide_5": "Average level within the age group",
+"scoring_guide_4": "Below average, but with development potential",
+"scoring_guide_3": "Player with significant areas for improvement",
+"scoring_guide_2": "Currently at a very low level",
+"scoring_guide_1": "Beginner level / very limited football-specific ability",
 
 # Development trend – specific labels
 "trend_matrix_movement": "Movement in the Performance × Potential Matrix",
